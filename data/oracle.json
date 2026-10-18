@@ -1,0 +1,363 @@
+{
+  "as_of": "2026-10-15",
+  "timezone": "America/New_York",
+  "currency": "USD",
+  "seed": 20261015,
+  "policy": {
+    "key": "issuer+invoice_id",
+    "overdue": "balance > 0 AND due_date < as_of",
+    "identical_duplicate": "no-op",
+    "inconsistent_duplicate": "flagged",
+    "buckets": [
+      "current",
+      "1-30",
+      "31-60",
+      "61-90",
+      "91+",
+      "paid"
+    ],
+    "reject_reasons": [
+      "empty_row",
+      "missing_required_field",
+      "invalid_amount",
+      "invalid_date",
+      "invalid_currency",
+      "invalid_payment"
+    ]
+  },
+  "row_count": 30,
+  "rows": [
+    {
+      "row": 1,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1001",
+      "amount_cents": 480378,
+      "paid_cents": 0,
+      "remaining_balance_cents": 480378,
+      "days_overdue": 0,
+      "aging_bucket": "current"
+    },
+    {
+      "row": 2,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1002",
+      "amount_cents": 111753,
+      "paid_cents": 0,
+      "remaining_balance_cents": 111753,
+      "days_overdue": 0,
+      "aging_bucket": "current"
+    },
+    {
+      "row": 3,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1003",
+      "amount_cents": 105038,
+      "paid_cents": 0,
+      "remaining_balance_cents": 105038,
+      "days_overdue": 1,
+      "aging_bucket": "1-30"
+    },
+    {
+      "row": 4,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1004",
+      "amount_cents": 231824,
+      "paid_cents": 0,
+      "remaining_balance_cents": 231824,
+      "days_overdue": 30,
+      "aging_bucket": "1-30"
+    },
+    {
+      "row": 5,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1005",
+      "amount_cents": 253172,
+      "paid_cents": 0,
+      "remaining_balance_cents": 253172,
+      "days_overdue": 31,
+      "aging_bucket": "31-60"
+    },
+    {
+      "row": 6,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1006",
+      "amount_cents": 6491,
+      "paid_cents": 0,
+      "remaining_balance_cents": 6491,
+      "days_overdue": 60,
+      "aging_bucket": "31-60"
+    },
+    {
+      "row": 7,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1007",
+      "amount_cents": 430895,
+      "paid_cents": 0,
+      "remaining_balance_cents": 430895,
+      "days_overdue": 61,
+      "aging_bucket": "61-90"
+    },
+    {
+      "row": 8,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1008",
+      "amount_cents": 432836,
+      "paid_cents": 0,
+      "remaining_balance_cents": 432836,
+      "days_overdue": 90,
+      "aging_bucket": "61-90"
+    },
+    {
+      "row": 9,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1009",
+      "amount_cents": 22130,
+      "paid_cents": 0,
+      "remaining_balance_cents": 22130,
+      "days_overdue": 91,
+      "aging_bucket": "91+"
+    },
+    {
+      "row": 10,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1010",
+      "amount_cents": 100000,
+      "paid_cents": 40000,
+      "remaining_balance_cents": 60000,
+      "days_overdue": 30,
+      "aging_bucket": "1-30"
+    },
+    {
+      "row": 11,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1011",
+      "amount_cents": 50000,
+      "paid_cents": 50000,
+      "remaining_balance_cents": 0,
+      "days_overdue": 0,
+      "aging_bucket": "paid"
+    },
+    {
+      "row": 12,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Bright Path Facilities",
+      "invoice_id": "INV-1012",
+      "amount_cents": 200000,
+      "paid_cents": 199999,
+      "remaining_balance_cents": 1,
+      "days_overdue": 91,
+      "aging_bucket": "91+"
+    },
+    {
+      "row": 13,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Bright Path Facilities",
+      "invoice_id": "INV-1013",
+      "amount_cents": 4916,
+      "paid_cents": 0,
+      "remaining_balance_cents": 4916,
+      "days_overdue": 0,
+      "aging_bucket": "current"
+    },
+    {
+      "row": 14,
+      "status": "accepted",
+      "reason": null,
+      "issuer": "Bright Path Facilities",
+      "invoice_id": "INV-1014",
+      "amount_cents": 1,
+      "paid_cents": 0,
+      "remaining_balance_cents": 1,
+      "days_overdue": 31,
+      "aging_bucket": "31-60"
+    },
+    {
+      "row": 15,
+      "status": "duplicate_identical",
+      "reason": "identical_duplicate",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 16,
+      "status": "duplicate_identical",
+      "reason": "identical_duplicate",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 17,
+      "status": "duplicate_inconsistent",
+      "reason": "inconsistent_duplicate",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 18,
+      "status": "duplicate_inconsistent",
+      "reason": "inconsistent_duplicate",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 19,
+      "status": "rejected",
+      "reason": "invalid_amount",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 20,
+      "status": "rejected",
+      "reason": "invalid_amount",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 21,
+      "status": "rejected",
+      "reason": "invalid_amount",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 22,
+      "status": "rejected",
+      "reason": "invalid_date",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 23,
+      "status": "rejected",
+      "reason": "invalid_date",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 24,
+      "status": "rejected",
+      "reason": "invalid_date",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 25,
+      "status": "rejected",
+      "reason": "missing_required_field",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 26,
+      "status": "rejected",
+      "reason": "invalid_currency",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 27,
+      "status": "rejected",
+      "reason": "invalid_payment",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 28,
+      "status": "rejected",
+      "reason": "invalid_payment",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 29,
+      "status": "rejected",
+      "reason": "empty_row",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    },
+    {
+      "row": 30,
+      "status": "rejected",
+      "reason": "empty_row",
+      "remaining_balance_cents": null,
+      "days_overdue": null,
+      "aging_bucket": null
+    }
+  ],
+  "totals": {
+    "total_rows": 30,
+    "accepted": 14,
+    "rejected": 12,
+    "duplicate_identical": 2,
+    "duplicate_inconsistent": 2,
+    "outstanding_invoice_count": 13,
+    "total_outstanding_cents": 2139435,
+    "total_paid_cents": 289999,
+    "aging": {
+      "current": {
+        "count": 3,
+        "remaining_cents": 597047
+      },
+      "1-30": {
+        "count": 3,
+        "remaining_cents": 396862
+      },
+      "31-60": {
+        "count": 3,
+        "remaining_cents": 259664
+      },
+      "61-90": {
+        "count": 2,
+        "remaining_cents": 863731
+      },
+      "91+": {
+        "count": 2,
+        "remaining_cents": 22131
+      },
+      "paid": {
+        "count": 1,
+        "remaining_cents": 0
+      }
+    }
+  }
+}
