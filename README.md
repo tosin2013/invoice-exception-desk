@@ -1,10 +1,23 @@
-# SpecKit OpenCode R0 trial artifacts
+# Invoice Exception Desk: a GitHub Spec Kit learning example
 
-Unedited free-model outputs from the OpenCode SpecKit R0 trial.
+**Goal:** a developer guide that goes from simple to complex, plus a real worked example using [GitHub Spec Kit](https://github.com/github/spec-kit). It's written while learning, mistakes included. The invoice-exceptions business case is only there to ground the example.
 
-Start here: **[PACKET.md](PACKET.md)** — review packet, pins, and artifact list.
+📖 **Guide:** [project wiki](https://github.com/tosin2013/invoice-exception-desk/wiki)
 
-Do not treat these files as independently verified correctness evidence; see PACKET.md and R0_REPORT.md.
+## Level map
+
+| Level | Wiki page |
+|---|---|
+| L1 Setup | [L1 Setup](https://github.com/tosin2013/invoice-exception-desk/wiki/L1-Setup) |
+| L2 First feature | coming soon |
+| L3 Real project (Invoice Exception Desk) | [R0 Results and Lessons](https://github.com/tosin2013/invoice-exception-desk/wiki/R0-Results-and-Lessons) |
+| L4 Maintenance | coming soon |
+
+Reference: [Agent Integrations vs Extensions](https://github.com/tosin2013/invoice-exception-desk/wiki/Agent-Integrations-vs-Extensions)
+
+## Current state
+
+This repo holds the **R0 (Discovery) artifacts**. They're **unedited outputs from a free model** (OpenCode with `opencode/deepseek-v4.1-flash-free`). The oracle and tests were written by the same agent that did the work, so they're self-graded and **not independently verified evidence of correctness**. See [R0 Results and Lessons](https://github.com/tosin2013/invoice-exception-desk/wiki/R0-Results-and-Lessons), plus [PACKET.md](PACKET.md) and [R0_REPORT.md](R0_REPORT.md).
 
 ## Redactions
 
