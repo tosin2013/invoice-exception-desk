@@ -6,10 +6,10 @@ title: "L1: Setup"
 
 [← Home](index.md)
 
-**You are here if** you're starting a new project with Spec Kit.
-**You should already have** Python 3.11+, [uv](https://github.github.io/spec-kit/install/uv.html), Git, and an AI coding agent.
-**You leave with** a Spec Kit project connected to one agent, plus a first constitution.
-**Existing code?** Do L0: Start from an existing repo first *(coming soon)*.
+- **You are here if** you're starting a new project with Spec Kit.
+- **You should already have** Python 3.11+, [uv](https://github.github.io/spec-kit/install/uv.html), Git, and an AI coding agent.
+- **You leave with** a Spec Kit project connected to one agent, plus a first constitution.
+- **Existing code?** Do L0: Start from an existing repo first *(coming soon)*.
 
 > **Status: partly written.** Sections marked TODO aren't finished yet.
 
