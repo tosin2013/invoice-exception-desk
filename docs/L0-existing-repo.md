@@ -8,65 +8,72 @@ title: "L0: Start from an existing repo"
 
 - **You are here if** you have a real codebase with existing code and tests, and no Spec Kit yet.
 - **You should already have** Git, Python 3.11+ with [uv](https://github.github.io/spec-kit/install/uv.html), the `specify` CLI (see [L1](L1-setup.md) step 1), an AI coding agent, and a passing (or at least known) test suite.
-- **You leave with** Spec Kit installed in place, a constitution written from your real code, a recorded test baseline, and one pilot feature built and checked against an answer key you wrote yourself.
+- **You leave with** Spec Kit installed in place, a constitution written from your real code, a recorded test baseline, and one pilot feature built by a free model and checked against an answer key it never saw.
 - **Stuck on** install syntax → [L1: Setup](L1-setup.md). An agent hanging or failing → see "What went wrong" below.
 
-Starting from an existing repo is the hardest way to begin with Spec Kit, because the agent has to respect decisions that were made long before it arrived. This page walks through six steps, using a real trial run as the example.
+> **Follow along**
+> - Start: [`l0-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l0-start) is python-slugify at upstream commit `35aca63`, before Spec Kit.
+> - Solution: [`l0-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l0-solution) has one commit per step (inventory → init → constitution → feature).
+>
+> ```bash
+> git clone https://github.com/tosin2013/invoice-exception-desk.git
+> cd invoice-exception-desk
+> git switch l0-start        # starting point
+> git switch l0-solution     # finished result; see each step with: git log --oneline
+> ```
+>
+> The example is [un33k/python-slugify](https://github.com/un33k/python-slugify) (MIT license). It's credited in the branch's `NOTICE` file, and nothing was pushed to the upstream project.
 
-> **About the example.** We ran these steps on [un33k/python-slugify](https://github.com/un33k/python-slugify) (MIT license), a small Python library with a command-line tool and a strict `AGENTS.md`. The work happened in a local clone and nothing was pushed upstream. The agent was **OpenCode 1.19.3 with a free model** (`opencode/deepseek-v4.1-flash-free`), and we used specify-cli 1.1.3. The results come from one run, graded only against our own answer key and the project's tests. **They are not independently certified beyond that.**
+## The idea: who does what
 
-## The short version (for seniors)
+Starting from an existing repo is the hardest way to begin, because the agent has to respect decisions made long before it arrived. The split that worked for us:
 
-1. Take inventory before you install anything.
-2. Install in place, scoped to what you'll change.
-3. Write the constitution from the code; every rule must point to a file that already follows it.
-4. Record a test baseline.
-5. Adopt forward: only spec new work.
-6. Pick a small pilot feature, write an independent answer key **before** the build, and land the spec and the code in the same commit.
+| Role | Does | Why |
+|---|---|---|
+| **Human or strong model** | Constitution, spec, plan | These are judgment calls: what matters, what must not change, and how to fit into existing code. |
+| **Free model** (OpenCode with `opencode/deepseek-v4.1-flash-free`) | Inventory, tasks, implementation, running tests | This is mechanical work with clear instructions. It's cheap and fast. |
+| **Reviewer** (not the builder) | Answer key before the build, grading after | Tests the builder writes for its own code only prove it agrees with itself. |
 
-In our trial, the pilot passed **8/8** answer-key cases, and the original tests stayed at **133 passed, 5 skipped** before and after. Along the way we hit a hang, two connection resets, a false claim, and a plan bug. Details are below.
+We tried both ways on the same repo, and the results are below. **These are results from one run of a free model, graded only against our own answer key and the project's tests. They are not independently certified beyond that.**
 
-## Step by step
+## Step by step (recommended path)
 
-### Step 0: Take inventory (change nothing)
+| Step | Who does this step | What |
+|---|---|---|
+| 0 Inventory | Free model | Read the repo and change nothing |
+| 1 Install | Human | `specify init --here --integration opencode` |
+| 2 Constitution | **Human or strong model** | Rules written from the code |
+| 3 Baseline | Human or free model | Run the tests and record the numbers |
+| 4 Adopt forward | Human | Spec only new work |
+| 5a Answer key | **Reviewer** | Hidden expected results, written before the build |
+| 5b Spec and plan | **Human or strong model** | What to build, and exactly how it fits |
+| 5c Tasks and implement | **Free model** | `/speckit.tasks`, `/speckit.implement` |
+| 6 Grade and commit check | **Reviewer** | Answer key, baseline rerun, one commit |
 
-Ask the agent to read the repo and write down what's already true: conventions (with file paths), how tests run, no-go areas, and the smallest folder a new feature would touch.
+### Step 0: Take inventory (free model, change nothing)
 
 ```bash
 opencode run -m opencode/deepseek-v4.1-flash-free \
   "Do NOT install or change anything. Write INVENTORY.md: conventions (cite files), how tests run, no-go areas, smallest scope for a new CLI feature." < /dev/null
 ```
 
-**What happened:** after retries, it produced a solid 41-line inventory. It correctly found the frozen files (`slugify/_legacy.py`, `tests/test_legacy.py`), the "never push to `master`" rule, and the right scope (`slugify/__main__.py` plus a new test file).
+The free model did this well. It found the frozen files (`slugify/_legacy.py`, `tests/test_legacy.py`), the "never push to `master`" rule, and the right scope.
 
-### Step 1: Install in place
-
-```bash
-specify init --here --integration opencode
-```
-
-Add `--force` if the folder isn't empty (it never is in an existing repo), and `--non-interactive` in scripts. In a monorepo, run this inside the service you're about to change, not at the root.
-
-**What happened:** it took 1 second and only added `.opencode/commands/` and `.specify/`. No code changed.
-
-> **Confusion point: dot or hyphen?** With the OpenCode integration, the commands are **`/speckit.constitution`, `/speckit.plan`** and so on, with a dot. Skills-based agents use `/speckit-<command>`. From a script, OpenCode takes `--command speckit.plan`. Check your agent's command folder to see which form it uses.
-
-### Step 2: Write the constitution from the code
-
-The **constitution** is the project's ground rules. In an existing repo, it must describe what *already* exists and what the agent must not touch. Otherwise the agent starts inventing a new architecture next to the old one.
-
-Test for every rule: *can I point to a file that already follows it?*
+### Step 1: Install in place (human)
 
 ```bash
-opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.constitution \
-  "Existing repo. Write the constitution FROM THE CODE. Every principle must cite an existing file that already obeys it. Don't change code." < /dev/null
+specify init --here --integration opencode --force
 ```
 
-**What happened:** it wrote five principles (legacy output is frozen, modern behaviour is opt-in, keep the public API and CLI compatible, single-source packaging with strict typing, and evidence-based validation). Every cited file existed, and the line numbers we spot-checked were accurate.
+`--force` is needed because the folder isn't empty. Add `--non-interactive` in scripts. In a monorepo, run this inside the service you'll change. It only added `.opencode/commands/` and `.specify/`.
 
-### Step 3: Record a test baseline
+> **Confusion point: dot or hyphen?** OpenCode's commands are **`/speckit.constitution`, `/speckit.tasks`** and so on, with a dot. Skills-based agents use `/speckit-<command>`. From a script, use `opencode run --command speckit.tasks`.
 
-Run the tests *before* any change and write the numbers down, so you can tell later whether a failure is new.
+### Step 2: Constitution (human or strong model)
+
+The **constitution** is the project's ground rules. In an existing repo, it describes what *already* exists. The test for every rule is *can I point to a file that already follows it?* Our five rules were: legacy output is frozen; new behaviour is opt-in; the CLI argument shape is a contract (backed by an existing test); new tests go in new files; standard library first, with strict typing. Each rule names its evidence file. See it in [`.specify/memory/constitution.md`](https://github.com/tosin2013/invoice-exception-desk/blob/l0-solution/.specify/memory/constitution.md).
+
+### Step 3: Baseline
 
 ```bash
 python -m pytest -q
@@ -74,68 +81,74 @@ python -m pytest -q
 
 **Baseline:** 133 passed, 5 skipped, 136 subtests passed.
 
-### Step 4: Adopt forward (don't backfill)
+### Step 4: Adopt forward
 
-Don't write specs for everything that already exists. Start with the next feature. Only backfill specs for the high-risk areas you're about to change.
+Only spec new work. Don't backfill specs for existing behaviour, except in high-risk areas you're about to change.
 
-### Step 5: Pilot feature, with an independent answer key
+### Step 5: Pilot feature
 
-Pick something small, real, and easy to check. Ours was a new **`--lines`** option: with `--stdin`, slugify each line separately and print one result per line, skip blank lines, make `--lines` without `--stdin` a usage error, and leave everything unchanged when the flag isn't used.
+**Feature:** an opt-in `--json` flag. `slugify --json Hello World` prints `{"input": "Hello World", "slug": "hello-world"}`.
 
-**Before the agent builds anything**, the reviewer writes an **answer key**: a small set of inputs and expected outputs that the builder never sees. Ours had 8 cases (basic use, blank lines, options applying per line, the usage error, unchanged behaviour, max length, the modern algorithm, and line order). This matters because tests the agent writes for its own code only prove the agent agrees with itself. See the R0 lesson on the [wiki](https://github.com/tosin2013/invoice-exception-desk/wiki/R0-Results-and-Lessons).
+**5a. Answer key (reviewer).** Eight hidden cases, written before the build: exact output, options applied, stdin input, empty input, non-ASCII escaping, max length, unchanged output without the flag, and an unchanged argument shape. The builder never saw them.
 
-Then run the phases:
+**5b. Spec and plan (human or strong model).** We wrote [`spec.md`](https://github.com/tosin2013/invoice-exception-desk/blob/l0-solution/specs/001-cli-json/spec.md) and [`plan.md`](https://github.com/tosin2013/invoice-exception-desk/blob/l0-solution/specs/001-cli-json/plan.md) in Spec Kit format. The plan names the exact files (`slugify/__main__.py` and one new test file), says "nothing else", and spells out the one tricky detail: declare the flag with `default=argparse.SUPPRESS` so an existing frozen test keeps passing.
+
+**5c. Tasks and implement (free model).**
 
 ```bash
-opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.specify "Spec ONLY this new feature: ..." < /dev/null
-opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.plan "..." < /dev/null
-opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.tasks "..." < /dev/null
-opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.implement "Make exactly ONE commit with the spec folder and the code." < /dev/null
+opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.tasks \
+  "Generate tasks from the existing spec.md and plan.md. Do not change them." < /dev/null
+opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.implement \
+  "Implement all tasks. Run the tests. Make exactly ONE commit with the spec folder and the code. Do not push." < /dev/null
 ```
 
-| Phase | Time | Result |
-|---|---|---|
-| specify | 31s | 3 user stories, 10 requirements |
-| plan | 152s | Plan, research, contract and quickstart files |
-| tasks | 122s | 16 tasks, and it caught a plan bug |
-| implement | 196s | Code, 11 new tests, README note, one commit |
+Tasks produced 14 tasks in 52 seconds (after one connection-reset retry). Implement took 95 seconds and changed only the two planned files.
 
-### Step 6: The spec and the behaviour land together
-
-From day one: a behaviour change and its spec change go in the **same commit or PR**. That way the spec can't quietly fall out of date.
-
-**What happened:** pass. One commit contained the `specs/001-cli-lines-option/` folder, the code change, and the new tests.
-
-## Results
+### Step 6: Grade, rerun the baseline, check the commit (reviewer)
 
 | Check | Result |
 |---|---|
-| Reviewer's answer key (8 cases) | **8/8 pass** (2/8 before the build) |
-| Original tests, before | 133 passed, 5 skipped |
-| Original tests, after | 133 passed, 5 skipped (unchanged) |
-| All tests after (with the 11 new ones) | 144 passed, 5 skipped |
-| Frozen legacy files touched? | No |
-| Spec and code in one commit? | Yes |
+| Answer key | **8/8 pass** (2/8 before the build) |
+| Original tests after | 133 passed, 5 skipped (unchanged) |
+| All tests after | 140 passed, 5 skipped (7 new) |
+| Files changed | Only `slugify/__main__.py` and the new `tests/test_cli_json.py` (plus the spec folder) |
+| Spec and code in one commit? | Yes ([commit](https://github.com/tosin2013/invoice-exception-desk/commit/dc992f00d1c29d654fa96a23fcbbda7c5dc5edf8)) |
+| Frozen files touched? | No |
 
-## What went wrong (and what to do about it)
+## Comparison: what happens if the free model plans too
 
-1. **`opencode run` hung for about 11 minutes** with no model call when run from a script. It seemed to be waiting for input. **Fix:** add `< /dev/null`.
-2. **"Connection reset by server" twice.** These were provider hiccups, not token limits. A plain retry worked.
-3. **A false claim.** The plan's report said it had created a git branch. It hadn't. **Lesson:** check what the agent says against `git`.
-4. **A plan bug, caught by the existing tests' rules.** The plan's design would have broken a frozen test. The tasks step noticed and fixed it. **Lesson:** this is why the constitution has to cite real files and tests.
-5. **Small scope creep.** Implement also edited the README and installed extra lint and type-check tools that we hadn't asked for. It did report both, but you should still review the full diff.
-6. **Partial coverage.** Only one Python version and the default backend were tested, not the project's full tox matrix. The agent said so itself.
+In an earlier run, the free model wrote the constitution, spec, *and* plan itself, for a different pilot (a `--lines` option).
 
-Total time was about 26 minutes, with roughly half of that lost to the hang and the retries.
+| | Run 1: free model plans | Run 2: human/strong plans (recommended) |
+|---|---|---|
+| Answer key | 8/8 | 8/8 |
+| Original tests | Unchanged (133 passed) | Unchanged (133 passed) |
+| Plan bug | **Yes.** Its design would have broken a frozen test; the tasks step caught it. | None. The plan named the tricky detail up front. |
+| False claims | **Yes.** It said it had created a git branch; it hadn't. | None found. |
+| Extra edits | **Yes.** Edited the README, and installed lint and type tools unasked. | None. Only the planned files changed. |
+| Free-model time (specify/plan through implement) | About 8 min (31 + 152 + 122 + 196 seconds) | About 2.5 min (52 + 95 seconds), plus the human's writing time |
+| Odd output | An unrelated "Generated with Dojo" footer | None |
+
+**Takeaway:** both runs passed, but the free model behaved much better when it was given a clear spec and plan. It drifted when it had to make judgment calls itself.
+
+## What went wrong (in both runs)
+
+1. **`opencode run` hung for about 11 minutes** when run from a script, because it was waiting for input. **Fix:** always add `< /dev/null`.
+2. **"Connection reset by server"** happened three times across the runs. These were provider hiccups, not token limits, and a plain retry worked.
+3. **The builder went looking outside the repo.** In a related run (L1), the free model tried to list the parent folder where the answer key was kept. OpenCode's own permission check blocked it, so the key stayed unseen. **Lesson:** keep the answer key outside the repo, and ideally on another machine.
+4. **Partial coverage.** Only one Python version and the default backend were tested, not the project's full tox matrix.
+
+The free model never ran out of tokens and was never rate limited.
 
 ## Checklist
 
 - [ ] Inventory written, nothing changed
 - [ ] `specify init --here --integration <key>` run inside the right scope
-- [ ] Constitution rules each cite an existing file
+- [ ] Constitution written by a human or strong model, with each rule citing a file
 - [ ] Baseline test numbers recorded
-- [ ] Answer key written by someone other than the builder, before the build
-- [ ] Spec and code in the same commit
-- [ ] Answer key and baseline rerun after the build
+- [ ] Answer key written by the reviewer, before the build, kept outside the repo
+- [ ] Spec and plan written by a human or strong model, naming exact files and "nothing else"
+- [ ] Free model runs only `/speckit.tasks` and `/speckit.implement`
+- [ ] Answer key and baseline rerun, with spec and code in one commit
 
-Next: [L1: Setup](L1-setup.md) if you're also new to the CLI, or L2: First feature *(coming soon)*. Back to [Home](index.md).
+L3 branches for the Invoice Exception Desk walkthrough are coming. Next: [L1: Setup](L1-setup.md), or L2: First feature *(coming soon)*. Back to [Home](index.md).
