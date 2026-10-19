@@ -140,6 +140,24 @@ In an earlier run, the free model wrote the constitution, spec, *and* plan itsel
 
 The free model never ran out of tokens and was never rate limited.
 
+## What's next after L0
+
+After L0 you have the setup done. From here, **every new change follows the same loop**:
+
+**spec → plan → tasks → build → review**
+
+Scope each loop to the area you're touching, not the whole repo.
+
+- **Don't backfill.** Leave old code without specs unless an area is risky and you're about to change it.
+- **Specs grow with the code.** Each feature adds its own `specs/NNN-name/` folder, so coverage builds up over time.
+- **Keep them in step.** A behaviour change and its spec change land in the **same PR**.
+
+To go deeper:
+- L2: First feature, end to end *(coming soon)*
+- L4: Maintenance and spec changes over time *(coming soon)*
+
+**How this differs from L3 (the Invoice Exception Desk).** The core loop is the same, but the starting point isn't. L0 starts by *taking stock* of code that already exists. L3 starts by *designing the whole app*: a constitution, a whole-app spec, and a phased roadmap (R0 to R6), where each phase gets its own plan and its own answer key.
+
 ## Checklist
 
 - [ ] Inventory written, nothing changed
