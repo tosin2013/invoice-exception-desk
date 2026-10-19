@@ -1,0 +1,9 @@
+This branch contains a copy of python-slugify by Val Neekman / Neekware Inc.
+Upstream: https://github.com/un33k/python-slugify
+Upstream commit: 35aca63fc2672cba2c739ff6dff685a4f26a4f9a
+License: MIT (see LICENSE, unchanged).
+
+It is used as a teaching example in the Spec Kit Developer Guide
+(https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html).
+Changes after the first commit on this branch were made for that guide
+and are not part of, or endorsed by, the upstream project.
