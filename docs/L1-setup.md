@@ -59,7 +59,9 @@ uv tool install specify-cli
 specify version
 ```
 
-This guide was checked against **specify-cli 1.1.3** (2026-10-18). If your version is different, trust your own `specify init --help` over this page.
+This guide was checked against **specify-cli 1.1.3** and **OpenCode 1.19.3** (2026-10-18). If your versions are different, trust your own `specify init --help` over this page.
+
+> **Heads-up for OpenCode v2:** the scripted form `opencode run --command speckit.<command>` used on this page worked with OpenCode 1.19.3. There's an open Spec Kit bug report that OpenCode v2 removed `run --command` ([spec-kit issue #4639](https://github.com/github/spec-kit/issues/4639)). If you're on v2, run the `/speckit.*` commands in OpenCode's chat instead, or install a 1.x version.
 
 ## 2. Create a project and pick your agent
 

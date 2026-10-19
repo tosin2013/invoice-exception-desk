@@ -4,7 +4,7 @@ title: Home
 
 # Spec Kit Developer Guide
 
-Welcome! This guide follows one real project, the **Invoice Exception Desk**, from simple to complex using [GitHub Spec Kit](https://github.com/github/spec-kit). It's written while learning, so it also records the places where things got confusing.
+Welcome! This guide teaches [GitHub Spec Kit](https://github.com/github/spec-kit) from simple to complex. It starts with two small onboarding exercises (L0 adds a feature to the open-source `python-slugify` library, and L1 builds a tiny `split_bill` app), then moves to one real multi-feature project, the **Invoice Exception Desk**, from L3 on. It's written while learning, so it also records the places where things got confusing.
 
 ## Who this is for
 
@@ -27,19 +27,36 @@ flowchart LR
   lpG -->|next change| lpB
 ```
 
-## Should this work use SDD at all?
+## The Decision Gate: should this project use Spec Kit at all?
 
-> **Draft, pending Muse's text.** This gate is a short summary and will be replaced by the full "Spec Kit guide additions v0.1" text.
+Spec Kit is not free. Writing the spec, the plan, and the acceptance tests costs real time before a line of code exists, and that cost is only repaid when the cost of building the WRONG thing is higher. Run this gate before Level 0. Answer honestly — the gate has no prize for yes.
 
-Ask yourself five questions:
+**1. Can you say, in advance, what "done" looks like as checkable outcomes?**
+Not a vibe — outcomes a test or a reviewer could pass or fail. If the work is exploratory ("let's see what's possible"), a spec will slow you down and teach you nothing the prototype wouldn't. Prototype first; specify when the shape is known.
 
-1. Will anyone have to maintain this?
-2. What does it cost if it's wrong?
-3. Does it cross a service, team or data-schema boundary?
-4. Can you describe the requirement before the code exists?
-5. How much important context lives outside the prompt?
+**2. Is the work bigger than one sitting?**
+If one person, or one agent session, can hold the whole change in mind and verify it by reading it, the ceremony buys nothing. Spec Kit earns its keep when the work spans sessions, agents, or weeks — when no single reader holds the whole thing.
 
-Then pick a tier:
+**3. Will someone other than the builder check the result?**
+This is the gate most projects fail quietly. In our own first trial, the model wrote the code, the oracle, AND the tests — and unsurprisingly passed. That demonstrates scaffolding, not capability. If the same hands write the spec, the code, and the answer key, label the result self-graded and do not call it verified. Independent checking can be a second model, a frozen fixture written before the run, or a human with the acceptance list — but it must be independent.
+
+**4. Are the expensive mistakes the quiet kind?**
+Crashes announce themselves. A totals column that is plausibly wrong, a rule applied almost everywhere, behavior that drifts a little each iteration — those are the failures specs and acceptance tests exist to catch. If your project's real risk is quiet wrongness, specify. If its risk is loud failure, ordinary tests are cheaper.
+
+**5. Do you have one frozen example to specify against?**
+A worked case — real data, a prior implementation, a hand-checked fixture — anchors everything. Specs written without an anchor drift into describing the system you wish you had.
+
+**Reading your answers**
+
+- **Mostly yes:** proceed to Level 0. The levels ahead assume these conditions.
+- **Yes except #3:** proceed, but add an independent check before anything is called done — and say "self-graded" out loud until you do.
+- **No on #1 or #2:** don't adopt yet. That's a real answer, not a failure; the guide will still be here when the project grows into the shape where specifying pays.
+
+*Spec Kit doesn't make a model honest. It makes dishonesty easier to catch — if someone else is holding the answer key.*
+
+### If you proceed: how much SDD?
+
+Pick a tier:
 
 | Tier | When | What it looks like |
 |---|---|---|

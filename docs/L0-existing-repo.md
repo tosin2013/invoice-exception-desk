@@ -85,7 +85,7 @@ specify init --here --integration opencode --force
 
 `--force` is needed because the folder isn't empty. Add `--non-interactive` in scripts. In a monorepo, run this inside the service you'll change. It only added `.opencode/commands/` and `.specify/`.
 
-> **Confusion point: dot or hyphen?** OpenCode's commands are **`/speckit.constitution`, `/speckit.tasks`** and so on, with a dot. Skills-based agents use `/speckit-<command>`. From a script, use `opencode run --command speckit.tasks`.
+> **Confusion point: dot or hyphen?** OpenCode's commands are **`/speckit.constitution`, `/speckit.tasks`** and so on, with a dot. Skills-based agents use `/speckit-<command>`. From a script, use `opencode run --command speckit.tasks`. That worked with OpenCode 1.19.3, the version used here; OpenCode v2 reportedly removed `run --command` ([spec-kit issue #4639](https://github.com/github/spec-kit/issues/4639)), so check your version.
 
 ### Step 2: Constitution (human or strong model)
 
@@ -137,6 +137,8 @@ Tasks produced 14 tasks in 52 seconds (after one connection-reset retry). Implem
 
 In an earlier run, the free model wrote the constitution, spec, *and* plan itself, for a different pilot (a `--lines` option).
 
+> **Read this as two examples, not a controlled experiment.** The two runs built different features (`--lines` and `--json`), and the human's planning time in Run 2 wasn't counted. So the table can't prove one setup is faster or better. What it does show is the kinds of drift we saw when the free model made the judgment calls itself.
+
 | | Run 1: free model plans | Run 2: human/strong plans (recommended) |
 |---|---|---|
 | Answer key | 8/8 | 8/8 |
@@ -147,7 +149,7 @@ In an earlier run, the free model wrote the constitution, spec, *and* plan itsel
 | Free-model time (specify/plan through implement) | About 8 min (31 + 152 + 122 + 196 seconds) | About 2.5 min (52 + 95 seconds), plus the human's writing time |
 | Odd output | An unrelated "Generated with Dojo" footer | None |
 
-**Takeaway:** both runs passed, but the free model behaved much better when it was given a clear spec and plan. It drifted when it had to make judgment calls itself.
+**Takeaway:** both runs passed. In these two examples, the free model drifted (a plan bug, a false claim, unasked edits) when it made the judgment calls itself, and we saw none of that when it was given a clear spec and plan.
 
 ## What went wrong (in both runs)
 
