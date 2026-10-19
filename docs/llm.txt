@@ -1,13 +1,13 @@
 # Spec Kit Developer Guide
 
-> A friendly, hands-on guide to Spec-Driven Development (SDD) with GitHub Spec Kit. It follows one real project from simple to complex, and the work is split three ways: a human or strong model writes the constitution, spec, plan, and answer key; a free model (OpenCode with opencode/deepseek-v4.1-flash-free) runs tasks and implement; and a separate reviewer grades the result against a hidden answer key.
+> A friendly, hands-on guide to Spec-Driven Development (SDD) with GitHub Spec Kit. It goes from simple to complex: two small onboarding exercises (L0 on python-slugify, L1 a tiny split_bill app), then one real multi-feature project, the Invoice Exception Desk, from L3 on. The work is split three ways: a human or strong model writes the constitution, spec, plan, and answer key; a free model (OpenCode with opencode/deepseek-v4.1-flash-free) runs tasks and implement; and a separate reviewer grades the result against a hidden answer key.
 
-The guide is written while learning, so it records the confusing points too. The audience is practicing senior engineers who already use AI coding agents, with full step-by-step help for mid-level developers. Results come from real free-model runs, graded only against the reviewer's answer keys and the projects' own tests. They are not independently certified beyond that. Commands were checked against specify-cli 1.1.3.
+The guide is written while learning, so it records the confusing points too. The audience is practicing senior engineers who already use AI coding agents, with full step-by-step help for mid-level developers. Results come from real free-model runs, graded only against the reviewer's answer keys and the projects' own tests. They are not independently certified beyond that. Commands were checked against specify-cli 1.1.3 and OpenCode 1.19.3. OpenCode v2 reportedly removed opencode run --command (github/spec-kit#4639).
 
 ## Guide
 
 - [Home](https://tosin2013.github.io/invoice-exception-desk/): Should this work use SDD at all (a decision gate), the Spec Kit loop, and a router by project stage
-- [L0: Start from an existing repo](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html): Brownfield adoption in six steps on python-slugify, comparing a run where the free model planned with the recommended split
+- [L0: Start from an existing repo](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html): Brownfield adoption in six steps on python-slugify, with two example runs (free model plans vs the recommended split), not a controlled experiment
 - [L1: Setup](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html): Install specify-cli, run specify init --integration opencode, use the dot-syntax commands (/speckit.tasks), and build a tiny first feature
 
 ## Example branches

@@ -85,7 +85,6 @@ specify init my-project --non-interactive         # no prompts (defaults to Copi
 
 `/speckit-*` commands are run **in your agent's chat**, not in the terminal. The exact syntax depends on the agent. Skills-based agents use `/speckit-<command>` (or `$speckit-<command>`), while OpenCode's command integration uses **`/speckit.<command>`** with a dot (for example `/speckit.constitution`). Check your agent's command folder.
 
-- [ ] TODO: note the model used in this project's trial (an OpenCode free model).
 
 ## 4. Write a constitution
 
@@ -161,7 +160,7 @@ Always add `< /dev/null` when you run it from a script; otherwise it can hang wa
 
 Run the answer key and the tests, and look at the commit (`git show --stat HEAD`).
 
-**Our real result:** tasks took 52 seconds (11 tasks) and implement took 95 seconds. The answer key passed **10/10**, the free model's own tests passed (9), and the spec and code landed in one commit. One honest note: on our first try, the free model tried to look in the parent folder, where the answer key was kept. OpenCode's permission check blocked it. That's why the key lives outside the repo. *(These are results from one free-model run, checked only against our own answer key.)*
+**Our real result:** tasks took 51 seconds (11 tasks) and implement took 95 seconds (on the second try; a first try stopped after 17 seconds because our Python environment wasn't set up). The answer key passed **10/10**, the free model's own tests passed (9), and the spec and code landed in one commit. One honest note: on our first try, the free model tried to look in the parent folder, where the answer key was kept. OpenCode's permission check blocked it. That's why the key lives outside the repo. *(These are results from one free-model run, checked only against our own answer key.)*
 
 **Stuck?** Check `specify version` and `specify check`, then the [Installation docs](https://github.github.io/spec-kit/installation.html).
 
