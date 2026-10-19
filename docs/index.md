@@ -75,6 +75,7 @@ Pick a tier:
 | Ready to build your first feature | **L2: First feature, end to end** *(coming soon)* |
 | Working on a real multi-feature project | **L3: Invoice Exception Desk walkthrough** *(coming soon)* |
 | Changing specs after code exists | **L4: Maintenance** *(coming soon)* |
+| Ready to let agents work unattended | **L5: Walk away, unattended issue-to-PR automation** *(proposed — pending review; untested)* |
 | Mixing agents or using the Copilot coding agent | **Advanced** *(coming soon)* |
 
 Until those pages move here, the [project wiki](https://github.com/tosin2013/invoice-exception-desk/wiki) has the current drafts, including R0 Results and Lessons and Multi-Agent Workflow.
