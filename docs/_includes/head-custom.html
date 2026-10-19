@@ -1,0 +1,14 @@
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: false, theme: "neutral" });
+  document.addEventListener("DOMContentLoaded", async () => {
+    document.querySelectorAll("div.language-mermaid, pre > code.language-mermaid").forEach((el) => {
+      const box = el.tagName === "CODE" ? el.parentElement : el;
+      const d = document.createElement("div");
+      d.className = "mermaid";
+      d.textContent = el.textContent;
+      box.replaceWith(d);
+    });
+    await mermaid.run({ querySelector: ".mermaid" });
+  });
+</script>

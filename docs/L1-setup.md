@@ -21,6 +21,28 @@ title: "L1: Setup"
 > git switch l1-start        # starting point
 > git switch l1-solution     # finished result; see each step with: git log --oneline
 > ```
+>
+> ```mermaid
+> flowchart LR
+>   S["l1-start"]
+>   S --> C0["specify init"]
+>   C0 --> C1["constitution"]
+>   C1 --> C2["feature: spec + plan + tasks + code"]
+>   C2 --> E["l1-solution"]
+> ```
+
+**Where L1 fits in the loop:** setup gets you to the start; section 5 takes you once around it.
+
+```mermaid
+flowchart LR
+  A[Constitution] --> B[Specify]
+  B --> C[Clarify]
+  C --> D[Plan]
+  D --> E[Tasks]
+  E --> F[Implement]
+  F --> G[Review]
+  G -->|next change| B
+```
 
 > **Status: partly written.** Sections marked TODO aren't finished yet.
 
@@ -83,6 +105,14 @@ Let's build something small from scratch: a function that splits a bill (in cent
 | Answer key | **A reviewer**, someone other than the builder |
 | Tasks, implement, running tests | **OpenCode's free model** (`opencode/deepseek-v4.1-flash-free`) |
 | Grading | **The reviewer** |
+
+
+```mermaid
+flowchart LR
+  H["Human or strong model<br/>constitution, spec, plan, answer key"] --> F["Free model<br/>tasks, implement, run tests"]
+  F --> R["Reviewer<br/>grades against the hidden answer key"]
+  H -. hidden answer key .-> R
+```
 
 Judgment work goes to you; the mechanical work goes to the free model. See [Multi-Agent Workflow](https://github.com/tosin2013/invoice-exception-desk/wiki/Multi-Agent-Workflow) for why.
 

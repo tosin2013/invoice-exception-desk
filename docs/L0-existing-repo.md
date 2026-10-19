@@ -22,6 +22,16 @@ title: "L0: Start from an existing repo"
 > git switch l0-solution     # finished result; see each step with: git log --oneline
 > ```
 >
+> ```mermaid
+> flowchart LR
+>   S["l0-start"]
+>   S --> C0["inventory"]
+>   C0 --> C1["specify init"]
+>   C1 --> C2["constitution"]
+>   C2 --> C3["feature: spec + plan + tasks + code"]
+>   C3 --> E["l0-solution"]
+> ```
+>
 > The example is [un33k/python-slugify](https://github.com/un33k/python-slugify) (MIT license). It's credited in the branch's `NOTICE` file, and nothing was pushed to the upstream project.
 
 ## The idea: who does what
@@ -33,6 +43,14 @@ Starting from an existing repo is the hardest way to begin, because the agent ha
 | **Human or strong model** | Constitution, spec, plan | These are judgment calls: what matters, what must not change, and how to fit into existing code. |
 | **Free model** (OpenCode with `opencode/deepseek-v4.1-flash-free`) | Inventory, tasks, implementation, running tests | This is mechanical work with clear instructions. It's cheap and fast. |
 | **Reviewer** (not the builder) | Answer key before the build, grading after | Tests the builder writes for its own code only prove it agrees with itself. |
+
+
+```mermaid
+flowchart LR
+  H["Human or strong model<br/>constitution, spec, plan, answer key"] --> F["Free model<br/>tasks, implement, run tests"]
+  F --> R["Reviewer<br/>grades against the hidden answer key"]
+  H -. hidden answer key .-> R
+```
 
 We tried both ways on the same repo, and the results are below. **These are results from one run of a free model, graded only against our own answer key and the project's tests. They are not independently certified beyond that.**
 
@@ -155,6 +173,14 @@ Scope each loop to the area you're touching, not the whole repo.
 To go deeper:
 - L2: First feature, end to end *(coming soon)*
 - L4: Maintenance and spec changes over time *(coming soon)*
+
+
+```mermaid
+flowchart LR
+  A["L0: existing repo<br/>take stock of the code"] --> L
+  B["L3: new business app<br/>design the whole app, roadmap R0-R6"] --> L
+  L["Same loop: spec, plan, tasks, build, review"]
+```
 
 **How this differs from L3 (the Invoice Exception Desk).** The core loop is the same, but the starting point isn't. L0 starts by *taking stock* of code that already exists. L3 starts by *designing the whole app*: a constitution, a whole-app spec, and a phased roadmap (R0 to R6), where each phase gets its own plan and its own answer key.
 

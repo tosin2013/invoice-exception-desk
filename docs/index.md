@@ -12,6 +12,21 @@ Welcome! This guide follows one real project, the **Invoice Exception Desk**, fr
 - **Also:** mid-level developers who are adopting agents and want a guided first run. Read L1 and L2 in order.
 - **Also:** leads deciding whether SDD fits their team. Start with the decision gate below.
 
+## The Spec Kit loop
+
+Every feature goes around the same loop. The constitution is written once; then each change starts again at Specify.
+
+```mermaid
+flowchart LR
+  A[Constitution] --> B[Specify]
+  B --> C[Clarify]
+  C --> D[Plan]
+  D --> E[Tasks]
+  E --> F[Implement]
+  F --> G[Review]
+  G -->|next change| B
+```
+
 ## Should this work use SDD at all?
 
 > **Draft, pending Muse's text.** This gate is a short summary and will be replaced by the full "Spec Kit guide additions v0.1" text.
