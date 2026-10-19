@@ -24,12 +24,12 @@ title: "L0: Start from an existing repo"
 >
 > ```mermaid
 > flowchart LR
->   S["l0-start"]
->   S --> C0["inventory"]
->   C0 --> C1["specify init"]
->   C1 --> C2["constitution"]
->   C2 --> C3["feature: spec + plan + tasks + code"]
->   C3 --> E["l0-solution"]
+>   brS["l0-start"]
+>   brS --> brC0["inventory"]
+>   brC0 --> brC1["specify init"]
+>   brC1 --> brC2["constitution"]
+>   brC2 --> brC3["feature: spec + plan + tasks + code"]
+>   brC3 --> brE["l0-solution"]
 > ```
 >
 > The example is [un33k/python-slugify](https://github.com/un33k/python-slugify) (MIT license). It's credited in the branch's `NOTICE` file, and nothing was pushed to the upstream project.
@@ -47,9 +47,9 @@ Starting from an existing repo is the hardest way to begin, because the agent ha
 
 ```mermaid
 flowchart LR
-  H["Human or strong model<br/>constitution, spec, plan, answer key"] --> F["Free model<br/>tasks, implement, run tests"]
-  F --> R["Reviewer<br/>grades against the hidden answer key"]
-  H -. hidden answer key .-> R
+  wdH["Human or strong model<br/>constitution, spec, plan, answer key"] --> wdF["Free model<br/>tasks, implement, run tests"]
+  wdF --> wdR["Reviewer<br/>grades against the hidden answer key"]
+  wdH -. hidden answer key .-> wdR
 ```
 
 We tried both ways on the same repo, and the results are below. **These are results from one run of a free model, graded only against our own answer key and the project's tests. They are not independently certified beyond that.**
@@ -177,9 +177,9 @@ To go deeper:
 
 ```mermaid
 flowchart LR
-  A["L0: existing repo<br/>take stock of the code"] --> L
-  B["L3: new business app<br/>design the whole app, roadmap R0-R6"] --> L
-  L["Same loop: spec, plan, tasks, build, review"]
+  cvA["L0: existing repo<br/>take stock of the code"] --> cvL
+  cvB["L3: new business app<br/>design the whole app, roadmap R0-R6"] --> cvL
+  cvL["Same loop: spec, plan, tasks, build, review"]
 ```
 
 **How this differs from L3 (the Invoice Exception Desk).** The core loop is the same, but the starting point isn't. L0 starts by *taking stock* of code that already exists. L3 starts by *designing the whole app*: a constitution, a whole-app spec, and a phased roadmap (R0 to R6), where each phase gets its own plan and its own answer key.

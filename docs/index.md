@@ -18,13 +18,13 @@ Every feature goes around the same loop. The constitution is written once; then 
 
 ```mermaid
 flowchart LR
-  A[Constitution] --> B[Specify]
-  B --> C[Clarify]
-  C --> D[Plan]
-  D --> E[Tasks]
-  E --> F[Implement]
-  F --> G[Review]
-  G -->|next change| B
+  lpA[Constitution] --> lpB[Specify]
+  lpB --> lpC[Clarify]
+  lpC --> lpD[Plan]
+  lpD --> lpE[Tasks]
+  lpE --> lpF[Implement]
+  lpF --> lpG[Review]
+  lpG -->|next change| lpB
 ```
 
 ## Should this work use SDD at all?

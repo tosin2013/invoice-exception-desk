@@ -24,24 +24,24 @@ title: "L1: Setup"
 >
 > ```mermaid
 > flowchart LR
->   S["l1-start"]
->   S --> C0["specify init"]
->   C0 --> C1["constitution"]
->   C1 --> C2["feature: spec + plan + tasks + code"]
->   C2 --> E["l1-solution"]
+>   brS["l1-start"]
+>   brS --> brC0["specify init"]
+>   brC0 --> brC1["constitution"]
+>   brC1 --> brC2["feature: spec + plan + tasks + code"]
+>   brC2 --> brE["l1-solution"]
 > ```
 
 **Where L1 fits in the loop:** setup gets you to the start; section 5 takes you once around it.
 
 ```mermaid
 flowchart LR
-  A[Constitution] --> B[Specify]
-  B --> C[Clarify]
-  C --> D[Plan]
-  D --> E[Tasks]
-  E --> F[Implement]
-  F --> G[Review]
-  G -->|next change| B
+  lpA[Constitution] --> lpB[Specify]
+  lpB --> lpC[Clarify]
+  lpC --> lpD[Plan]
+  lpD --> lpE[Tasks]
+  lpE --> lpF[Implement]
+  lpF --> lpG[Review]
+  lpG -->|next change| lpB
 ```
 
 > **Status: partly written.** Sections marked TODO aren't finished yet.
@@ -109,9 +109,9 @@ Let's build something small from scratch: a function that splits a bill (in cent
 
 ```mermaid
 flowchart LR
-  H["Human or strong model<br/>constitution, spec, plan, answer key"] --> F["Free model<br/>tasks, implement, run tests"]
-  F --> R["Reviewer<br/>grades against the hidden answer key"]
-  H -. hidden answer key .-> R
+  wdH["Human or strong model<br/>constitution, spec, plan, answer key"] --> wdF["Free model<br/>tasks, implement, run tests"]
+  wdF --> wdR["Reviewer<br/>grades against the hidden answer key"]
+  wdH -. hidden answer key .-> wdR
 ```
 
 Judgment work goes to you; the mechanical work goes to the free model. See [Multi-Agent Workflow](https://github.com/tosin2013/invoice-exception-desk/wiki/Multi-Agent-Workflow) for why.
