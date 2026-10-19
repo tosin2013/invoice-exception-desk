@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from typing import Any
 
@@ -40,6 +41,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
                         help="""Additional replacement rules e.g. "|->or", "%%->percent".""")
     parser.add_argument("--allow-unicode", action='store_true', default=False,
                         help="Allow unicode characters")
+    parser.add_argument('--json', action='store_true', default=argparse.SUPPRESS,
+                        help='Print {"input": ..., "slug": ...} as JSON')
 
     parser.add_argument('--algorithm', choices=('legacy', 'modern'), default=argparse.SUPPRESS,
                         help='Slug algorithm (legacy default; modern explicitly opts into changed output)')
@@ -103,7 +106,11 @@ def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
     params = slugify_params(args)
     try:
-        print(slugify(**params))
+        result = slugify(**params)
+        if getattr(args, 'json', False):
+            print(json.dumps({'input': params['text'], 'slug': result}))
+        else:
+            print(result)
     except KeyboardInterrupt:
         sys.exit(-1)
 
