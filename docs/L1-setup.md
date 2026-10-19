@@ -9,7 +9,7 @@ title: "L1: Setup"
 - **You are here if** you're starting a new project with Spec Kit.
 - **You should already have** Python 3.11+, [uv](https://github.github.io/spec-kit/install/uv.html), Git, and an AI coding agent.
 - **You leave with** a Spec Kit project connected to one agent, plus a first constitution.
-- **Existing code?** Do L0: Start from an existing repo first *(coming soon)*.
+- **Existing code?** Do [L0: Start from an existing repo](L0-existing-repo.md) first.
 
 > **Status: partly written.** Sections marked TODO aren't finished yet.
 
@@ -48,16 +48,16 @@ specify init my-project --non-interactive         # no prompts (defaults to Copi
 
 ## 3. Use the agent commands
 
-`/speckit-*` commands are run **in your agent's chat**, not in the terminal. The exact syntax depends on the agent: some use `/speckit-<command>` and some use `$speckit-<command>`.
+`/speckit-*` commands are run **in your agent's chat**, not in the terminal. The exact syntax depends on the agent. Skills-based agents use `/speckit-<command>` (or `$speckit-<command>`), while OpenCode's command integration uses **`/speckit.<command>`** with a dot (for example `/speckit.constitution`). Check your agent's command folder.
 
 - [ ] TODO: note the model used in this project's trial (an OpenCode free model).
 
 ## 4. Write a constitution
 
-In the agent chat, for example:
+In the agent chat, for example (OpenCode syntax shown):
 
 ```text
-/speckit-constitution Create principles focused on code quality, testing, and maintainability.
+/speckit.constitution Create principles focused on code quality, testing, and maintainability.
 ```
 
 - [ ] TODO: draft the Invoice Exception Desk constitution (integer cents, deterministic data, no PII, and an independent answer key per phase).

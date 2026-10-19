@@ -38,7 +38,7 @@ Then pick a tier:
 
 | You are… | Go to |
 |---|---|
-| Adding Spec Kit to an existing repo | **L0: Start from an existing repo** *(coming soon)* |
+| Adding Spec Kit to an existing repo | [L0: Start from an existing repo](L0-existing-repo.md) |
 | Starting fresh and need to install | [L1: Setup](L1-setup.md) |
 | Ready to build your first feature | **L2: First feature, end to end** *(coming soon)* |
 | Working on a real multi-feature project | **L3: Invoice Exception Desk walkthrough** *(coming soon)* |
