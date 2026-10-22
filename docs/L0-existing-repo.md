@@ -173,7 +173,7 @@ Scope each loop to the area you're touching, not the whole repo.
 - **Keep them in step.** A behaviour change and its spec change land in the **same PR**.
 
 To go deeper:
-- L2: First feature, end to end *(paused pending review)*
+- [L2: First feature, end to end](L2-first-feature.md)
 - L4: Maintenance and spec changes over time *(paused pending review)*
 
 
@@ -197,4 +197,4 @@ flowchart LR
 - [ ] Free model runs only `/speckit.tasks` and `/speckit.implement`
 - [ ] Answer key and baseline rerun, with spec and code in one commit
 
-L2–L4 are paused pending review. Compare the start branch with the finished steps: [`l0-start...l0-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l0-start...l0-solution). Next: [L1: Setup](L1-setup.md). Back to [Home](index.md).
+L3 and L4 are paused pending review. Compare the start branch with the finished steps: [`l0-start...l0-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l0-start...l0-solution). Next: [L1: Setup](L1-setup.md), then [L2: First feature](L2-first-feature.md). Back to [Home](index.md).

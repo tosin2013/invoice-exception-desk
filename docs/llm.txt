@@ -9,6 +9,7 @@ The guide is written while learning, so it records the confusing points too. The
 - [Home](https://tosin2013.github.io/invoice-exception-desk/): Should this work use SDD at all (a decision gate), the Spec Kit loop, and a router by project stage
 - [L0: Start from an existing repo](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html): Brownfield adoption in six steps on python-slugify, with two example runs (free model plans vs the recommended split), not a controlled experiment
 - [L1: Setup](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html): Install specify-cli, run specify init --integration opencode, use the dot-syntax commands (/speckit.tasks), and build a tiny first feature
+- [L2: First feature, end to end](https://tosin2013.github.io/invoice-exception-desk/L2-first-feature.html): Take split_weighted through specify, clarify, plan, tasks, implement, and analyze, graded by a hidden 169-check answer key
 
 ## Example branches
 
@@ -16,10 +17,12 @@ The guide is written while learning, so it records the confusing points too. The
 - [l0-solution](https://github.com/tosin2013/invoice-exception-desk/tree/l0-solution): One commit per L0 step: inventory, specify init, constitution, and the --json feature
 - [l1-start](https://github.com/tosin2013/invoice-exception-desk/tree/l1-start): An empty starting point with a README
 - [l1-solution](https://github.com/tosin2013/invoice-exception-desk/tree/l1-solution): The finished split_bill tiny feature from L1
+- [l2-start](https://github.com/tosin2013/invoice-exception-desk/tree/l2-start): The finished L1 project plus an L2 README
+- [l2-solution](https://github.com/tosin2013/invoice-exception-desk/tree/l2-solution): One commit per L2 phase: specify, clarify, plan, tasks + implement, analyze + review fix
 
 ## Optional
 
 - [Repository](https://github.com/tosin2013/invoice-exception-desk): Source for the guide (docs/) and the Invoice Exception Desk example
 - [R0 Results and Lessons](https://github.com/tosin2013/invoice-exception-desk/wiki/R0-Results-and-Lessons): The Discovery-phase run, including drift and a self-graded test oracle
 - [Project wiki](https://github.com/tosin2013/invoice-exception-desk/wiki): Older drafts, including Multi-Agent Workflow
-- Coming soon: L2 First feature end to end, L3 Invoice Exception Desk walkthrough, L4 Maintenance, and Advanced (Copilot coding agent)
+- Coming soon: L3 Invoice Exception Desk walkthrough, L4 Maintenance, and Advanced (Copilot coding agent)
