@@ -14,6 +14,7 @@ title: "L2: First feature, end to end"
 > **Follow along**
 > - Start: [`l2-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l2-start) is the finished L1 project plus an L2 README.
 > - Solution: [`l2-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l2-solution) has one commit per phase.
+> - Run log: [`run.log`](https://github.com/tosin2013/invoice-exception-desk/blob/l2-solution/run.log) is the raw OpenCode output of every free-model command on this page. Local paths are replaced with `<workdir>` and `<home>`.
 >
 > ```bash
 > git clone https://github.com/tosin2013/invoice-exception-desk.git
