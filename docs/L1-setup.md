@@ -44,7 +44,7 @@ flowchart LR
   lpG -->|next change| lpB
 ```
 
-> **Status: partly written.** Sections marked TODO aren't finished yet.
+> **Status:** the setup steps and the split-bill exercise on this page are written. L2–L4 are paused pending review.
 
 **Key terms**
 - **Spec Kit**: GitHub's toolkit for Spec-Driven Development (SDD).
@@ -79,7 +79,171 @@ specify init my-project --non-interactive         # no prompts (defaults to Copi
 
 > **Confusion point: `--ai` or `--integration`?** Some blog posts and older write-ups use `--ai <agent>`. The v1.1.3 help only lists **`--integration <key>`**, so this guide uses that. Also note that the *integration key* isn't always the same as the agent's product name (OpenCode's key is `opencode`). See the [integrations reference](https://github.github.io/spec-kit/reference/integrations.html).
 
-- [ ] TODO: show the output of `specify init` and explain the files it creates.
+This is the new-folder command from the list above, using the OpenCode integration the rest of this page uses:
+
+```bash
+specify init my-project --integration opencode
+```
+
+The transcript below is from specify-cli 1.1.3. specify writes the project only when the `opencode` command is already on your `PATH`. That step is a PATH lookup. With no terminal, it skipped the script-type question and selected `sh`, which is what "Selected script type" shows below. Pass `--script sh`, `--script ps`, or `--script py` to choose one. `--non-interactive` skips the question too. The Spec Kit logo is left out. `Working Path` and `Target Path` are the directory this capture used.
+
+```text
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  Specify Project Setup                                                       │
+│                                                                              │
+│  Project         my-project                                                  │
+│  Working Path    /tmp/speckit-init-capture                                   │
+│  Target Path     /tmp/speckit-init-capture/my-project                        │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Selected coding agent integration: opencode
+Selected script type: sh
+Initialize Specify Project
+├── ● Check required tools (ok)
+├── ● Select coding agent integration (opencode)
+├── ● Select script type (sh)
+├── ● Install integration (opencode)
+├── ● Install shared infrastructure (scripts (sh) + templates)
+├── ● Ensure scripts executable (6 updated)
+├── ● Constitution setup (copied from template)
+├── ● Install bundled workflow (speckit installed)
+└── ● Finalize (project ready)
+
+Project ready.
+
+╭─────────────────────────── Agent Folder Security ────────────────────────────╮
+│                                                                              │
+│  Some agents may store credentials, auth tokens, or other identifying and    │
+│  private artifacts in the agent folder within your project.                  │
+│  Consider adding .opencode/ (or parts of it) to .gitignore to prevent        │
+│  accidental credential leakage.                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+╭───────────────────────────────── Next Steps ─────────────────────────────────╮
+│                                                                              │
+│  1. Go to the project folder: cd my-project                                  │
+│  2. Start using slash commands with your coding agent:                       │
+│     2.1 /speckit.constitution - Establish project principles                 │
+│     2.2 /speckit.specify - Create baseline specification                     │
+│     2.3 /speckit.plan - Create implementation plan                           │
+│     2.4 /speckit.tasks - Generate actionable tasks                           │
+│     2.5 /speckit.implement - Execute implementation                          │
+│     2.6 /speckit.converge - Assess the codebase and append remaining work    │
+│  as tasks                                                                    │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+╭──────────────────────────── Enhancement Commands ────────────────────────────╮
+│                                                                              │
+│  Optional commands that you can use for your specs (improve quality &        │
+│  confidence)                                                                 │
+│                                                                              │
+│  ○ /speckit.clarify (optional) - Ask structured questions to de-risk         │
+│  ambiguous areas before planning (run before /speckit.plan if used)          │
+│  ○ /speckit.analyze (optional) - Cross-artifact consistency & alignment      │
+│  report (after /speckit.tasks, before /speckit.implement)                    │
+│  ○ /speckit.checklist (optional) - Generate quality checklists to validate   │
+│  requirements completeness, clarity, and consistency (after /speckit.plan)   │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+```
+
+`sh` is why the scripts land in `.specify/scripts/bash/`. The new folder has no application code and no `specs/` directory yet. Those appear when you add the first feature.
+
+```text
+my-project/
+├── .opencode/
+│   └── commands/
+│       ├── speckit.analyze.md
+│       ├── speckit.checklist.md
+│       ├── speckit.clarify.md
+│       ├── speckit.constitution.md
+│       ├── speckit.converge.md
+│       ├── speckit.implement.md
+│       ├── speckit.plan.md
+│       ├── speckit.specify.md
+│       ├── speckit.tasks.md
+│       └── speckit.taskstoissues.md
+└── .specify/
+    ├── .gitignore
+    ├── init-options.json
+    ├── integration.json
+    ├── integrations/
+    │   ├── opencode.manifest.json
+    │   └── speckit.manifest.json
+    ├── memory/
+    │   ├── .constitution-template.json
+    │   └── constitution.md
+    ├── scripts/
+    │   └── bash/
+    │       ├── check-prerequisites.sh
+    │       ├── common.sh
+    │       ├── create-new-feature.sh
+    │       ├── resolve-template.sh
+    │       ├── setup-plan.sh
+    │       └── setup-tasks.sh
+    ├── templates/
+    │   ├── checklist-template.md
+    │   ├── constitution-template.md
+    │   ├── plan-template.md
+    │   ├── spec-template.md
+    │   └── tasks-template.md
+    └── workflows/
+        ├── speckit/
+        │   └── workflow.yml
+        └── workflow-registry.json
+```
+
+**`.opencode/commands/`** — one markdown file per slash command. OpenCode runs them with a dot (`/speckit.constitution`). That dot is `"invoke_separator": "."` in `integration.json`.
+
+- `speckit.constitution.md` — create or update the project constitution.
+- `speckit.specify.md` — turn a description into the feature spec.
+- `speckit.clarify.md` — ask up to five questions and write the answers back into the spec.
+- `speckit.plan.md` — fill in the plan template.
+- `speckit.checklist.md` — write a checklist that grades the requirements.
+- `speckit.tasks.md` — break the spec and plan into `tasks.md`.
+- `speckit.analyze.md` — non-destructive consistency report across spec, plan, and tasks.
+- `speckit.implement.md` — carry out the tasks.
+- `speckit.converge.md` — compare the code with the spec, plan, and tasks, and append any missing work to `tasks.md`.
+- `speckit.taskstoissues.md` — deprecated. It used to open GitHub issues from the task list.
+
+**`.specify/memory/`**
+
+- `constitution.md` — the constitution the agent follows. Right after init it is an unfilled copy of the template, still full of placeholders such as `[PROJECT_NAME]`.
+- `.constitution-template.json` — the sha256 of the template that was copied, and `"source": "core"`.
+
+**`.specify/templates/`** — the blank forms those commands copy from.
+
+- `constitution-template.md` — principle headings, with examples in HTML comments.
+- `spec-template.md` — user stories, requirements, and success criteria. The comments say each story should be testable on its own.
+- `plan-template.md` — summary, technical context, a constitution check, and project structure.
+- `tasks-template.md` — tasks grouped by user story. `[P]` marks work that can run in parallel.
+- `checklist-template.md` — sample checklist items. The checklist command replaces them with items for the feature.
+
+**`.specify/scripts/bash/`** — present because the script type was `sh`.
+
+- `common.sh` — shared helpers, including the one that walks upward until it finds `.specify` and treats that directory as the repo root.
+- `check-prerequisites.sh` — prints the feature directory and which feature docs are already there. `--json` is the form agents call.
+- `create-new-feature.sh` — takes a description, picks the next number, creates `specs/<number>-<name>/spec.md` from the template, and writes the local `feature.json` pointer.
+- `resolve-template.sh` — prints one template by name, after overrides, presets, extensions, and the core copy.
+- `setup-plan.sh` — creates the feature directory if needed and copies the plan template to `plan.md` when that file is absent.
+- `setup-tasks.sh` — requires `spec.md` and `plan.md`, then resolves the tasks template.
+
+**`.specify/workflows/`**
+
+- `speckit/workflow.yml` — the bundled "Full SDD Cycle" workflow, version 1.0.1. Its steps are specify, a review gate, plan, a review gate, tasks, then implement.
+- `workflow-registry.json` — records that workflow as installed, with `"source": "bundled"`.
+
+**State files**
+
+- `init-options.json` — the choices for this init: `"integration": "opencode"`, `"ai": "opencode"` (the older key, still written), `"script": "sh"`, `"here": false`, `"feature_numbering": "sequential"`, `"speckit_version": "1.1.3"`.
+- `integration.json` — installed integrations and their settings, including OpenCode's invoke separator.
+- `integrations/opencode.manifest.json` — CLI version, `installed_at`, and a sha256 for each command file.
+- `integrations/speckit.manifest.json` — the same kind of record for the shared scripts, the templates, and `.specify/.gitignore`.
+- `.gitignore` — lives inside `.specify/`. It ignores `feature.json`, `extensions/*/local-config.yml`, and `integrations/packages/`. The only gitignore this command writes is that file. `feature.json` itself appears later, when the first feature is created. The security panel in the output suggests adding `.opencode/` to a repository gitignore if that folder might pick up tokens.
+
 
 ## 3. Use the agent commands
 
@@ -94,7 +258,7 @@ In the agent chat, for example (OpenCode syntax shown):
 /speckit.constitution Create principles focused on code quality, testing, and maintainability.
 ```
 
-- [ ] TODO: draft the Invoice Exception Desk constitution (integer cents, deterministic data, no PII, and an independent answer key per phase).
+The Invoice Exception Desk constitution (integer cents, deterministic data, no PII, and an independent answer key per phase) belongs to the L3 walkthrough, which is paused pending review.
 
 ## 5. Your first tiny feature
 
@@ -164,4 +328,4 @@ Run the answer key and the tests, and look at the commit (`git show --stat HEAD`
 
 **Stuck?** Check `specify version` and `specify check`, then the [Installation docs](https://github.github.io/spec-kit/installation.html).
 
-L3 branches are coming. Next: L2 First feature *(coming soon)*. Back to [Home](index.md).
+L2–L4 are paused pending review. Compare the start branch with the finished steps: [`l1-start...l1-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l1-start...l1-solution). Back to [Home](index.md).

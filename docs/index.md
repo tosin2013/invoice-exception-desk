@@ -12,6 +12,19 @@ Welcome! This guide teaches [GitHub Spec Kit](https://github.com/github/spec-kit
 - **Also:** mid-level developers who are adopting agents and want a guided first run. Read L1 and L2 in order.
 - **Also:** leads deciding whether SDD fits their team. Start with the decision gate below.
 
+### Who does the work
+
+Every level uses the same split. A human or a strong model writes the constitution, the spec, and the plan. A separate reviewer holds the answer key and grades the result. A free model runs the tasks and the implementation.
+
+```mermaid
+flowchart LR
+  H["Human / strong model"] -->|constitution, spec, plan| S[(specs/)]
+  R["Reviewer"] -->|answer key, grading| S
+  F["Free model"] -->|tasks + implement| C[(code + tests)]
+  S --> F
+  C --> R
+```
+
 ## The Spec Kit loop
 
 Every feature goes around the same loop. The constitution is written once; then each change starts again at Specify.
@@ -66,16 +79,43 @@ Pick a tier:
 
 **Honest costs:** SDD is slower on day one. The main failure is "spec theatre", meaning writing specs nobody uses. And a stale spec is worse than no spec, because it misleads the next agent that reads it.
 
+## How each level's branches work
+
+A finished level is two branches. `lN-start` is the tree you begin from. `lN-solution` is the same work, one commit per step.
+
+```mermaid
+gitGraph
+  commit id: "lN-start"
+  branch solution
+  commit id: "step: init"
+  commit id: "step: constitution"
+  commit id: "step: spec + plan"
+  commit id: "step: implement"
+```
+
+Check out `lN-start` and follow the page. Compare with `lN-solution` when you want the finished steps. `git log --oneline` on the solution branch lists them. L0 and L1 name the real branches in the table below.
+
 ## Where are you in your project?
 
-| You are… | Go to |
-|---|---|
-| Adding Spec Kit to an existing repo | [L0: Start from an existing repo](L0-existing-repo.md) |
-| Starting fresh and need to install | [L1: Setup](L1-setup.md) |
-| Ready to build your first feature | **L2: First feature, end to end** *(coming soon)* |
-| Working on a real multi-feature project | **L3: Invoice Exception Desk walkthrough** *(coming soon)* |
-| Changing specs after code exists | **L4: Maintenance** *(coming soon)* |
-| Ready to let agents work unattended | **L5: Walk away, unattended issue-to-PR automation** *(proposed — pending review; untested)* |
-| Mixing agents or using the Copilot coding agent | **Advanced** *(coming soon)* |
+Start at L0 when the repo already has code, and at L1 when it does not. L2 through L4 are paused pending review. L5 is an outline.
+
+```mermaid
+flowchart LR
+  Q{Existing code?} -->|yes| L0["L0: adopt in existing repo"]
+  Q -->|no| L1["L1: setup + tiny feature"]
+  L0 --> L2["L2: first feature (paused)"]
+  L1 --> L2
+  L2 --> L3["L3: multi-feature (paused)"] --> L4["L4: maintenance (paused)"] --> L5["L5: unattended (outline)"]
+```
+
+| You are… | Go to | Branches |
+|---|---|---|
+| Adding Spec Kit to an existing repo | [L0: Start from an existing repo](L0-existing-repo.md) | [`l0-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l0-start) → [`l0-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l0-solution) |
+| Starting fresh and need to install | [L1: Setup](L1-setup.md) | [`l1-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l1-start) → [`l1-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l1-solution) |
+| Ready to build your first feature | **L2: First feature, end to end** *(paused pending review)* | — |
+| Working on a real multi-feature project | **L3: Invoice Exception Desk walkthrough** *(paused pending review)* | — |
+| Changing specs after code exists | **L4: Maintenance** *(paused pending review)* | — |
+| Ready to let agents work unattended | **L5: Walk away, unattended issue-to-PR automation** *(proposed — pending review; untested)* | — |
+| Mixing agents or using the Copilot coding agent | **Advanced** *(coming soon)* | — |
 
 Until those pages move here, the [project wiki](https://github.com/tosin2013/invoice-exception-desk/wiki) has the current drafts, including R0 Results and Lessons and Multi-Agent Workflow.
