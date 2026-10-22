@@ -8,6 +8,13 @@
 
 **Input**: User description: "Add split_weighted(total_cents, weights) to bill_split: split a bill in proportion to integer weights (for example one person ordered twice as much), so the shares add up exactly to the total. Keep the existing split_bill unchanged. Use the short name weighted-split."
 
+## Clarifications
+
+### Session 2026-10-22
+
+- Q: Which input container types should `split_weighted` accept for the `weights` argument? → A: Accept any sequence (list or tuple); generators, strings, and `None` raise `TypeError`.
+- Q: When an argument is invalid in more than one way, which error type takes precedence? → A: `TypeError` wins; validate all types before any value checks.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Split in proportion to what each person ordered (Priority: P1)
@@ -68,13 +75,14 @@ A user or caller makes a mistake in the total or weights. The system rejects the
 - A single person with any positive weight receives the entire total.
 - Very large totals and weights are handled exactly, with no floating-point rounding.
 - Equal weights produce the same shares as the existing even split for the same total and number of people.
-- A weight list that is not a sequence of integers (for example a string or `None`) raises a `TypeError`.
+- A weights argument that is not a sequence of integers (for example a generator, string, or `None`) raises a `TypeError`; lists and tuples are accepted.
+- When an argument is both the wrong type and out of range (for example `-1.5`), `TypeError` is raised because type validation runs first.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: The library MUST provide `split_weighted(total_cents: int, weights: list[int]) -> list[int]` in `bill_split/__init__.py`.
+- **FR-001**: The library MUST provide `split_weighted(total_cents: int, weights: list[int] | tuple[int, ...]) -> list[int]` in `bill_split/__init__.py`.
 - **FR-002**: The result MUST contain exactly one share per weight, in the same order as the weights.
 - **FR-003**: Every returned share MUST be a non-negative integer number of cents.
 - **FR-004**: The returned shares MUST sum exactly to `total_cents`.
@@ -82,8 +90,8 @@ A user or caller makes a mistake in the total or weights. The system rejects the
 - **FR-006**: When proportional shares are not whole cents, leftover cents MUST be assigned deterministically, one cent per share, to the shares with the largest fractional remainders; ties are resolved in favour of the earlier weight. This makes equal weights match the existing even split.
 - **FR-007**: A weight of zero MUST produce a zero-cent share.
 - **FR-008**: `total_cents` MUST be a non-negative integer and every weight MUST be a non-negative integer. `bool` values MUST NOT be accepted as integers.
-- **FR-009**: `total_cents < 0`, an empty weight list, a negative weight, or a sum of weights of zero MUST raise `ValueError`.
-- **FR-010**: Non-integer arguments, including `bool` and `float`, or a weight list that is not a sequence of integers, MUST raise `TypeError`.
+- **FR-009**: `total_cents < 0`, an empty weights sequence, a negative weight, or a sum of weights of zero MUST raise `ValueError`.
+- **FR-010**: Non-integer arguments, including `bool` and `float`, MUST raise `TypeError`. The `weights` argument MUST be a sequence (list or tuple) of integers; generators, strings, `None`, and other non-sequence containers MUST raise `TypeError`. Type validation MUST run before value validation, so an argument that is both non-integer and out of range raises `TypeError`.
 - **FR-011**: The function MUST be deterministic and pure: identical inputs always produce identical outputs with no I/O, randomness, or clock access.
 - **FR-012**: The existing `split_bill` function and its behaviour MUST remain unchanged.
 
@@ -97,7 +105,7 @@ A user or caller makes a mistake in the total or weights. The system rejects the
 
 ### Measurable Outcomes
 
-- **SC-001**: For every valid total and weight list tested, the returned shares sum exactly to the total in 100% of cases.
+- **SC-001**: For every valid total and weights sequence tested, the returned shares sum exactly to the total in 100% of cases.
 - **SC-002**: For every valid input tested, each share is within one cent of its exact proportional amount.
 - **SC-003**: Every acceptance scenario in this specification is covered by at least one automated test.
 - **SC-004**: Equal weights produce exactly the same shares as `split_bill` for the same total and number of people in 100% of tested cases.
@@ -107,7 +115,7 @@ A user or caller makes a mistake in the total or weights. The system rejects the
 ## Assumptions
 
 - Weights are non-negative integers, and at least one weight is positive; a zero weight means that person ordered nothing.
-- The number of shares equals the length of the weight list, and the weight list order defines the output order.
+- The number of shares equals the length of the weights sequence, and the weights order defines the output order.
 - Leftover cents are allocated by largest fractional remainder, with ties going to the earliest weight, matching the existing even split for equal weights.
 - Negative totals and zero-sum weight lists have no meaningful proportional interpretation and are rejected.
 - Only integer cents are used; floating-point amounts are out of scope, consistent with the project constitution.
