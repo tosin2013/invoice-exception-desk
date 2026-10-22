@@ -158,3 +158,9 @@ def test_all_zero_weights_raise_value_error():
 def test_negative_weight_raises_value_error():
     with pytest.raises(ValueError):
         split_weighted(100, [1, -1])
+
+
+def test_range_weights_raise_type_error():
+    # Review fix for analyze finding A1: only list or tuple is accepted.
+    with pytest.raises(TypeError):
+        split_weighted(10, range(1, 3))

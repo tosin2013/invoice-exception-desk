@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-22
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Add split_weighted(total_cents, weights) to bill_split: split a bill in proportion to integer weights (for example one person ordered twice as much), so the shares add up exactly to the total. Keep the existing split_bill unchanged. Use the short name weighted-split."
 
@@ -12,7 +12,7 @@
 
 ### Session 2026-10-22
 
-- Q: Which input container types should `split_weighted` accept for the `weights` argument? → A: Accept any sequence (list or tuple); generators, strings, and `None` raise `TypeError`.
+- Q: Which input container types should `split_weighted` accept for the `weights` argument? → A: Accept a list or tuple only; generators, strings, and `None` raise `TypeError`.
 - Q: When an argument is invalid in more than one way, which error type takes precedence? → A: `TypeError` wins; validate all types before any value checks.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -91,7 +91,7 @@ A user or caller makes a mistake in the total or weights. The system rejects the
 - **FR-007**: A weight of zero MUST produce a zero-cent share.
 - **FR-008**: `total_cents` MUST be a non-negative integer and every weight MUST be a non-negative integer. `bool` values MUST NOT be accepted as integers.
 - **FR-009**: `total_cents < 0`, an empty weights sequence, a negative weight, or a sum of weights of zero MUST raise `ValueError`.
-- **FR-010**: Non-integer arguments, including `bool` and `float`, MUST raise `TypeError`. The `weights` argument MUST be a sequence (list or tuple) of integers; generators, strings, `None`, and other non-sequence containers MUST raise `TypeError`. Type validation MUST run before value validation, so an argument that is both non-integer and out of range raises `TypeError`.
+- **FR-010**: Non-integer arguments, including `bool` and `float`, MUST raise `TypeError`. The `weights` argument MUST be a `list` or `tuple` of integers; any other type (generators, strings, `None`, `range`, and other sequences) MUST raise `TypeError`. Type validation MUST run before value validation, so an argument that is both non-integer and out of range raises `TypeError`.
 - **FR-011**: The function MUST be deterministic and pure: identical inputs always produce identical outputs with no I/O, randomness, or clock access.
 - **FR-012**: The existing `split_bill` function and its behaviour MUST remain unchanged.
 
