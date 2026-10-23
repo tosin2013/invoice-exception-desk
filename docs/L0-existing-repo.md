@@ -11,16 +11,23 @@ title: "L0: Start from an existing repo"
 - **You leave with** Spec Kit installed in place, a constitution written from your real code, a recorded test baseline, and one pilot feature built by a free model and checked against an answer key it never saw.
 - **Stuck on** install syntax → [L1: Setup](L1-setup.md). An agent hanging or failing → see "What went wrong" below.
 
-> **Follow along**
-> - Start: [`l0-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l0-start) is python-slugify at upstream commit `35aca63`, before Spec Kit.
-> - Solution: [`l0-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l0-solution) has one commit per step (inventory → init → constitution → feature).
+> **Start the exercise**
+>
+> Work on your own branch, so the starter stays clean and you can compare with ours later:
 >
 > ```bash
 > git clone https://github.com/tosin2013/invoice-exception-desk.git
 > cd invoice-exception-desk
-> git switch l0-start        # starting point
-> git switch l0-solution     # finished result; see each step with: git log --oneline
+> git switch l0-start                 # python-slugify at upstream commit 35aca63, before Spec Kit
+> git switch -c my-l0                 # your own working branch
 > ```
+>
+> **Going on to L2 after this?** L0 ends with python-slugify, not the bill-split project that L2 builds on. So after L0, switch to the supplied bill-split starter, [`l2-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l2-start), rather than carrying your L0 branch forward.
+
+> **Inspect our solution** (after you've tried it, or if you get stuck)
+>
+> - [`l0-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l0-solution) has one commit per step (inventory → init → constitution → feature). See them with `git log --oneline l0-start..l0-solution`.
+> - Compare everything: [`l0-start...l0-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l0-start...l0-solution).
 >
 > ```mermaid
 > flowchart LR

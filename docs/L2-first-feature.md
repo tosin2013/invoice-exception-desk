@@ -6,22 +6,29 @@ title: "L2: First feature, end to end"
 
 [← Home](index.md)
 
-- **You are here if** you finished [L1](L1-setup.md) (or [L0](L0-existing-repo.md)) and want to see every Spec Kit phase once, slowly, on one small feature.
-- **You should already have** the L1 project (`bill_split` with `split_bill`), specify-cli 1.1.3, OpenCode 1.19.3, and Python 3.11+ with pytest.
-- **You leave with** a second feature, `split_weighted`, that went through specify → clarify → plan → tasks → implement → analyze, plus an independent answer key that graded it.
+- **You are here if** you finished [L1](L1-setup.md) (or [L0](L0-existing-repo.md)) and want to take one small feature through the main Spec Kit phases once, slowly.
+- **You should already have** the bill-split project, specify-cli 1.1.3, OpenCode 1.19.3, and Python 3.11+ with pytest. **Coming from L0?** Finishing L0 leaves you with python-slugify, not bill-split, so switch to the supplied starter branch `l2-start` below. It already contains the finished L1 code.
+- **You leave with** a second feature, `split_weighted`, taken through specify → clarify → plan → tasks → analyze/fix → implement → reviewer checks.
+- **Phases shown:** constitution (re-read only), specify, clarify, plan, tasks, analyze, implement, reviewer checks. **Left out:** `/speckit.checklist`, `/speckit.converge`, `/speckit.taskstoissues`, writing a constitution from scratch (that was L1), and extensions.
 - **New in L2:** `/speckit.specify`, `/speckit.clarify`, and `/speckit.analyze`. In L1 you wrote the spec by hand and skipped clarify and analyze.
 
-> **Follow along**
-> - Start: [`l2-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l2-start) is the finished L1 project plus an L2 README.
-> - Solution: [`l2-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l2-solution) has one commit per phase.
-> - Run log: [`run.log`](https://github.com/tosin2013/invoice-exception-desk/blob/l2-solution/run.log) is the raw OpenCode output of every free-model command on this page. Local paths are replaced with `<workdir>` and `<home>`.
+> **Start the exercise**
+>
+> Work on your own branch, so the starter stays clean and you can compare with ours later:
 >
 > ```bash
 > git clone https://github.com/tosin2013/invoice-exception-desk.git
 > cd invoice-exception-desk
-> git switch l2-start        # starting point
-> git switch l2-solution     # finished result; see each step with: git log --oneline
+> git switch l2-start                 # the starter: finished L1 code + an L2 README
+> git switch -c my-l2                 # your own working branch
 > ```
+
+> **Inspect our solution** (after you've tried it, or if you get stuck)
+>
+> - [`l2-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l2-solution) has one commit per step. See them with `git log --oneline l2-start..l2-solution`.
+> - [`run.log`](https://github.com/tosin2013/invoice-exception-desk/blob/l2-solution/run.log) is the raw OpenCode output of every free-model command on this page. Local paths are replaced with `<workdir>` and `<home>`.
+> - Compare everything: [`l2-start...l2-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l2-start...l2-solution).
+> - The commit order below is **what we actually did**. Analyze ran *after* implement, which is not the order this page recommends (see section 7).
 >
 > ```mermaid
 > flowchart LR
@@ -34,6 +41,13 @@ title: "L2: First feature, end to end"
 >   brC4 --> brE["l2-solution"]
 > ```
 
+**The runnable path on this page** (the order to follow on your own branch):
+
+```mermaid
+flowchart LR
+  rp1[Specify] --> rp2[Clarify] --> rp3[Plan] --> rp4[Tasks] --> rp5["Analyze + fix"] --> rp6[Implement] --> rp7[Reviewer checks]
+```
+
 ## The feature
 
 L1's `split_bill(1000, 3)` splits evenly. Real bills aren't even: if one person ordered twice as much, they should pay twice as much. So L2 adds:
@@ -42,7 +56,7 @@ L1's `split_bill(1000, 3)` splits evenly. Real bills aren't even: if one person 
 split_weighted(1000, [2, 1])   # -> [667, 333]
 ```
 
-The hard part isn't the division. It's the **leftover cents**: 1000 × 2/3 is 666.67, and you can't pay 0.67 of a cent. Somebody has to decide who gets the extra cent. That decision is exactly what a spec is for.
+The hard part isn't the division. It's the **leftover cents**: 1000 × 2/3 is 666.67, and you can't pay 0.67 of a cent. Somebody has to decide who gets the extra cent. That decision is exactly what a spec is for. The promise we want: every share is **strictly less than one cent** away from its exact proportional amount, and the shares add up exactly to the total.
 
 ## Who does which step
 
@@ -55,9 +69,10 @@ Same split as L1, with one addition: the free model now also drafts the spec and
 | Clarify answers | **You** | `/speckit.clarify` (the model asks; you answer) |
 | Plan | **You** (or a strong model) | edit `plan.md` |
 | Answer key | **A reviewer**, outside the repo | — |
-| Tasks, implement | Free model | `/speckit.tasks`, `/speckit.implement` |
-| Analyze | Free model (read-only) | `/speckit.analyze` |
-| Grading | **The reviewer** | run the answer key |
+| Tasks | Free model | `/speckit.tasks` |
+| Analyze | Free model (read-only); **you** fix the findings | `/speckit.analyze` |
+| Implement | Free model | `/speckit.implement` |
+| Reviewer checks | **The reviewer** | run the answer key and the tests |
 
 ## Which files each command touches
 
@@ -73,7 +88,15 @@ flowchart LR
   an["/speckit.analyze"] --> f6["nothing<br/>(report only)"]
 ```
 
-All of the files except the code go in `specs/002-weighted-split/`.
+All of the files except the code go in `specs/002-weighted-split/`. `.specify/feature.json` is the exception: it lives in `.specify/`, and it's **gitignored**, so it isn't on the solution branch.
+
+> **Cloned the solution? Select the active feature yourself.** In specify-cli 1.1.3 the helper scripts find the feature folder from the `SPECIFY_FEATURE_DIRECTORY` environment variable first, then from `.specify/feature.json`. On a fresh clone neither exists, so a command like `/speckit.analyze` stops with "Feature directory not found". Fix it with either of these (we checked both against `check-prerequisites.sh` on a fresh checkout of `l2-solution`):
+>
+> ```bash
+> echo '{"feature_directory":"specs/002-weighted-split"}' > .specify/feature.json
+> # or, for one shell session:
+> export SPECIFY_FEATURE_DIRECTORY=specs/002-weighted-split
+> ```
 
 ## 1. Check the constitution
 
@@ -96,15 +119,18 @@ opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.specify \
 
 ```bash
 opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.clarify "Ask your questions." < /dev/null
-# it prints one question with options A/B/C; answer by continuing the session:
-opencode run -m opencode/deepseek-v4.1-flash-free --continue "B" < /dev/null
-opencode run -m opencode/deepseek-v4.1-flash-free --continue "A" < /dev/null
+# it prints one question with options; read it, then answer by continuing the session:
+opencode run -m opencode/deepseek-v4.1-flash-free --continue "<your answer>" < /dev/null
 ```
 
-Clarify asks **one question at a time** (with a recommended answer) and writes each answer into a `## Clarifications` section of `spec.md`. It also updates the requirements that the answer affects. In our run it asked two questions, then said there were no high-impact ambiguities left:
+> **Answer the question you actually get, not ours.** The questions, and the order of the options, can change from run to run, so a letter that was right for us may mean something else for you. Read each question and answer what it *means* (a short phrase is fine, like "list or tuple only").
+>
+> **More than one session?** `--continue` resumes the *most recent* session. If you've run anything else in between, target the clarify session explicitly: find its id with `opencode session list`, then use `opencode run --session <id> "<your answer>"`.
 
-1. *Which containers can `weights` be?* Options: list only, list or tuple, or any iterable. We answered **B (list or tuple)**.
-2. *If an input is both the wrong type and out of range (like `-1.5`), which error wins?* We answered **A (`TypeError`, type checks first)**, the same as `split_bill`.
+Clarify asks **one question at a time** (with a recommended answer) and writes each answer into a `## Clarifications` section of `spec.md`. It also updates the requirements that the answer affects. Here is our run, as a historical transcript. It asked two questions, then said there were no high-impact ambiguities left:
+
+1. *Which containers can `weights` be?* Options: list only, list or tuple, or any iterable. We answered **B**, which in that run meant "list or tuple".
+2. *If an input is both the wrong type and out of range (like `-1.5`), which error wins?* We answered **A**, which in that run meant "`TypeError`, type checks first", the same as `split_bill`.
 
 > **Confusion point: "the spec looked complete, so I skipped clarify."** Neither of those questions was visible in the spec, but each one changes the tests. Clarify is cheap (about a minute for us), so run it.
 
@@ -132,45 +158,90 @@ flowchart LR
   g --> out["[667, 333]"]
 ```
 
-Before the build, the reviewer wrote the answer key **outside the repo**: 11 value cases (for example `split_weighted(7, [1, 1, 0]) == [4, 3, 0]` and `split_weighted(5, [3, 3, 2]) == [2, 2, 1]`), 13 error cases (including `range(...)`, a generator, and `-1.5`), and 145 checks that equal weights match `split_bill`. That's 169 checks.
+## 5. Answer key (reviewer, before any code)
 
-## 5. Tasks and implement (free model)
+Before the build, the reviewer writes the answer key: inputs and expected outputs that the builder never sees. Ours has 169 checks: 11 value cases, 13 error cases (including `range(...)`, a generator, and `-1.5`), and 145 checks that equal weights give the same result as `split_bill`. We wrote it at the same time as the plan commit (22 Oct 2026, 15:30 EDT), before tasks and implement ran.
+
+> **Why we don't publish our answer key.** Once it's public it stops being an answer key. Anyone (or any model) building the exercise could read it, and the result would be graded against an answer the builder had already seen. So the key itself is withheld. Below, in section 8, is a **receipt** you can check instead. Write your own key for your own run; the two examples above show the style.
+
+> **Outside the repo is not an access boundary by itself.** Putting the key in a different folder only helps if the agent can't read that folder. What decides that is the agent's permissions. OpenCode has a permission check for files outside the project folder. In our L1 run, that check is what stopped the free model reading the key. Our L2 `run.log` shows no attempt to read it. That's evidence there was no attempt, not proof of a boundary. Check your agent's permission settings, and keep the key on another machine if you need a real guarantee.
+
+## 6. Tasks (free model)
 
 ```bash
 opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.tasks \
   "Generate tasks from the existing spec.md and plan.md. Do not change them." < /dev/null
-opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.implement \
-  "Implement all tasks. Run the tests with python -m pytest -q. Make exactly ONE commit with the spec folder and the code." < /dev/null
 ```
 
-Make sure `python -m pytest` works in that shell first (we put our virtualenv on `PATH`). In L1, a missing environment made the first implement attempt stop early.
+**Our real run:** 61 seconds, 19 tasks across three user stories.
 
-**Our real run:** tasks took 61 seconds (19 tasks across three user stories), and implement took 44 seconds. It added `split_weighted`, wrote 57 new tests (66 in total), left `split_bill` alone, and made one commit with the code, tests, and `tasks.md`.
-
-## 6. Analyze, then grade (reviewer)
+## 7. Analyze, then fix (before implement)
 
 ```bash
 opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.analyze \
   "Analyze spec.md, plan.md and tasks.md for consistency. Read-only." < /dev/null
 ```
 
-`/speckit.analyze` changes nothing. It cross-checks spec, plan, and tasks and prints a findings table. Ours (92 seconds) reported 11 findings: 1 HIGH, 2 MEDIUM and 8 LOW, with 100% requirement coverage. The HIGH one was real: clarify's answer said "any sequence (list or tuple)", but the plan only accepts `list` and `tuple`, so what happens with `range(1, 3)` wasn't defined. We fixed the spec wording to "list or tuple only" and added a `range` test **in the same commit** (constitution rule V). The full report is saved as [`analysis.md`](https://github.com/tosin2013/invoice-exception-desk/blob/l2-solution/specs/002-weighted-split/analysis.md).
+`/speckit.analyze` changes nothing. It cross-checks the spec, plan, and tasks and prints a findings table. **Run it after tasks and before implement**, which is where Spec Kit intends it. Fix every HIGH finding in the spec or plan (and re-run tasks if the fix changes them) before any code exists.
 
-> **Tip: run analyze *before* implement.** Spec Kit intends `/speckit.analyze` to run after tasks and before implement. We ran it afterwards to show what it finds in finished work. On your own features, run it first and fix HIGH findings before any code exists.
+> **Historical note: we ran analyze late.** In our run, analyze came *after* implement (92 seconds). It reported 11 findings: 1 HIGH, 2 MEDIUM and 8 LOW, with 100% requirement coverage. The HIGH one (A1) was real: clarify's answer said "any sequence (list or tuple)", but the plan only accepts `list` and `tuple`, so what happens with `range(1, 3)` wasn't defined. We fixed the spec wording to "list or tuple only" and added a `range` test in the same commit (`da53c28`).
+>
+> The saved [`analysis.md`](https://github.com/tosin2013/invoice-exception-desk/blob/l2-solution/specs/002-weighted-split/analysis.md) is the **pre-fix snapshot**. Since then, **A1 is fixed**. **G1** (no equal-weight parity test with weights other than 1) and **I2** (tasks.md says the stories are independent but also lists dependencies) are **still open**, and so are the LOW items.
 
-Then the reviewer ran the answer key: **169/169 passed**, and the project's own tests passed (**67**). *(These are results from one free-model run, graded only against our own answer key. Green tests are not proof of correctness; the answer key matters because the builder never saw it.)*
+## 8. Implement (free model)
 
-> **Confusion point: green tests mean it's correct.** The free model wrote both the code and its tests, so of course they agree. Only the reviewer's answer key, which was written before the build and kept outside the repo, tests the code against what *you* meant.
+```bash
+opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.implement \
+  "Implement all tasks. Run the tests with python -m pytest -q. Make exactly ONE commit with the spec folder and the code." < /dev/null
+```
+
+Make sure `python -m pytest` works in that shell first (we put our virtualenv on `PATH`). In L1, a missing environment made the first implement attempt stop early.
+
+**Our real run:** 44 seconds. It added `split_weighted`, wrote 57 new tests (66 in total), left `split_bill` alone, and made one commit (`21e7c20`).
+
+> **Historical deviation from constitution rule V** ("a behaviour change and its spec change land in the same commit"). `21e7c20` changed only `bill_split/__init__.py`, `tasks.md`, and `tests/test_split_weighted.py`. The spec and plan had already been committed separately (`d0f6a5c`, `efe6234`, `76eae9a`), because we committed after each phase to show the steps. So rule V was **not** met by the implementation commit, even though the prompt asked for "ONE commit with the spec folder and the code". We've left the history as it is. On your own branch, either commit the spec, plan, tasks, and code together, or squash them into one commit before you merge.
+
+## 9. Reviewer checks
+
+The reviewer runs the answer key and the full test suite against the finished commit.
+
+**Tests: 67 passed.** The jump from 66 to 67 is the `range` test from the analyze fix (section 7): 58 tests in `tests/test_split_weighted.py` plus the 9 L1 `split_bill` tests = 67. (Checked by collecting the tests at `21e7c20`, 57 + 9 = 66, and at `da53c28`, 58 + 9 = 67.)
+
+**Reviewer receipt** (a new run of the withheld key):
+
+| Field | Value |
+|---|---|
+| Tested commit | `9822512` on `l2-solution` (same code as `da53c28`; it only adds `run.log`) |
+| Answer key | `check.py`, sha256 `a4958345e7750b61a3acadb4231f81499c615cb2d9cf190599016c5b7813631d` |
+| Key timestamp | Written 22 Oct 2026 about 15:30 EDT, before implement. The file's modified time now reads 23 Oct 2026 08:53 EDT because our workspace was restored then; the content was not edited. |
+| Command | `python check.py <checkout of 9822512>`, then `python -m pytest -q` |
+| Result | **169/169** checks passed, 0 failures; **67 passed** |
+| Run at | 23 Oct 2026, 09:24 EDT |
+| Run by | Spec Kit bot |
+
+The first result (169/169 on 22 Oct) is **as reported by the Spec Kit bot**. It has not been independently re-verified by the OpenAI reviewer.
+
+> **Confusion point: green tests mean it's correct.** The risk is **correlated error**. The free model wrote the code *and* its tests from the same reading of the spec. If it misread something (say, which index gets a tied leftover cent), the code and the tests share that mistake, and the tests still pass. Passing tests only show the code agrees with the builder's understanding. An answer key helps only when it comes from a different source and is written before the build. Our key is weaker than that ideal: the same bot wrote the plan and the key, so a shared misreading between those two could still slip through. That is why the receipt says who ran it, and why an outside re-run is worth having.
+
+## 10. Retrospective
+
+> **Was Full SDD worth it for this feature?**
+>
+> - **What it cost.** Agent time was about 5 minutes: specify 42s, clarify about 70s over three calls, tasks 61s, implement 44s, and analyze 92s. On top of that came our own time for the plan, the clarify answers, the answer key, and the analyze fix, which we didn't time. A normal PR for a 40-line pure function with tests is one sitting: write it, test it, get one review. By file count, SDD added a 122-line spec, a plan, a 196-line `tasks.md`, and an analysis report for 40 lines of code.
+> - **What clarify caught.** Two things: which containers `weights` may be, and which error wins when an input is both the wrong type and out of range. A careful reviewer would probably have caught both in a normal PR, since `split_bill` already set the type-checks-first precedent. Clarify's real value was that the decisions got written down before the code, not that it found something review couldn't. The analyze HIGH finding (`range`) was also already covered by the answer key.
+> - **Verdict.** At this size, **Full SDD does not earn its cost**. This feature fails decision-gate question 2 on [Home](index.md): it's not bigger than one sitting. **Light SDD** (a short spec with the rounding rule, plus a brief plan) would have captured the important decision, which is who gets the leftover cent. We used Full SDD here as a rehearsal, so you know every step before L3, where features span many sessions and the cost pays back.
 
 ## Checklist
 
+- [ ] Working on your own branch (`git switch -c my-l2`), not on `l2-start`
 - [ ] Constitution re-read; the rules that matter for this feature noted
 - [ ] `/speckit.specify` run, and every example in the spec checked by hand
-- [ ] `/speckit.clarify` run, with every question answered by you
+- [ ] `/speckit.clarify` run; each actual question read and answered by meaning
 - [ ] Plan written by a human or strong model, naming exact files and "nothing else"
-- [ ] Answer key written by the reviewer, before the build, outside the repo
-- [ ] `/speckit.tasks` and `/speckit.implement` run by the free model, in one commit
-- [ ] `/speckit.analyze` run, and HIGH findings fixed with spec and code together
-- [ ] Answer key and the full test suite rerun
+- [ ] Answer key written by the reviewer before the build, and protected by the agent's permissions (not just a different folder)
+- [ ] `/speckit.tasks` run by the free model
+- [ ] `/speckit.analyze` run **before** implement, and HIGH findings fixed in the spec or plan
+- [ ] `/speckit.implement` run by the free model; spec, plan, tasks, and code land together (rule V)
+- [ ] Reviewer re-runs the answer key and the full suite, and records a receipt (commit, key hash, command, result, who)
 
 L3 and L4 are paused pending review. Compare the start branch with the finished steps: [`l2-start...l2-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l2-start...l2-solution). Back: [L1: Setup](L1-setup.md). Back to [Home](index.md).
