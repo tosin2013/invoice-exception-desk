@@ -1,0 +1,211 @@
+---
+
+description: "Task list for Invoice Exception Desk import (R1 slice)"
+---
+
+# Tasks: Invoice CSV import and aging
+
+**Input**: Design documents from `/specs/003-desk-import/`
+
+**Prerequisites**: plan.md (required), spec.md (required for user stories)
+
+**Tests**: Included because `plan.md` explicitly scopes `tests/test_invoice_desk.py` and the project constitution requires every public function to have tests.
+
+**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story. `spec.md` and `plan.md` are inputs only and MUST NOT be modified.
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: Can run in parallel (different files, no dependencies)
+- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
+- Include exact file paths in descriptions
+
+## Path Conventions
+
+- **Single project**: `invoice_desk/` package and `tests/` at repository root, per `plan.md`
+- Allowed write scope: `invoice_desk/__init__.py` and `tests/test_invoice_desk.py` only
+
+---
+
+## Phase 1: Setup (Shared Infrastructure)
+
+**Purpose**: Create the package entry point and the test module shared by all stories
+
+- [ ] T001 Create `invoice_desk/__init__.py` with the public stub `import_invoices(csv_text: str, as_of: date) -> dict` returning `{"rows": [], "totals": {}}`, importing `date` from `datetime` per the exact interface in `plan.md`
+- [ ] T002 [P] Create `tests/test_invoice_desk.py` with a shared helper that reads `data/invoices.csv` as text and a constant `AS_OF = date(2026, 10, 15)`
+
+---
+
+## Phase 2: Foundational (Blocking Prerequisites)
+
+**Purpose**: Shared parsing, normalization, and validation primitives required by every user story
+
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+
+- [ ] T003 Define in `invoice_desk/__init__.py` the seven header field names in order (`issuer`, `invoice_id`, `issue_date`, `due_date`, `amount_cents`, `currency`, `paid_cents`), the four statuses, the six rejection reasons, and the six aging bucket names as module constants
+- [ ] T004 Implement a private CSV parsing helper in `invoice_desk/__init__.py` using `csv.reader(io.StringIO(csv_text))` and **not** `DictReader`, mapping columns from the header row, preserving blank lines as data rows, padding rows shorter than seven cells with `""`, ignoring cells beyond the seventh, and trimming leading/trailing whitespace on all seven fields (FR-002, FR-030, FR-031)
+- [ ] T005 Implement a private row validation helper in `invoice_desk/__init__.py` that returns normalized field values or exactly one rejection reason using the precedence `empty_row`, `missing_required_field`, `invalid_date`, `invalid_amount`, `invalid_currency`, `invalid_payment` (FR-005 to FR-011)
+
+**Checkpoint**: Foundation ready - user story implementation can now begin
+
+---
+
+## Phase 3: User Story 1 - Import and classify every invoice row (Priority: P1) 🎯 MVP
+
+**Goal**: Classify every data row as accepted, rejected with a reason, identical duplicate, or inconsistent duplicate, with deterministic import counts and no state between calls.
+
+**Independent Test**: Import the frozen `data/invoices.csv` text as of `2026-10-15`, assert `total_rows = 30`, `accepted = 14`, `rejected = 12`, `duplicate_identical = 2`, `duplicate_inconsistent = 2`, verify every row status and rejection reason, then import the same text again and confirm an identical result with no double-counting.
+
+### Tests for User Story 1 ⚠️
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T006 [US1] Write US1 tests in `tests/test_invoice_desk.py` covering AT-01 and AT-02: all 30 row classifications, exact reasons for rows 19-30, rows 15-16 `duplicate_identical`, rows 17-18 `duplicate_inconsistent`, no accepted fields from rejected/duplicate rows, identical second call, header-only/empty input yielding zero rows, whitespace trimming, short rows, and ignored extra cells
+
+### Implementation for User Story 1
+
+- [ ] T007 [US1] Implement duplicate detection in `invoice_desk/__init__.py` keyed by `(issuer, invoice_id)`, accepting the first validated occurrence and classifying later validated matches as `duplicate_identical` when all seven normalized values match or `duplicate_inconsistent` otherwise, without altering the accepted record (FR-012 to FR-015)
+- [ ] T008 [US1] Populate `rows` in input order in `invoice_desk/__init__.py`, with 1-based data-row `row` numbers, `status`, and `reason` (`None` for accepted rows, the rejection reason for rejected rows, `"identical_duplicate"` / `"inconsistent_duplicate"` for duplicates), leaving `remaining_balance_cents`, `days_overdue`, and `aging_bucket` as `None` for non-accepted rows per the `plan.md` interface
+- [ ] T009 [US1] Populate `totals` in `invoice_desk/__init__.py` with `total_rows`, `accepted`, `rejected`, `duplicate_identical`, and `duplicate_inconsistent`, and keep the import pure per call with no module-level or persisted state (FR-004, FR-021)
+
+**Checkpoint**: User Story 1 is fully functional and independently testable
+
+---
+
+## Phase 4: User Story 2 - See the exact amount still outstanding (Priority: P2)
+
+**Goal**: Report a non-negative integer-cent remaining balance for every accepted invoice plus exact outstanding and paid totals.
+
+**Independent Test**: Import the frozen CSV, verify each accepted invoice balance equals `amount_cents - paid_cents`, then assert `outstanding_invoice_count = 13`, `total_outstanding_cents = 2139435`, `total_paid_cents = 289999`, and that fully paid `INV-1011` contributes zero and is excluded from the outstanding count.
+
+### Tests for User Story 2 ⚠️
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T010 [US2] Write US2 tests in `tests/test_invoice_desk.py` covering AT-03: remaining balance equals `amount_cents - paid_cents` for accepted rows, all amounts are integers, outstanding count and cent sum are exactly `13` and `2139435`, total paid is exactly `289999`, `INV-1011` has remaining `0` and is excluded from outstanding totals, and rejected/duplicate rows retain `remaining_balance_cents = None`
+
+### Implementation for User Story 2
+
+- [ ] T011 [US2] Compute `remaining_balance_cents` in `invoice_desk/__init__.py` for every accepted row as `amount_cents - paid_cents` using integer arithmetic and set it to `None` for rejected and duplicate rows (FR-015, FR-016, FR-025)
+- [ ] T012 [US2] Compute `outstanding_invoice_count` and `total_outstanding_cents` from accepted invoices with a positive remaining balance only, and `total_paid_cents` as the sum of accepted `paid_cents`, all in integer cents (FR-022, FR-023, FR-025)
+
+**Checkpoint**: User Stories 1 and 2 both work independently
+
+---
+
+## Phase 5: User Story 3 - Age invoices against an explicit as-of date (Priority: P3)
+
+**Goal**: Report deterministic days overdue and aging buckets as of the caller-supplied `as_of` date, with exact per-bucket totals.
+
+**Independent Test**: Import the frozen CSV with `as_of = 2026-10-15`, verify each accepted invoice's `days_overdue` and bucket, test the 0/1/30/31/60/61/90/91 boundaries plus due-today, future-due, and fully paid cases, then assert the six aging totals exactly.
+
+### Tests for User Story 3 ⚠️
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T013 [US3] Write US3 tests in `tests/test_invoice_desk.py` covering AT-04: per-invoice `days_overdue` and bucket mapping (`INV-1001 current`, `INV-1002 current`, `INV-1003 1-30`, `INV-1004 1-30`, `INV-1005 31-60`, `INV-1006 31-60`, `INV-1007 61-90`, `INV-1008 61-90`, `INV-1009 91+`, `INV-1010 1-30`, `INV-1011 paid`, `INV-1012 91+`, `INV-1013 current`, `INV-1014 31-60`), boundary unit cases at 0/1/30/31/60/61/90/91 days, future and due-today invoices, fully paid overdue invoice, and aging totals `current {3, 597047}`, `1-30 {3, 396862}`, `31-60 {3, 259664}`, `61-90 {2, 863731}`, `91+ {2, 22131}`, `paid {1, 0}`
+
+### Implementation for User Story 3
+
+- [ ] T014 [US3] Compute `days_overdue` in `invoice_desk/__init__.py` for every accepted row as `0` when `due_date` is on or after `as_of`, otherwise `(as_of - due_date).days`, and `None` for rejected and duplicate rows (FR-017, FR-018)
+- [ ] T015 [US3] Assign exactly one `aging_bucket` in `invoice_desk/__init__.py` for every accepted row: `paid` for zero remaining balance, otherwise `current` when not overdue, otherwise `1-30` for 1-30 days, `31-60` for 31-60, `61-90` for 61-90, and `91+` for 91 or more, with `None` for non-accepted rows (FR-019, FR-020)
+- [ ] T016 [US3] Populate `totals["aging"]` in `invoice_desk/__init__.py` with all six buckets always present as `{"count": int, "remaining_cents": int}`, counting accepted invoices per bucket and summing their integer-cent remaining balances, with `paid` remaining always `0` (FR-024)
+
+**Checkpoint**: All three user stories are independently functional
+
+---
+
+## Phase 6: Polish & Cross-Cutting Concerns
+
+**Purpose**: Documentation and end-to-end validation across all stories
+
+- [ ] T017 Add concise docstrings and type hints to `import_invoices` and its private helpers in `invoice_desk/__init__.py`, documenting the pure, offline, integer-cent, and explicit-`as_of` contract
+- [ ] T018 Verify the change set is limited to `invoice_desk/__init__.py` and `tests/test_invoice_desk.py`; confirm `bill_split`, `tests/test_split_bill.py`, `tests/test_split_weighted.py`, `data/`, `pyproject.toml`, `ROADMAP.md`, `ACCEPTANCE.md`, `NON_GOALS.md`, `spec.md`, and `plan.md` are unchanged
+- [ ] T019 Run `python -m pytest -q` from the repository root and confirm the new tests plus the existing `bill_split` tests all pass
+- [ ] T020 Audit `invoice_desk/__init__.py` for no floating-point money, no system-clock reads, no network calls, no external dependencies, and no credentials or real personal data, then re-confirm AT-01 through AT-04 values against `ACCEPTANCE.md` and the frozen `data/invoices.csv`
+
+---
+
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Foundational (Phase 2)**: Depends on Setup (T001) - BLOCKS all user stories
+- **User Story 1 (Phase 3)**: Depends on Foundational completion
+- **User Story 2 (Phase 4)**: Depends on User Story 1 (uses its accepted invoices and row structure)
+- **User Story 3 (Phase 5)**: Depends on User Story 1 for accepted rows and User Story 2 for remaining balances (needed for the `paid` bucket)
+- **Polish (Phase 6)**: Depends on all three user stories being complete
+
+### Task Dependencies
+
+- T001 → T002 (test helper can be written alongside the stub)
+- T001 → T003 → T004 → T005
+- T005 → T006 (tests written and failing) → T007 → T008 → T009
+- T009 → T010 (tests written and failing) → T011 → T012
+- T012 → T013 (tests written and failing) → T014 → T015 → T016
+- T016 → T017 → T018 → T019 → T020
+
+### User Story Dependencies
+
+- **User Story 1 (P1)**: No dependencies on other stories after Foundational
+- **User Story 2 (P2)**: Depends on US1's accepted-invoice set; independently testable through balances and totals
+- **User Story 3 (P3)**: Depends on US1's accepted-invoice set and US2's remaining balance; independently testable through aging output
+
+### Within Each User Story
+
+- Tests MUST be written and FAIL before implementation
+- Duplicate detection and row outcomes before totals
+- Remaining balances before outstanding and paid totals
+- Days overdue before bucket assignment, and buckets before aging totals
+- Story complete before moving to the next priority
+
+### Parallel Opportunities
+
+- T001 and T002 touch different files and can run in parallel
+- After Foundational, all remaining tasks modify either `invoice_desk/__init__.py` or `tests/test_invoice_desk.py`; because both files are shared, the user stories should be implemented sequentially rather than in parallel to avoid conflicts
+
+---
+
+## Parallel Example: Setup
+
+```bash
+# T001 and T002 touch different files and have no dependency on each other:
+Task: "Create invoice_desk/__init__.py with the import_invoices stub"
+Task: "Create tests/test_invoice_desk.py with the frozen CSV helper and AS_OF constant"
+```
+
+---
+
+## Implementation Strategy
+
+### MVP First (User Story 1 Only)
+
+1. Complete Phase 1: Setup
+2. Complete Phase 2: Foundational
+3. Complete Phase 3: User Story 1
+4. **STOP and VALIDATE**: Run the US1 tests and confirm exact AT-01/AT-02 classifications and counts
+5. Continue to US2 and US3 only after US1 is green
+
+### Incremental Delivery
+
+1. Complete Setup + Foundational → parsing and validation foundation ready
+2. Add User Story 1 → verify AT-01/AT-02 independently → deliverable MVP classification slice
+3. Add User Story 2 → verify AT-03 independently → exact outstanding and paid totals delivered
+4. Add User Story 3 → verify AT-04 independently → aging buckets and totals delivered
+5. Complete Polish → full `python -m pytest -q` green and acceptance values re-confirmed
+
+### Sequential Single-Module Strategy
+
+The production code is one module (`invoice_desk/__init__.py`) and the tests are one file (`tests/test_invoice_desk.py`), so split work by story priority rather than by parallel ownership. Keep each checkpoint green before starting the next story.
+
+---
+
+## Notes
+
+- [P] tasks = different files, no dependencies
+- [Story] label maps task to a specific user story for traceability
+- Tests are included per `plan.md` and the constitution, not as an optional TDD request
+- Do not modify `spec.md` or `plan.md`
+- Do not introduce persistence, owners, notes, payment events, promised-pay annotations, migration, CLI, UI, or network access; these are out of scope (FR-029 and `NON_GOALS.md`)
+- All money values must remain integer cents; never use floats
+- `import_invoices` must accept an explicit `as_of` date and never read the machine clock
