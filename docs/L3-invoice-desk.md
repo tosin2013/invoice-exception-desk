@@ -8,7 +8,7 @@ title: "L3: Invoice Exception Desk walkthrough"
 
 - **You are here if** you finished [L2](L2-first-feature.md) and want to use the same loop on a realistic project, with a frozen dataset, a roadmap, and a sealed answer key.
 - **You should already have** specify-cli 1.1.3, OpenCode 1.19.3, and Python 3.11+ with pytest. The starter branch below has everything else, including the L2 code.
-- **You leave with** the first slice of roadmap phase **R1**: a pure `invoice_desk.import_invoices(csv_text, as_of)` that classifies 30 invoice rows and computes balances, aging and totals for acceptance items AT-01 to AT-04, graded by an answer key the builder never saw.
+- **You leave with** the first slice of roadmap phase **R1**: a pure `invoice_desk.import_invoices(csv_text, as_of)` that classifies 30 invoice rows and computes balances, aging and totals for acceptance items AT-01 to AT-04, graded by an answer key that was withheld from the builder's checkout. There's no evidence the builder ever accessed its contents, but isolation was not proven.
 - **Phases shown:** constitution amendment, specify, clarify, plan, answer key, tasks, analyze/fix **before** implement, tasks re-run, implement, reviewer checks, review fix. **Left out:** the rest of R1 (the follow-up queue, owners and notes in AT-05, plus AT-09 and AT-10), R2 to R6, `/speckit.checklist`, `/speckit.converge`, `/speckit.taskstoissues`, and extensions.
 
 > **Start the exercise**
@@ -83,7 +83,7 @@ opencode run -m opencode/deepseek-v4.1-flash-free --command speckit.specify \
   "Build the first slice of roadmap phase R1 for the Invoice Exception Desk: a pure Python package invoice_desk that imports invoice CSV text, classifies every row ... It must satisfy ACCEPTANCE.md AT-01 to AT-04 on data/invoices.csv ... Use the short name desk-import." < /dev/null
 ```
 
-(The full prompt is in `run.log`.) **Our real run:** 214 seconds. It made `specs/003-desk-import/spec.md` with 29 functional requirements.
+(The full prompt is in `run.log`.) **Our real run:** 214 seconds. It made `specs/003-desk-import/spec.md` with 29 functional requirements. Clarify (section 3) later added **FR-030** (trim whitespace) and **FR-031** (row width), so the final spec has **31**.
 
 **Check it against the data by hand.** Two things in our spec were quietly risky:
 - While drafting, the model counted the CSV itself and got **10 rejected rows out of 28**, not 12 out of 30. Its parser had silently skipped the two blank lines at the end. ACCEPTANCE says those are rows 29 and 30, `empty_row`. The spec it wrote was right, but its own check wasn't.
@@ -112,10 +112,21 @@ None of the three was in `ACCEPTANCE.md`, and the first one would have changed t
 
 ## 5. Answer key (reviewer, before any code)
 
-The key is the R0 oracle plus a checker script. It has two parts:
+The answer key has two kinds of files, and only some are public:
+
+| Part | Published? | Where |
+|---|---|---|
+| R0 oracle (`oracle.json`) and its script (`compute_oracle.py`) | **Yes**, on `main` since R0; not on `l3-start` | [`data/`](https://github.com/tosin2013/invoice-exception-desk/tree/main/data) on `main` |
+| Data generator (`generate_invoices.py`) and `invoices.csv` | **Yes** | `main` and `l3-start` |
+| Checker script (`check.py`) | **No** | reviewer only |
+| Eight-row probe CSV (inside `check.py`) | **No** | reviewer only |
+
+The checker has two parts:
 
 - **Core (295 checks):** every row's status, reason, balance, days overdue and bucket, and every total, on the fixture at `as_of` 2026-10-15; the same again at two other `as_of` dates (computed by the R0 oracle script); and "importing twice gives the same result".
 - **Probes (35 checks):** an extra 8-row CSV of policy edge cases. These follow R0's oracle policy, **which isn't written in the public docs**, so they're reported separately and don't count towards pass/fail.
+
+**You can't reproduce the 295 and 19/35 totals from this checkout**, because the checker and the probes aren't published. They are results reported by the Spec Kit bot (see the receipt in section 9). You *can* compare your own build with the published `oracle.json` for the 30 fixture rows.
 
 We checked the key itself by running it against a stand-in built from the R0 oracle script: 295/295 and 35/35. Then we recorded the hashes **before** the build (23 Oct 2026, 10:07 EDT):
 
@@ -125,7 +136,9 @@ We checked the key itself by running it against a stand-in built from the R0 ora
 | `compute_oracle.py` | `72a3b11f3317998c0f2f58f5660ee19b484a785a46a85b76823305ad98a352e1` |
 | `oracle.json` | `38560f6b13a77f38ac78ea49419a1b3a58e94ee72f1944f23722267219568eee` |
 
-The key isn't published, because a published key stops being a key. And the separate folder is not the boundary; the agent's permissions are. Our `run.log` shows the free model **tried to open `data/oracle.json` twice** (during clarify and analyze). It failed only because the file wasn't on the branch. Nothing in the log touched the key's folder. That's evidence there was no attempt, not proof of a boundary.
+The checker isn't published, because a published key stops being a key.
+
+> **Weaker than our own constitution.** Rule VIII says the oracle is kept *outside the repo* during the build. What we actually did is weaker: the oracle was left off the `l3-start` and `l3-solution` branches but stayed on `main` in the same repo, and the checker sat in a folder outside the checkout. Neither is an access boundary; the agent's permissions are. Our `run.log` shows the free model **tried to open `data/oracle.json` twice** (during clarify and analyze). It failed only because the file wasn't on the branch. Nothing in the log touched the checker's folder or `main`. That's no demonstrated access, not proven isolation.
 
 ## 6. Tasks (free model)
 
@@ -145,7 +158,12 @@ This time we ran analyze **in the right place**, before any code (217 seconds). 
 - **A2 (MEDIUM):** empty input wasn't defined. Fix: zero rows, with all six buckets present.
 - **A3 (MEDIUM):** `str.isdigit()` accepts characters like `²`. Fix: match ASCII `[0-9]+`, and reject `+100`.
 
-Then we **re-ran `/speckit.tasks`** (62 seconds) so the tasks matched the fixed spec. [`analysis.md`](https://github.com/tosin2013/invoice-exception-desk/blob/l3-solution/specs/003-desk-import/analysis.md) is the pre-fix snapshot; A4, C2, F1 and F2 (all LOW) are **still open**.
+Then we **re-ran `/speckit.tasks`** (62 seconds) so the tasks matched the fixed spec. [`analysis.md`](https://github.com/tosin2013/invoice-exception-desk/blob/l3-solution/specs/003-desk-import/analysis.md) is the pre-fix snapshot. Status of the four LOW findings now:
+
+- **A4** (header contract) is **still open**: the spec puts malformed headers out of scope.
+- **F1** (duplicate reason tokens `identical_duplicate` / `inconsistent_duplicate` vs the status names) is **still open**.
+- **C2** (no tests for a zero amount, or the same invoice ID from a different issuer) was **addressed** by the build: `tests/test_invoice_desk.py` lines 277 to 303.
+- **F2** (parallel setup tasks) was **addressed** by the tasks re-run: T001 and T002 are both marked `[P]` (`tasks.md` lines 33 to 34).
 
 Analyze didn't spot the FR-017/FR-018 contradiction. It checks whether the documents agree with each other, and the two sentences each looked fine on their own.
 
@@ -172,7 +190,7 @@ This is **correlated error** in practice. The spec had two sentences that disagr
 
 | Field | Value |
 |---|---|
-| Tested commit | `7010d31` (`l3-solution` head `758a1fb` adds only `run.log`) |
+| Tested commit | `7010d31` (later `l3-solution` commits add only `run.log` and a historical note on task T014) |
 | Answer key | sha256 values in section 5; re-checked with `sha256sum -c` before each run, both OK |
 | Command | `python check.py <checkout>`, then `python -m pytest -q` |
 | Result | **Core 295/295.** Probes 19/35. **119 passed.** |
@@ -190,6 +208,20 @@ These results are as reported by the Spec Kit bot and have not been independentl
 | `amount_cents` = `0100` (leading zero) | accepted | `invalid_amount` |
 
 The other probe failures follow from these (for example, a later duplicate of the `usd` row changes status). We didn't "fix" them by copying the oracle into the spec, because then the spec would be shaped by the answer key. They go to the product owner as questions. Once they're answered, the answers go into `ACCEPTANCE.md` and the spec.
+
+> **Open policy questions (your call)**
+>
+> Three inputs where the build and the R0 oracle disagree, and nobody has decided who's right. You are the product owner now.
+>
+> | Case | Current build | R0 oracle |
+> |---|---|---|
+> | Amount of zero: `amount_cents` = `0` | accepted, lands in `paid` | rejected, `invalid_amount` |
+> | Lower-case currency: `usd` | rejected, `invalid_currency` | accepted |
+> | Leading zero: `amount_cents` = `0100` | accepted as 100 | rejected, `invalid_amount` |
+>
+> **Your mission:** for each case, decide. Is a zero-cent invoice a real invoice or a data-entry slip? Is `usd` a typo you forgive, or a sign the export is broken? Is `0100` a hundred cents or a corrupted cell? Write your ruling into `ACCEPTANCE.md` (a new line under AT-02) **and** into the spec's Clarifications, then change the tests to match, and only then the code. Bonus: run the decision past someone who'd have to explain it to an accountant.
+>
+> We've deliberately left all three open in our solution. There's no single right answer, only a recorded one.
 
 > **Our key is weaker than ideal.** The same bot wrote the plan, the answer key, and the review fix, and it had read the R0 oracle script. We kept oracle details out of the plan, but a shared misreading between plan and key could still slip through. An outside re-run would make this stronger.
 
