@@ -11,16 +11,21 @@ title: "L1: Setup"
 - **You leave with** a Spec Kit project connected to one agent, a constitution, and a tiny first feature built with the right split between you and a free model.
 - **Existing code?** Do [L0: Start from an existing repo](L0-existing-repo.md) first.
 
-> **Follow along**
-> - Start: [`l1-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l1-start), an empty folder with just a README.
-> - Solution: [`l1-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l1-solution), the finished tiny feature, with one commit per step.
+> **Start the exercise**
+>
+> Work on your own branch, so the starter stays clean and you can compare with ours later:
 >
 > ```bash
 > git clone https://github.com/tosin2013/invoice-exception-desk.git
 > cd invoice-exception-desk
-> git switch l1-start        # starting point
-> git switch l1-solution     # finished result; see each step with: git log --oneline
+> git switch l1-start                 # an empty folder with just a README
+> git switch -c my-l1                 # your own working branch
 > ```
+
+> **Inspect our solution** (after you've tried it, or if you get stuck)
+>
+> - [`l1-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l1-solution) is the finished tiny feature, with one commit per step. See them with `git log --oneline l1-start..l1-solution`.
+> - Compare everything: [`l1-start...l1-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l1-start...l1-solution).
 >
 > ```mermaid
 > flowchart LR
