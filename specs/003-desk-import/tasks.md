@@ -107,6 +107,7 @@ description: "Task list for Invoice Exception Desk import (R1 slice)"
 ### Implementation for User Story 3
 
 - [X] T014 [US3] Compute `days_overdue` in `invoice_desk/__init__.py` for every accepted row as `0` when `due_date` is on or after `as_of`, otherwise `(as_of - due_date).days`, and `None` for rejected and duplicate rows (FR-017, FR-018)
+  - *Historical note (added after the build): this task text is superseded by review fix R1 (commit `7010d31`). A fully paid invoice (zero remaining balance) is never overdue, so `days_overdue` is `0` for it, per the updated FR-018. The text above is kept as it was when the free model implemented it.*
 - [X] T015 [US3] Assign exactly one `aging_bucket` in `invoice_desk/__init__.py` for every accepted row: `paid` for zero remaining balance, otherwise `current` when not overdue, otherwise `1-30` for 1-30 days, `31-60` for 31-60, `61-90` for 61-90, and `91+` for 91 or more, with `None` for non-accepted rows (FR-019, FR-020)
 - [X] T016 [US3] Populate `totals["aging"]` in `invoice_desk/__init__.py` with all six buckets always present as `{"count": int, "remaining_cents": int}`, counting accepted invoices per bucket and summing their integer-cent remaining balances, with `paid` remaining always `0` (FR-024)
 
