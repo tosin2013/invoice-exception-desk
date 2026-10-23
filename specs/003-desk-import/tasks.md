@@ -30,8 +30,8 @@ description: "Task list for Invoice Exception Desk import (R1 slice)"
 
 **Purpose**: Create the package entry point and the test module shared by all stories
 
-- [ ] T001 Create `invoice_desk/__init__.py` with the public stub `import_invoices(csv_text: str, as_of: date) -> dict` returning `{"rows": [], "totals": {}}`, importing `date` from `datetime` per the exact interface in `plan.md`
-- [ ] T002 [P] Create `tests/test_invoice_desk.py` with a shared helper that reads `data/invoices.csv` as text and a constant `AS_OF = date(2026, 10, 15)`
+- [ ] T001 [P] Create `invoice_desk/__init__.py` with the public stub `import_invoices(csv_text: str, as_of: date) -> dict` returning `{"rows": [], "totals": {}}`, importing `date` from `datetime` per the exact interface in `plan.md`
+- [ ] T002 [P] Create `tests/test_invoice_desk.py` with a shared helper that reads `data/invoices.csv` as text, a constant `AS_OF = date(2026, 10, 15)`, and a helper for the all-zero six-bucket totals shape
 
 ---
 
@@ -41,9 +41,9 @@ description: "Task list for Invoice Exception Desk import (R1 slice)"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Define in `invoice_desk/__init__.py` the seven header field names in order (`issuer`, `invoice_id`, `issue_date`, `due_date`, `amount_cents`, `currency`, `paid_cents`), the four statuses, the six rejection reasons, and the six aging bucket names as module constants
-- [ ] T004 Implement a private CSV parsing helper in `invoice_desk/__init__.py` using `csv.reader(io.StringIO(csv_text))` and **not** `DictReader`, mapping columns from the header row, preserving blank lines as data rows, padding rows shorter than seven cells with `""`, ignoring cells beyond the seventh, and trimming leading/trailing whitespace on all seven fields (FR-002, FR-030, FR-031)
-- [ ] T005 Implement a private row validation helper in `invoice_desk/__init__.py` that returns normalized field values or exactly one rejection reason using the precedence `empty_row`, `missing_required_field`, `invalid_date`, `invalid_amount`, `invalid_currency`, `invalid_payment` (FR-005 to FR-011)
+- [ ] T003 Define in `invoice_desk/__init__.py` the seven header field names in order (`issuer`, `invoice_id`, `issue_date`, `due_date`, `amount_cents`, `currency`, `paid_cents`), the four statuses, the six rejection reasons, the two duplicate reason tokens (`identical_duplicate`, `inconsistent_duplicate`), and the six aging bucket names (`current`, `1-30`, `31-60`, `61-90`, `91+`, `paid`) as module constants
+- [ ] T004 Implement a private CSV parsing helper in `invoice_desk/__init__.py` using `csv.reader(io.StringIO(csv_text))` and **not** `DictReader`, mapping columns from the header row, treating empty or header-only input as zero data rows, preserving blank lines as data rows, padding rows shorter than seven cells with `""`, ignoring cells beyond the seventh, and trimming leading/trailing whitespace on all seven fields (FR-002, FR-030, FR-031)
+- [ ] T005 Implement a private row validation helper in `invoice_desk/__init__.py` that returns normalized field values or exactly one rejection reason using the precedence `empty_row`, `missing_required_field`, `invalid_date`, `invalid_amount`, `invalid_currency`, `invalid_payment`: `empty_row` when no cells or all cells blank; `missing_required_field` only when `issuer` or `invoice_id` is blank (all other fields use their own reason); `invalid_date` for a blank or non-strict non-real `YYYY-MM-DD` date; `invalid_amount` for a blank or non-`[0-9]+` amount (using `re.fullmatch`, rejecting `+100`, `-500`, `12.50`, `abc`); `invalid_currency` for a blank or non-`USD` currency; `invalid_payment` for a non-`[0-9]+` payment or one exceeding `amount_cents`, with a blank `paid_cents` treated as `0` (FR-005 to FR-011)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -59,13 +59,13 @@ description: "Task list for Invoice Exception Desk import (R1 slice)"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T006 [US1] Write US1 tests in `tests/test_invoice_desk.py` covering AT-01 and AT-02: all 30 row classifications, exact reasons for rows 19-30, rows 15-16 `duplicate_identical`, rows 17-18 `duplicate_inconsistent`, no accepted fields from rejected/duplicate rows, identical second call, header-only/empty input yielding zero rows, whitespace trimming, short rows, and ignored extra cells
+- [ ] T006 [US1] Write US1 tests in `tests/test_invoice_desk.py` covering AT-01 and AT-02: all 30 row classifications, exact reasons for rows 19-30, rows 15-16 `duplicate_identical`, rows 17-18 `duplicate_inconsistent`, no accepted fields from rejected/duplicate rows, identical second call, empty `csv_text` and header-only input yielding zero rows plus zero totals with all six aging buckets present as `{"count": 0, "remaining_cents": 0}`, header-driven normalization/trimming, whitespace trimming, `+100` rejected as `invalid_amount`, short rows, and ignored extra cells; also assert accepted rows expose normalized `issuer`, `invoice_id`, `amount_cents`, and `paid_cents`
 
 ### Implementation for User Story 1
 
 - [ ] T007 [US1] Implement duplicate detection in `invoice_desk/__init__.py` keyed by `(issuer, invoice_id)`, accepting the first validated occurrence and classifying later validated matches as `duplicate_identical` when all seven normalized values match or `duplicate_inconsistent` otherwise, without altering the accepted record (FR-012 to FR-015)
-- [ ] T008 [US1] Populate `rows` in input order in `invoice_desk/__init__.py`, with 1-based data-row `row` numbers, `status`, and `reason` (`None` for accepted rows, the rejection reason for rejected rows, `"identical_duplicate"` / `"inconsistent_duplicate"` for duplicates), leaving `remaining_balance_cents`, `days_overdue`, and `aging_bucket` as `None` for non-accepted rows per the `plan.md` interface
-- [ ] T009 [US1] Populate `totals` in `invoice_desk/__init__.py` with `total_rows`, `accepted`, `rejected`, `duplicate_identical`, and `duplicate_inconsistent`, and keep the import pure per call with no module-level or persisted state (FR-004, FR-021)
+- [ ] T008 [US1] Populate `rows` in input order in `invoice_desk/__init__.py`, with 1-based data-row `row` numbers, `status`, and `reason` (`None` for accepted rows, the rejection reason for rejected rows, `"identical_duplicate"` / `"inconsistent_duplicate"` for duplicates), including the normalized `issuer`, `invoice_id`, `amount_cents`, and `paid_cents` on accepted rows per the `plan.md` interface, and leaving `remaining_balance_cents`, `days_overdue`, and `aging_bucket` as `None` for non-accepted rows
+- [ ] T009 [US1] Populate `totals` in `invoice_desk/__init__.py` with `total_rows`, `accepted`, `rejected`, `duplicate_identical`, and `duplicate_inconsistent`; for empty or header-only input return zero counts with `outstanding_invoice_count = 0`, `total_outstanding_cents = 0`, `total_paid_cents = 0`, and all six aging buckets present as `{"count": 0, "remaining_cents": 0}`; keep the import pure per call with no module-level or persisted state (FR-004, FR-021)
 
 **Checkpoint**: User Story 1 is fully functional and independently testable
 
@@ -81,12 +81,12 @@ description: "Task list for Invoice Exception Desk import (R1 slice)"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T010 [US2] Write US2 tests in `tests/test_invoice_desk.py` covering AT-03: remaining balance equals `amount_cents - paid_cents` for accepted rows, all amounts are integers, outstanding count and cent sum are exactly `13` and `2139435`, total paid is exactly `289999`, `INV-1011` has remaining `0` and is excluded from outstanding totals, and rejected/duplicate rows retain `remaining_balance_cents = None`
+- [ ] T010 [US2] Write US2 tests in `tests/test_invoice_desk.py` covering AT-03: remaining balance equals `amount_cents - paid_cents` for accepted rows, all amounts are integers, outstanding count and cent sum are exactly `13` and `2139435`, total paid is exactly `289999`, `INV-1011` has remaining `0` and is excluded from outstanding totals, and rejected/duplicate rows retain `remaining_balance_cents = None`; locate invoices via the normalized `invoice_id` exposed on accepted rows
 
 ### Implementation for User Story 2
 
 - [ ] T011 [US2] Compute `remaining_balance_cents` in `invoice_desk/__init__.py` for every accepted row as `amount_cents - paid_cents` using integer arithmetic and set it to `None` for rejected and duplicate rows (FR-015, FR-016, FR-025)
-- [ ] T012 [US2] Compute `outstanding_invoice_count` and `total_outstanding_cents` from accepted invoices with a positive remaining balance only, and `total_paid_cents` as the sum of accepted `paid_cents`, all in integer cents (FR-022, FR-023, FR-025)
+- [ ] T012 [US2] Compute `outstanding_invoice_count` and `total_outstanding_cents` in `invoice_desk/__init__.py` from accepted invoices with a positive remaining balance only, and `total_paid_cents` as the sum of accepted `paid_cents`, all in integer cents (FR-022, FR-023, FR-025)
 
 **Checkpoint**: User Stories 1 and 2 both work independently
 
@@ -120,7 +120,7 @@ description: "Task list for Invoice Exception Desk import (R1 slice)"
 
 - [ ] T017 Add concise docstrings and type hints to `import_invoices` and its private helpers in `invoice_desk/__init__.py`, documenting the pure, offline, integer-cent, and explicit-`as_of` contract
 - [ ] T018 Verify the change set is limited to `invoice_desk/__init__.py` and `tests/test_invoice_desk.py`; confirm `bill_split`, `tests/test_split_bill.py`, `tests/test_split_weighted.py`, `data/`, `pyproject.toml`, `ROADMAP.md`, `ACCEPTANCE.md`, `NON_GOALS.md`, `spec.md`, and `plan.md` are unchanged
-- [ ] T019 Run `python -m pytest -q` from the repository root and confirm the new tests plus the existing `bill_split` tests all pass
+- [ ] T019 Run `python -m pytest -q` from the repository root and confirm `tests/test_invoice_desk.py` plus the existing `tests/test_split_bill.py` and `tests/test_split_weighted.py` all pass
 - [ ] T020 Audit `invoice_desk/__init__.py` for no floating-point money, no system-clock reads, no network calls, no external dependencies, and no credentials or real personal data, then re-confirm AT-01 through AT-04 values against `ACCEPTANCE.md` and the frozen `data/invoices.csv`
 
 ---
@@ -138,7 +138,7 @@ description: "Task list for Invoice Exception Desk import (R1 slice)"
 
 ### Task Dependencies
 
-- T001 → T002 (test helper can be written alongside the stub)
+- T001 ∥ T002 (different files, no dependency on each other)
 - T001 → T003 → T004 → T005
 - T005 → T006 (tests written and failing) → T007 → T008 → T009
 - T009 → T010 (tests written and failing) → T011 → T012
@@ -171,7 +171,7 @@ description: "Task list for Invoice Exception Desk import (R1 slice)"
 ```bash
 # T001 and T002 touch different files and have no dependency on each other:
 Task: "Create invoice_desk/__init__.py with the import_invoices stub"
-Task: "Create tests/test_invoice_desk.py with the frozen CSV helper and AS_OF constant"
+Task: "Create tests/test_invoice_desk.py with the frozen CSV helper, AS_OF constant, and zero-totals helper"
 ```
 
 ---
@@ -183,7 +183,7 @@ Task: "Create tests/test_invoice_desk.py with the frozen CSV helper and AS_OF co
 1. Complete Phase 1: Setup
 2. Complete Phase 2: Foundational
 3. Complete Phase 3: User Story 1
-4. **STOP and VALIDATE**: Run the US1 tests and confirm exact AT-01/AT-02 classifications and counts
+4. **STOP and VALIDATE**: Run the US1 tests and confirm exact AT-01/AT-02 classifications, counts, and the empty-input zero-totals shape
 5. Continue to US2 and US3 only after US1 is green
 
 ### Incremental Delivery
