@@ -93,11 +93,11 @@ gitGraph
   commit id: "step: implement"
 ```
 
-Check out `lN-start` and follow the page. Compare with `lN-solution` when you want the finished steps. `git log --oneline` on the solution branch lists them. L0, L1, and L2 name the real branches in the table below.
+Check out `lN-start` and follow the page. Compare with `lN-solution` when you want the finished steps. `git log --oneline` on the solution branch lists them. L0 to L3 name the real branches in the table below.
 
 ## Where are you in your project?
 
-Start at L0 when the repo already has code, and at L1 when it does not. L3 and L4 are paused pending review. L5 is an outline.
+Start at L0 when the repo already has code, and at L1 when it does not. L4 is paused pending review. L5 is an outline.
 
 ```mermaid
 flowchart LR
@@ -105,7 +105,7 @@ flowchart LR
   Q -->|no| L1["L1: setup + tiny feature"]
   L0 --> L2["L2: first feature"]
   L1 --> L2
-  L2 --> L3["L3: multi-feature (paused)"] --> L4["L4: maintenance (paused)"] --> L5["L5: unattended (outline)"]
+  L2 --> L3["L3: Invoice Exception Desk"] --> L4["L4: maintenance (paused)"] --> L5["L5: unattended (outline)"]
 ```
 
 | You are… | Go to | Branches |
@@ -113,7 +113,7 @@ flowchart LR
 | Adding Spec Kit to an existing repo | [L0: Start from an existing repo](L0-existing-repo.md) | [`l0-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l0-start) → [`l0-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l0-solution) |
 | Starting fresh and need to install | [L1: Setup](L1-setup.md) | [`l1-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l1-start) → [`l1-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l1-solution) |
 | Ready to build your first feature | [L2: First feature, end to end](L2-first-feature.md) | [`l2-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l2-start) → [`l2-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l2-solution) |
-| Working on a real multi-feature project | **L3: Invoice Exception Desk walkthrough** *(paused pending review)* | — |
+| Working on a real multi-feature project | [L3: Invoice Exception Desk walkthrough](L3-invoice-desk.md) | [`l3-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l3-start) → [`l3-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l3-solution) |
 | Changing specs after code exists | **L4: Maintenance** *(paused pending review)* | — |
 | Ready to let agents work unattended | **L5: Walk away, unattended issue-to-PR automation** *(proposed — pending review; untested)* | — |
 | Mixing agents or using the Copilot coding agent | **Advanced** *(coming soon)* | — |

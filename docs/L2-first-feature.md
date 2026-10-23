@@ -244,4 +244,4 @@ The first result (169/169 on 22 Oct) is **as reported by the Spec Kit bot**. It 
 - [ ] `/speckit.implement` run by the free model; spec, plan, tasks, and code land together (rule V)
 - [ ] Reviewer re-runs the answer key and the full suite, and records a receipt (commit, key hash, command, result, who)
 
-L3 and L4 are paused pending review. Compare the start branch with the finished steps: [`l2-start...l2-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l2-start...l2-solution). Back: [L1: Setup](L1-setup.md). Back to [Home](index.md).
+L4 is paused pending review. Compare the start branch with the finished steps: [`l2-start...l2-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l2-start...l2-solution). Next: [L3: Invoice Exception Desk walkthrough](L3-invoice-desk.md). Back: [L1: Setup](L1-setup.md). Back to [Home](index.md).
