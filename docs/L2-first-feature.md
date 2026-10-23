@@ -213,7 +213,7 @@ The reviewer runs the answer key and the full test suite against the finished co
 |---|---|
 | Tested commit | `9822512` on `l2-solution` (same code as `da53c28`; it only adds `run.log`) |
 | Answer key | `check.py`, sha256 `a4958345e7750b61a3acadb4231f81499c615cb2d9cf190599016c5b7813631d` |
-| Key timestamp | Written 22 Oct 2026 about 15:30 EDT, before implement. The file's modified time now reads 23 Oct 2026 08:53 EDT because our workspace was restored then; the content was not edited. |
+| Key timestamp | Written 22 Oct 2026 at about 15:30 EDT, before implement (from commit times, not from a saved record). **No hash was recorded on 22 Oct.** The file's modified time reads 23 Oct 2026 08:53 EDT because our workspace was restored then. The sha256 above, taken 23 Oct, is the **first recorded hash**, so the key's integrity can only be shown from that point on. |
 | Command | `python check.py <checkout of 9822512>`, then `python -m pytest -q` |
 | Result | **169/169** checks passed, 0 failures; **67 passed** |
 | Run at | 23 Oct 2026, 09:24 EDT |
