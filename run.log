@@ -7465,7 +7465,7 @@ workflows
 ---
 [0m
 [0m$ [0m.specify/scripts/bash/check-prerequisites.sh --json --paths-only 2>&1
-{"REPO_ROOT":"/workspace/l35-run","BRANCH":"004-deterministic-followup-queue","FEATURE_DIR":"/workspace/l35-run/specs/004-deterministic-followup-queue","FEATURE_SPEC":"/workspace/l35-run/specs/004-deterministic-followup-queue/spec.md","IMPL_PLAN":"/workspace/l35-run/specs/004-deterministic-followup-queue/plan.md","TASKS":"/workspace/l35-run/specs/004-deterministic-followup-queue/tasks.md"}
+{"REPO_ROOT":"<repo>","BRANCH":"004-deterministic-followup-queue","FEATURE_DIR":"<repo>/specs/004-deterministic-followup-queue","FEATURE_SPEC":"<repo>/specs/004-deterministic-followup-queue/spec.md","IMPL_PLAN":"<repo>/specs/004-deterministic-followup-queue/plan.md","TASKS":"<repo>/specs/004-deterministic-followup-queue/tasks.md"}
 [0m
 [0m$ [0mcat specs/004-deterministic-followup-queue/spec.md; echo "=== CHECKLIST ==="; ls specs/004-deterministic-followup-queue/checklists/ 2>/dev/null && cat specs/004-deterministic-followup-queue/checklists/requirements.md 2>/dev/null
 # Feature Specification: Deterministic follow-up queue with owners and notes
@@ -8906,10 +8906,10 @@ requires-python = ">=3.11"
 testpaths = ["tests"]
 [0m
 [0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
-Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+Index: <repo>/specs/004-deterministic-followup-queue/spec.md
 ===================================================================
---- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
-+++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+--- <repo>/specs/004-deterministic-followup-queue/spec.md
++++ <repo>/specs/004-deterministic-followup-queue/spec.md
 @@ -13,8 +13,11 @@
  ### Session 2026-10-23
  
@@ -8925,10 +8925,10 @@ Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
 
 [0m
 [0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
-Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+Index: <repo>/specs/004-deterministic-followup-queue/spec.md
 ===================================================================
---- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
-+++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+--- <repo>/specs/004-deterministic-followup-queue/spec.md
++++ <repo>/specs/004-deterministic-followup-queue/spec.md
 @@ -56,8 +56,11 @@
  4. **Given** items with owner and note assignments, **When** the queue is rebuilt from the same accepted set, **Then** the annotations are still attached and the ordering is unchanged.
  5. **Given** an item with an owner and notes, **When** the owner is cleared, **Then** only the owner becomes unassigned and the notes remain unchanged; clearing notes behaves the same way in reverse.
@@ -8944,10 +8944,10 @@ Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
 
 [0m
 [0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
-Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+Index: <repo>/specs/004-deterministic-followup-queue/spec.md
 ===================================================================
---- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
-+++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+--- <repo>/specs/004-deterministic-followup-queue/spec.md
++++ <repo>/specs/004-deterministic-followup-queue/spec.md
 @@ -71,8 +71,13 @@
  - A fully paid invoice remains in the queue in `paid` with a zero balance and the lowest priority.
  - A rejected or duplicate row can never receive an owner or notes and never appears in the queue.
@@ -8965,10 +8965,10 @@ Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
 
 [0m
 [0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
-Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+Index: <repo>/specs/004-deterministic-followup-queue/spec.md
 ===================================================================
---- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
-+++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+--- <repo>/specs/004-deterministic-followup-queue/spec.md
++++ <repo>/specs/004-deterministic-followup-queue/spec.md
 @@ -110,8 +110,13 @@
  - **FR-018**: All monetary values used for ordering and display MUST remain integer cents; no floating-point arithmetic may be introduced.
  - **FR-019**: The feature MUST remain local and offline: no network calls, external services, credentials, secrets, or real personal data.
@@ -8986,10 +8986,10 @@ Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
 
 [0m
 [0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
-Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+Index: <repo>/specs/004-deterministic-followup-queue/spec.md
 ===================================================================
---- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
-+++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+--- <repo>/specs/004-deterministic-followup-queue/spec.md
++++ <repo>/specs/004-deterministic-followup-queue/spec.md
 @@ -123,9 +123,10 @@
  - **Invoice identity**: The pair `(issuer, invoice_id)`, which uniquely identifies an invoice for ordering and annotation purposes.
  - **Aging bucket priority**: The deterministic severity order `91+`, `61-90`, `31-60`, `1-30`, `current`, `paid`; it is an ordering concept, not a replacement for the existing bucket labels.
@@ -9005,10 +9005,10 @@ Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
 
 [0m
 [0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
-Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+Index: <repo>/specs/004-deterministic-followup-queue/spec.md
 ===================================================================
---- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
-+++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+--- <repo>/specs/004-deterministic-followup-queue/spec.md
++++ <repo>/specs/004-deterministic-followup-queue/spec.md
 @@ -140,8 +140,11 @@
  - **SC-007**: No rejected or duplicate row appears in the queue, and no annotation can be attached to one.
  - **SC-008**: The queue handles an empty accepted set without error and produces zero items.
@@ -9024,10 +9024,10 @@ Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
 
 [0m
 [0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
-Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+Index: <repo>/specs/004-deterministic-followup-queue/spec.md
 ===================================================================
---- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
-+++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+--- <repo>/specs/004-deterministic-followup-queue/spec.md
++++ <repo>/specs/004-deterministic-followup-queue/spec.md
 @@ -152,8 +152,10 @@
  - Bucket priority is severity-descending (`91+` before `61-90` before `31-60` before `1-30` before `current` before `paid`), matching the intent of AT-05's `days_overdue` descending example while honoring the requested bucket-first ordering.
  - "Balance" means `remaining_balance_cents` from the import result, ordered descending; "invoice ID" means the invoice identifier, ordered ascending after the issuer.
@@ -9206,10 +9206,10 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 - Roadmap R2 payment events, R3 promised-pay annotations, R5 schema migration, R4 filter/queue-hardening extras beyond AT-05, reminders, and deployment remain out of scope.
 [0m
 [0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
-Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+Index: <repo>/specs/004-deterministic-followup-queue/spec.md
 ===================================================================
---- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
-+++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+--- <repo>/specs/004-deterministic-followup-queue/spec.md
++++ <repo>/specs/004-deterministic-followup-queue/spec.md
 @@ -15,9 +15,9 @@
  - Q: AT-05 gives an illustrative ordering (`days_overdue` descending, then balance, then issuer, then invoice ID), while the request says bucket, then balance, then invoice ID. Which is binding? → A: AT-05's binding pass criterion is that ordering is a pure function of row data and is identical on repeated runs. The request's keys are used, with `issuer` inserted before `invoice_id` so the order is total even when two issuers reuse the same invoice identifier.
  - Q: Does the follow-up queue contain every accepted invoice or only invoices with a positive balance? → A: AT-05 names the accepted set as the input, so the queue contains every accepted invoice; a fully paid invoice remains in the queue in the `paid` bucket at the lowest priority.
@@ -9224,10 +9224,10 @@ Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
 
 [0m
 [0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
-Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+Index: <repo>/specs/004-deterministic-followup-queue/spec.md
 ===================================================================
---- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
-+++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+--- <repo>/specs/004-deterministic-followup-queue/spec.md
++++ <repo>/specs/004-deterministic-followup-queue/spec.md
 @@ -113,9 +113,9 @@
  - **FR-021**: The feature MUST leave the existing `import_invoices` behaviour unchanged, including its classifications, balances, aging buckets, and totals.
  - **FR-022**: Owner and notes MUST be stored in a single versioned UTF-8 JSON annotation store at a caller-supplied path, defaulting to `state/followup_annotations.json` relative to the project root. Each stored record MUST carry `issuer`, `invoice_id`, `owner`, and `notes`, and MUST be keyed by the exact `(issuer, invoice_id)` pair rather than by row number, queue position, or a concatenated delimiter string.
@@ -9521,8 +9521,8 @@ Each roadmap phase (R1 to R6) is graded against an answer key the builder never 
 **Version**: 1.1.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-22
 [0m
 [0m$ [0mbash .specify/scripts/bash/setup-plan.sh --json
-Copied plan template to /workspace/l35-run/specs/004-deterministic-followup-queue/plan.md
-{"FEATURE_SPEC":"/workspace/l35-run/specs/004-deterministic-followup-queue/spec.md","IMPL_PLAN":"/workspace/l35-run/specs/004-deterministic-followup-queue/plan.md","FEATURE_DIR":"/workspace/l35-run/specs/004-deterministic-followup-queue","BRANCH":"004-deterministic-followup-queue"}
+Copied plan template to <repo>/specs/004-deterministic-followup-queue/plan.md
+{"FEATURE_SPEC":"<repo>/specs/004-deterministic-followup-queue/spec.md","IMPL_PLAN":"<repo>/specs/004-deterministic-followup-queue/plan.md","FEATURE_DIR":"<repo>/specs/004-deterministic-followup-queue","BRANCH":"004-deterministic-followup-queue"}
 [0m
 [0m$ [0mcat specs/004-deterministic-followup-queue/spec.md
 # Feature Specification: Deterministic follow-up queue with owners and notes
@@ -11633,9 +11633,1658 @@ M run.log
 [0m
 ​
 Branch: `004-deterministic-followup-queue`  
-Plan: `/workspace/l35-run/specs/004-deterministic-followup-queue/plan.md`
+Plan: `<repo>/specs/004-deterministic-followup-queue/plan.md`
 
 Generated: `research.md`, `data-model.md`, `quickstart.md`, `contracts/public-api.md`, `contracts/annotation-store.schema.json`. The plan includes the required **Annotation storage (decision from Clarifications)** step and separates pure queue ordering into a first, independently implementable stage.
 
 No implementation performed. Baseline suite: `119 passed` via `.venv/bin/python -m pytest -q`. No `.specify/extensions.yml` hooks present.
+exit=0
+===== opencode run: tasks (Fri Oct 23 15:35:40 EDT 2026) =====
+[0m
+> build · deepseek-v4.1-flash-free
+[0m
+[0m$ [0mls -la .specify 2>/dev/null; echo "---"; ls -la .specify/scripts/bash 2>/dev/null; echo "---"; cat .specify/extensions.yml 2>/dev/null
+total 44
+drwxr-xr-x  7 box box 4096 Oct 23 15:28 .
+drwxr-xr-x 12 box box 4096 Oct 23 15:27 ..
+-rw-r--r--  1 box box  586 Oct 23 15:26 .gitignore
+-rw-r--r--  1 box box   68 Oct 23 15:28 feature.json
+-rw-r--r--  1 box box  153 Oct 23 15:26 init-options.json
+-rw-r--r--  1 box box  283 Oct 23 15:26 integration.json
+drwxr-xr-x  2 box box 4096 Oct 23 15:26 integrations
+drwxr-xr-x  2 box box 4096 Oct 23 15:26 memory
+drwxr-xr-x  3 box box 4096 Oct 23 15:26 scripts
+drwxr-xr-x  2 box box 4096 Oct 23 15:26 templates
+drwxr-xr-x  3 box box 4096 Oct 23 15:26 workflows
+---
+total 92
+drwxr-xr-x 2 box box  4096 Oct 23 15:26 .
+drwxr-xr-x 3 box box  4096 Oct 23 15:26 ..
+-rwxr-xr-x 1 box box  8193 Oct 23 15:26 check-prerequisites.sh
+-rwxr-xr-x 1 box box 39506 Oct 23 15:26 common.sh
+-rwxr-xr-x 1 box box 19427 Oct 23 15:26 create-new-feature.sh
+-rwxr-xr-x 1 box box  1547 Oct 23 15:26 resolve-template.sh
+-rwxr-xr-x 1 box box  2540 Oct 23 15:26 setup-plan.sh
+-rwxr-xr-x 1 box box  3549 Oct 23 15:26 setup-tasks.sh
+---
+[0m
+[0m$ [0mgit status; echo "---"; ls -la; echo "--- specs"; ls -R specs 2>/dev/null | head -50
+On branch l3h-handoff
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   run.log
+
+no changes added to commit (use "git add" and/or "git commit -a")
+---
+total 764
+drwxr-xr-x   12 box box   4096 Oct 23 15:27 .
+drwxr-xr-x. 128 box box  12288 Oct 23 15:26 ..
+drwxr-xr-x    8 box box   4096 Oct 23 15:35 .git
+-rw-r--r--    1 box box     66 Oct 23 15:26 .gitignore
+drwxr-xr-x    4 box box   4096 Oct 23 15:27 .opencode
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 .pytest_cache
+drwxr-xr-x    7 box box   4096 Oct 23 15:28 .specify
+drwxr-xr-x    5 box box   4096 Oct 23 15:26 .venv
+-rw-r--r--    1 box box   6918 Oct 23 15:26 ACCEPTANCE.md
+-rw-r--r--    1 box box   1989 Oct 23 15:26 NON_GOALS.md
+-rw-r--r--    1 box box   1171 Oct 23 15:26 README.md
+-rw-r--r--    1 box box   6621 Oct 23 15:26 ROADMAP.md
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 bill_split
+drwxr-xr-x    2 box box   4096 Oct 23 15:26 data
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 invoice_desk
+-rw-r--r--    1 box box    124 Oct 23 15:26 pyproject.toml
+-rw-r--r--    1 box box 690067 Oct 23 15:35 run.log
+drwxr-xr-x    6 box box   4096 Oct 23 15:28 specs
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 tests
+--- specs
+specs:
+001-split-bill
+002-weighted-split
+003-desk-import
+004-deterministic-followup-queue
+
+specs/001-split-bill:
+plan.md
+spec.md
+tasks.md
+
+specs/002-weighted-split:
+analysis.md
+checklists
+plan.md
+spec.md
+tasks.md
+
+specs/002-weighted-split/checklists:
+requirements.md
+
+specs/003-desk-import:
+analysis.md
+checklists
+plan.md
+spec.md
+tasks.md
+
+specs/003-desk-import/checklists:
+requirements.md
+
+specs/004-deterministic-followup-queue:
+checklists
+contracts
+data-model.md
+plan.md
+quickstart.md
+research.md
+spec.md
+
+specs/004-deterministic-followup-queue/checklists:
+requirements.md
+
+specs/004-deterministic-followup-queue/contracts:
+annotation-store.schema.json
+public-api.md
+[0m
+[0m$ [0m.specify/scripts/bash/setup-tasks.sh --json
+{"FEATURE_DIR":"<repo>/specs/004-deterministic-followup-queue","AVAILABLE_DOCS":["research.md","data-model.md","contracts/","quickstart.md"],"TASKS_TEMPLATE":"<repo>/.specify/templates/tasks-template.md","TASKS_TEMPLATE_CONTENT":"---\n\ndescription: \"Task list template for feature implementation\"\n---\n\n# Tasks: [FEATURE NAME]\n\n**Input**: Design documents from `/specs/[###-feature-name]/`\n\n**Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/\n\n**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.\n\n**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.\n\n## Format: `[ID] [P?] [Story] Description`\n\n- **[P]**: Can run in parallel (different files, no dependencies)\n- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)\n- Include exact file paths in descriptions\n\n## Path Conventions\n\n- **Single project**: `src/`, `tests/` at repository root\n- **Web app**: `backend/src/`, `frontend/src/`\n- **Mobile**: `api/src/`, `ios/src/` or `android/src/`\n- Paths shown below assume single project - adjust based on plan.md structure\n\n<!--\n  ============================================================================\n  IMPORTANT: The tasks below are SAMPLE TASKS for illustration purposes only.\n\n  The /speckit.tasks command MUST replace these with actual tasks based on:\n  - User stories from spec.md (with their priorities P1, P2, P3...)\n  - Feature requirements from plan.md\n  - Entities from data-model.md\n  - Endpoints from contracts/\n\n  Tasks MUST be organized by user story so each story can be:\n  - Implemented independently\n  - Tested independently\n  - Delivered as an MVP increment\n\n  DO NOT keep these sample tasks in the generated tasks.md file.\n  ============================================================================\n-->\n\n## Phase 1: Setup (Shared Infrastructure)\n\n**Purpose**: Project initialization and basic structure\n\n- [ ] T001 Create project structure per implementation plan\n- [ ] T002 Initialize [language] project with [framework] dependencies\n- [ ] T003 [P] Configure linting and formatting tools\n\n---\n\n## Phase 2: Foundational (Blocking Prerequisites)\n\n**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented\n\n**⚠️ CRITICAL**: No user story work can begin until this phase is complete\n\nExamples of foundational tasks (adjust based on your project):\n\n- [ ] T004 Setup database schema and migrations framework\n- [ ] T005 [P] Implement authentication/authorization framework\n- [ ] T006 [P] Setup API routing and middleware structure\n- [ ] T007 Create base models/entities that all stories depend on\n- [ ] T008 Configure error handling and logging infrastructure\n- [ ] T009 Setup environment configuration management\n\n**Checkpoint**: Foundation ready - user story implementation can now begin in parallel\n\n---\n\n## Phase 3: User Story 1 - [Title] (Priority: P1) 🎯 MVP\n\n**Goal**: [Brief description of what this story delivers]\n\n**Independent Test**: [How to verify this story works on its own]\n\n### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️\n\n> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**\n\n- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py\n- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py\n\n### Implementation for User Story 1\n\n- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py\n- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py\n- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)\n- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py\n- [ ] T016 [US1] Add validation and error handling\n- [ ] T017 [US1] Add logging for user story 1 operations\n\n**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently\n\n---\n\n## Phase 4: User Story 2 - [Title] (Priority: P2)\n\n**Goal**: [Brief description of what this story delivers]\n\n**Independent Test**: [How to verify this story works on its own]\n\n### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️\n\n- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py\n- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py\n\n### Implementation for User Story 2\n\n- [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py\n- [ ] T021 [US2] Implement [Service] in src/services/[service].py\n- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py\n- [ ] T023 [US2] Integrate with User Story 1 components (if needed)\n\n**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently\n\n---\n\n## Phase 5: User Story 3 - [Title] (Priority: P3)\n\n**Goal**: [Brief description of what this story delivers]\n\n**Independent Test**: [How to verify this story works on its own]\n\n### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️\n\n- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py\n- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py\n\n### Implementation for User Story 3\n\n- [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py\n- [ ] T027 [US3] Implement [Service] in src/services/[service].py\n- [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py\n\n**Checkpoint**: All user stories should now be independently functional\n\n---\n\n[Add more user story phases as needed, following the same pattern]\n\n---\n\n## Phase N: Polish & Cross-Cutting Concerns\n\n**Purpose**: Improvements that affect multiple user stories\n\n- [ ] TXXX [P] Documentation updates in docs/\n- [ ] TXXX Code cleanup and refactoring\n- [ ] TXXX Performance optimization across all stories\n- [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/\n- [ ] TXXX Security hardening\n- [ ] TXXX Run quickstart.md validation\n\n---\n\n## Dependencies & Execution Order\n\n### Phase Dependencies\n\n- **Setup (Phase 1)**: No dependencies - can start immediately\n- **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories\n- **User Stories (Phase 3+)**: All depend on Foundational phase completion\n  - User stories can then proceed in parallel (if staffed)\n  - Or sequentially in priority order (P1 → P2 → P3)\n- **Polish (Final Phase)**: Depends on all desired user stories being complete\n\n### User Story Dependencies\n\n- **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories\n- **User Story 2 (P2)**: Can start after Foundational (Phase 2) - May integrate with US1 but should be independently testable\n- **User Story 3 (P3)**: Can start after Foundational (Phase 2) - May integrate with US1/US2 but should be independently testable\n\n### Within Each User Story\n\n- Tests (if included) MUST be written and FAIL before implementation\n- Models before services\n- Services before endpoints\n- Core implementation before integration\n- Story complete before moving to next priority\n\n### Parallel Opportunities\n\n- All Setup tasks marked [P] can run in parallel\n- All Foundational tasks marked [P] can run in parallel (within Phase 2)\n- Once Foundational phase completes, all user stories can start in parallel (if team capacity allows)\n- All tests for a user story marked [P] can run in parallel\n- Models within a story marked [P] can run in parallel\n- Different user stories can be worked on in parallel by different team members\n\n---\n\n## Parallel Example: User Story 1\n\n```bash\n# Launch all tests for User Story 1 together (if tests requested):\nTask: \"Contract test for [endpoint] in tests/contract/test_[name].py\"\nTask: \"Integration test for [user journey] in tests/integration/test_[name].py\"\n\n# Launch all models for User Story 1 together:\nTask: \"Create [Entity1] model in src/models/[entity1].py\"\nTask: \"Create [Entity2] model in src/models/[entity2].py\"\n```\n\n---\n\n## Implementation Strategy\n\n### MVP First (User Story 1 Only)\n\n1. Complete Phase 1: Setup\n2. Complete Phase 2: Foundational (CRITICAL - blocks all stories)\n3. Complete Phase 3: User Story 1\n4. **STOP and VALIDATE**: Test User Story 1 independently\n5. Deploy/demo if ready\n\n### Incremental Delivery\n\n1. Complete Setup + Foundational → Foundation ready\n2. Add User Story 1 → Test independently → Deploy/Demo (MVP!)\n3. Add User Story 2 → Test independently → Deploy/Demo\n4. Add User Story 3 → Test independently → Deploy/Demo\n5. Each story adds value without breaking previous stories\n\n### Parallel Team Strategy\n\nWith multiple developers:\n\n1. Team completes Setup + Foundational together\n2. Once Foundational is done:\n   - Developer A: User Story 1\n   - Developer B: User Story 2\n   - Developer C: User Story 3\n3. Stories complete and integrate independently\n\n---\n\n## Notes\n\n- [P] tasks = different files, no dependencies\n- [Story] label maps task to specific user story for traceability\n- Each user story should be independently completable and testable\n- Verify tests fail before implementing\n- Commit after each task or logical group\n- Stop at any checkpoint to validate story independently\n- Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence\n"}
+[0m
+[0m$ [0mcat specs/004-deterministic-followup-queue/plan.md; echo "=====SPEC====="; cat specs/004-deterministic-followup-queue/spec.md
+# Implementation Plan: Deterministic follow-up queue with owners and notes
+
+**Branch**: `004-deterministic-followup-queue` | **Date**: 2026-10-23 | **Spec**: [spec.md](./spec.md)
+
+**Input**: Feature specification from `/specs/004-deterministic-followup-queue/spec.md`
+
+## Summary
+
+Extend the existing pure `invoice_desk.import_invoices` capability with a follow-up queue
+and a small owner/notes persistence layer. The work is deliberately split into two
+independently landable stages:
+
+1. **Queue ordering** — a pure, side-effect-free projection of an `import_invoices` result
+   into a totally ordered list. It has no annotation imports and no filesystem access, so a
+   different agent can build and verify it first.
+2. **Annotations** — a versioned UTF-8 JSON store at a caller-supplied path
+   (default `state/followup_annotations.json` under the project root) with explicit
+   owner/notes assignment calls, atomic whole-file replacement, and a separate function that
+   attaches stored annotations to an already ordered queue.
+
+Queue ordering remains a pure function of imported row data. Annotations never influence
+ordering, position, balances, days overdue, or aging. Money stays in integer cents, the
+implementation uses only the Python standard library, and tests use pytest.
+
+## Technical Context
+
+**Language/Version**: Python 3.11+
+
+**Primary Dependencies**: none; standard library only (`json`, `os`, `tempfile`, `pathlib`,
+`datetime` already used by the import layer)
+
+**Storage**: one versioned UTF-8 JSON annotation file at a caller-supplied path; default
+`state/followup_annotations.json` under the project root. Local single-writer runtime state,
+not an import fixture and not a source of invoice truth.
+
+**Testing**: pytest, run with `python -m pytest -q`; existing import tests must remain green
+
+**Target Platform**: local, offline Python 3.11+ (Linux/macOS/Windows); no network calls
+
+**Project Type**: library (`invoice_desk` package)
+
+**Performance Goals**: queue build is `O(n log n)` over accepted invoices; annotation load and
+save are linear in the number of stored records. The frozen fixture has 14 accepted invoices.
+
+**Constraints**: integer cents only; ordering is deterministic and independent of insertion
+order, owner, notes, or storage order; no clock, randomness, network, credentials, or real
+personal data; import classification, balances, aging, and totals remain unchanged
+
+**Scale/Scope**: one operator, one CSV import at a time, small local annotation store
+(tens to thousands of records); concurrent writers are explicitly out of scope
+
+## Constitution Check
+
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+
+Constitution version 1.1.0:
+
+| Principle | Result | Evidence |
+|-----------|--------|----------|
+| I. Money is integer cents | PASS | Queue exposes `remaining_balance_cents` copied from the import result; no float arithmetic is introduced. |
+| II. Deterministic and pure | PASS with isolated persistence boundary | Queue ordering is pure and uses only row data. The spec-mandated annotation store is the only I/O boundary; it uses no clock, randomness, or network, and is confined to `invoice_desk/annotations.py`. See Complexity Tracking. |
+| III. Standard library only | PASS | JSON persistence and atomic replacement use `json`, `os`, `tempfile`, and `pathlib`. |
+| IV. Small and tested | PASS | Two small modules and two focused pytest modules; every public function gets tests. |
+| V. Spec and code together | PASS | Implementation lands with this plan/tasks/spec on the feature branch; no behaviour change without its spec change. |
+| VI. Synthetic data, offline only | PASS | All fixtures remain synthetic; no network, secrets, or real personal data. |
+| VII. Explicit as-of date | PASS | Ordering reuses the already-computed `days_overdue`/`aging_bucket` from the explicit `as_of`; annotations never read the clock. |
+| VIII. Sealed answer key per phase | PASS | The plan derives only from the spec, `ACCEPTANCE.md`, and the public repository; it does not assume access to the oracle. |
+
+No unresolved clarifications remain. The one constitution tension (local file I/O required by
+AT-05) is justified in Complexity Tracking rather than silently waived.
+
+## Project Structure
+
+### Documentation (this feature)
+
+```text
+specs/004-deterministic-followup-queue/
+├── plan.md              # This file
+├── research.md          # Phase 0 output
+├── data-model.md        # Phase 1 output
+├── quickstart.md        # Phase 1 output
+├── contracts/
+│   ├── public-api.md
+│   └── annotation-store.schema.json
+└── tasks.md             # Created later by /speckit.tasks
+```
+
+### Source Code (repository root)
+
+```text
+invoice_desk/
+├── __init__.py          # Existing import_invoices; add re-exports only, do not refactor it
+├── queue.py             # NEW, Stage 1: pure ordering and identity helpers
+└── annotations.py       # NEW, Stage 2: JSON store, assignment, queue attachment
+
+tests/
+├── test_invoice_desk.py         # Existing; must remain unchanged and green
+├── test_followup_queue.py       # NEW, Stage 1: ordering only
+└── test_followup_annotations.py # NEW, Stage 2: persistence and attachment
+
+state/                   # Runtime default location, created on first write; gitignored
+```
+
+**Structure Decision**: Keep the existing import implementation in `invoice_desk/__init__.py`
+untouched to honour FR-021. Add a pure `queue.py` first and a stateful `annotations.py`
+second. `__init__.py` only re-exports public names. Splitting the test modules along the same
+stage boundary lets ordering be implemented and accepted before annotation storage exists.
+
+## Public Interface
+
+```python
+from datetime import date
+from os import PathLike
+from pathlib import Path
+from typing import Iterable
+
+# Existing, unchanged
+def import_invoices(csv_text: str, as_of: date) -> dict: ...
+
+# Stage 1: pure ordering, no filesystem or annotation dependency
+BUCKET_PRIORITY: dict[str, int]
+
+def accepted_invoice_identities(import_result: dict) -> set[tuple[str, str]]: ...
+def build_followup_queue(import_result: dict) -> list[dict]: ...
+
+# Stage 2: persistence and attachment
+DEFAULT_ANNOTATION_STORE_PATH: Path
+ANNOTATION_STORE_VERSION: int
+
+def load_annotations(
+    store_path: str | PathLike[str] | None = None,
+) -> dict[tuple[str, str], dict[str, str]]: ...
+
+def set_owner(
+    accepted_identities: Iterable[tuple[str, str]],
+    issuer: str,
+    invoice_id: str,
+    owner: str | None,
+    *,
+    store_path: str | PathLike[str] | None = None,
+) -> None: ...
+
+def set_notes(
+    accepted_identities: Iterable[tuple[str, str]],
+    issuer: str,
+    invoice_id: str,
+    notes: str | None,
+    *,
+    store_path: str | PathLike[str] | None = None,
+) -> None: ...
+
+def attach_annotations(
+    queue: list[dict],
+    store_path: str | PathLike[str] | None = None,
+) -> list[dict]: ...
+
+def followup_queue(
+    import_result: dict,
+    store_path: str | PathLike[str] | None = None,
+) -> list[dict]: ...
+```
+
+`followup_queue` is the convenience composition `attach_annotations(build_followup_queue(...))`.
+It lives in `annotations.py`, never in `queue.py`, so Stage 1 has no dependency on storage.
+
+### Queue item contract
+
+`build_followup_queue` returns one new dict per accepted import row, in priority order:
+
+```text
+issuer                  str
+invoice_id              str
+remaining_balance_cents int
+days_overdue            int
+aging_bucket            str
+owner                   None        # Stage 1 value; Stage 2 may fill a str
+notes                   None        # Stage 1 value; Stage 2 may fill a str
+position                int         # 1-based, contiguous after sorting
+```
+
+Rejected and duplicate rows are excluded. Non-accepted rows never become queue items.
+`build_followup_queue` does not mutate `import_result` or any row inside it.
+
+## Design
+
+### Queue ordering (separable; build first)
+
+**Stage 1 files**: `invoice_desk/queue.py`, `tests/test_followup_queue.py`, and a re-export in
+`invoice_desk/__init__.py`.
+
+1. Derive the accepted set with `status == "accepted"` and key each item by the exact tuple
+   `(issuer, invoice_id)`.
+2. Sort with the total-order key:
+   1. `BUCKET_PRIORITY[aging_bucket]` — `91+`=0, `61-90`=1, `31-60`=2, `1-30`=3,
+      `current`=4, `paid`=5;
+   2. `-remaining_balance_cents` — descending integer cents;
+   3. `issuer` — ascending, case-sensitive, locale-independent Unicode text order;
+   4. `invoice_id` — ascending, case-sensitive, locale-independent Unicode text order.
+3. Assign `position` only after sorting, starting at `1`.
+4. Return a fresh list of fresh dicts with the queue item fields above. Do not read files,
+   import `annotations`, accept an annotation argument, or consult the clock.
+5. For the frozen accepted set at `as_of = 2026-10-15`, the result must be exactly:
+   `INV-1009, INV-1012, INV-1008, INV-1007, INV-1005, INV-1006, INV-1014, INV-1004,`
+   `INV-1003, INV-1010, INV-1001, INV-1002, INV-1013, INV-1011`.
+6. An empty accepted set returns `[]`. `paid` remains in the queue at the lowest priority.
+
+**Handoff guarantee**: Stage 1 can land, be reviewed, and pass all ordering tests with no
+`annotations.py`, no `state/` directory, and no persistence behaviour. Stage 2 must not change
+the queue item shape, sort keys, or positions.
+
+### Annotation storage (decision from Clarifications)
+
+**Stage 2 files**: `invoice_desk/annotations.py`, `tests/test_followup_annotations.py`, and
+re-exports in `invoice_desk/__init__.py`.
+
+**Store format (version 1)** — a single UTF-8 JSON document with this shape:
+
+```json
+{
+  "version": 1,
+  "annotations": [
+    {
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1001",
+      "owner": "Dana",
+      "notes": "Call Tuesday.\nAsk for AP."
+    }
+  ]
+}
+```
+
+- `version` MUST be the integer `1`.
+- `annotations` MUST be a list; each record carries exactly the four keys `issuer`,
+  `invoice_id`, `owner`, and `notes`, all strings.
+- Records are keyed in memory by the exact `(issuer, invoice_id)` tuple, never by row number,
+  queue position, or a concatenated/delimiter string. In JSON, the pair is represented by the
+  two explicit fields on each record; duplicate pairs are rejected on load.
+- Records are serialized in ascending `(issuer, invoice_id)` order, UTF-8, with non-ASCII
+  characters preserved (`ensure_ascii=False`) and a trailing newline. No timestamp is stored,
+  so output never depends on the clock.
+- A record whose `owner` and `notes` are both empty is equivalent to no annotation and is
+  omitted on the next successful write. An empty/whitespace-only owner means unassigned; an
+  empty notes value means no notes. Non-empty text, including multi-line and non-ASCII notes,
+  is preserved exactly as supplied.
+
+**Path** — every public annotation function takes `store_path`; a caller-supplied value is
+used as given. When it is `None`, use `DEFAULT_ANNOTATION_STORE_PATH`, computed from the
+package location as `<project root>/state/followup_annotations.json`. The store is local
+single-writer runtime state; `state/` is added to `.gitignore` and is not committed. A read
+never creates the file or its directory; the first successful write creates the parent
+directory.
+
+**Read and validation behaviour**:
+- A missing file is an empty annotation mapping; no error and no file creation.
+- Open/read/UTF-8 decoding failures raise `AnnotationStoreUnreadableError`.
+- Invalid JSON, a non-object document, a missing/non-integer `version`, a non-list
+  `annotations` value, a record that is not an object, a missing/extra/non-string field, or
+  an otherwise invalid shape raises `AnnotationStoreMalformedError`.
+- A document whose `version` is not `1` raises `AnnotationStoreVersionError`.
+- Two records with the same `(issuer, invoice_id)` raise
+  `AnnotationStoreDuplicateIdentityError`.
+- On any of these errors the file is left untouched and is never silently reset, truncated, or
+  rebuilt as empty.
+
+**Assignment behaviour**:
+- `set_owner` / `set_notes` first check that `(issuer, invoice_id)` is in the supplied current
+  accepted identities; otherwise raise `InvoiceNotAcceptedError` without touching the store.
+  This is the only path by which a rejected or duplicate row can be considered, and it is
+  refused.
+- The existing store is then loaded (missing means empty) and the one field is changed; the
+  other field is untouched. `owner=None` or a whitespace-only owner clears the owner;
+  `notes=None` or `notes == ""` clears the notes.
+- A record with both fields empty is dropped. Annotations for identities not in the current
+  accepted set are retained unchanged; they are simply not shown in the queue.
+- A successful change is durable before the call returns. The function does not return until
+  the atomic replacement has completed.
+
+**Atomic whole-file write**:
+1. Serialize the complete next document in memory.
+2. Create the parent directory if needed.
+3. Write to a uniquely named temporary file in the same directory, using
+   `tempfile.mkstemp`/`os.fdopen(..., "w", encoding="utf-8", newline="\n")`.
+4. Flush and `os.fsync` the temporary file, close it, then `os.replace` it onto the target
+   path so readers see either the previous complete file or the new complete file.
+5. Best-effort `os.fsync` the parent directory on POSIX for rename durability.
+6. On any write/replace failure, remove the temporary file, leave the previous store intact,
+   and raise `AnnotationStoreWriteError`.
+
+A crash can therefore leave at most a stray temporary file, never a partially written store
+that can be loaded. Concurrent writes from multiple processes are out of scope; no lock file
+or cross-process transaction is introduced.
+
+**Error hierarchy**:
+
+```text
+AnnotationError
+├── AnnotationStoreUnreadableError
+├── AnnotationStoreMalformedError
+├── AnnotationStoreVersionError
+├── AnnotationStoreDuplicateIdentityError
+├── AnnotationStoreWriteError
+└── InvoiceNotAcceptedError
+```
+
+All errors are explicit and fixable by the operator; none is silently swallowed.
+
+### Attaching annotations to an ordered queue
+
+1. Read the store once with the same validation rules; a missing store yields an empty map.
+2. Copy each queue item, preserve its order and `position`, and fill `owner`/`notes` from the
+   record with the exact `(issuer, invoice_id)` identity.
+3. Empty stored strings are exposed as `None` (unassigned / no notes); non-empty text is
+   exposed exactly.
+4. Leave items without a record at `owner=None`, `notes=None`.
+5. Ignore stored records whose identities are absent from the queue; retain them in the store
+   for a future accepted import.
+6. Do not write during attachment. A malformed/unreadable/unsupported store raises the same
+   clear error as an assignment; it is not treated as empty.
+
+## Test Plan (pytest, stdlib only)
+
+**Stage 1 — `tests/test_followup_queue.py`**
+- Exact SC-002/acceptance sequence for the frozen CSV at `2026-10-15`.
+- Two calls produce equal sequences; repeated runs are byte-identical in identity order.
+- Each bucket priority, descending balance within a bucket, ascending issuer, then ascending
+  invoice ID; no unresolved ties.
+- Same invoice ID from two issuers remains two items with correct issuer tie-break.
+- Zero-balance `INV-1011` is present exactly once in `paid` with balance `0`.
+- Empty accepted set returns `[]`; rejected and duplicate rows are excluded.
+- Item fields, integer types, contiguous 1-based positions, and non-mutation of the import
+  result.
+- No filesystem/annotation dependency: the module imports and runs without `annotations.py`
+  or `state/`.
+
+**Stage 2 — `tests/test_followup_annotations.py`**
+- Missing store: queue builds with all `owner=None`, `notes=None`; no file is created.
+- Assign owner and notes independently; only the targeted identity changes; queue order and
+  positions remain unchanged.
+- Restart simulation: reload from the same path in a fresh call/process and observe identical
+  values; multi-line and non-ASCII notes round-trip exactly.
+- Clear owner without touching notes and vice versa; clearing both drops the record.
+- Non-accepted identity is refused and the store is unchanged.
+- Malformed JSON, unsupported version, duplicate identity, non-string/missing fields, and an
+  unreadable path each raise the documented error and leave the original bytes untouched.
+- Successful writes replace atomically; a simulated `os.replace` failure leaves the previous
+  store readable and leaves no temporary file behind.
+- An annotation for an identity absent from the current accepted set is retained but not
+  displayed; it reappears when that identity is accepted again.
+
+**Regression**: `tests/test_invoice_desk.py` remains unchanged and green; no changes to
+`bill_split`, `data/`, `pyproject.toml`, `ROADMAP.md`, `ACCEPTANCE.md`, or `NON_GOALS.md`.
+
+## Out of Scope
+
+Payments/partial payments (R2), promised-pay annotations (R3), schema migration (R5), queue
+filters and other R4 hardening beyond AT-05, CLI, network service, authentication, roles,
+multi-tenancy, concurrent writers, reminders, outbound messages, payment processing, and
+deployment. No import behaviour is re-implemented or changed.
+
+## Complexity Tracking
+
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| Local file I/O in `annotations.py`, which is not a pure function under Principle II | FR-022 to FR-025 and AT-05 require owner/notes to survive restart; durable local state cannot be achieved with pure functions alone. | Keeping annotations in memory fails persistence. A database or external service fails stdlib-only/offline and is far larger. I/O is isolated behind explicit store calls; ordering stays pure, deterministic, and clock-free. |
+| A second persistence module beyond the existing import module | Keeps the stateful store separate so queue ordering can be built and reviewed first by a different agent. | Putting storage in `queue.py` would couple pure ordering to filesystem state and prevent the requested independent Stage 1 handoff. |
+
+## Post-Design Constitution Re-check
+
+- I, III, IV, V, VI, VII, VIII: still PASS; the design adds no floats, dependencies,
+  network, clock use, or changes to import output.
+- II: PASS for all domain/ordering functions; the single stateful boundary is the explicitly
+  required annotation store, justified above and confined to `annotations.py`.
+=====SPEC=====
+# Feature Specification: Deterministic follow-up queue with owners and notes
+
+**Feature Branch**: `004-deterministic-followup-queue`
+
+**Created**: 2026-10-23
+
+**Status**: Draft
+
+**Input**: User description: "AT-05 (full): a deterministic follow-up queue on top of L3's import_invoices. Order the queue by bucket, then balance, then invoice ID. Each queue item can carry an owner and free-text notes. Use ACCEPTANCE.md AT-05 as the source of truth. Do not implement anything."
+
+## Clarifications
+
+### Session 2026-10-23
+
+- Q: AT-05 gives an illustrative ordering (`days_overdue` descending, then balance, then issuer, then invoice ID), while the request says bucket, then balance, then invoice ID. Which is binding? → A: AT-05's binding pass criterion is that ordering is a pure function of row data and is identical on repeated runs. The request's keys are used, with `issuer` inserted before `invoice_id` so the order is total even when two issuers reuse the same invoice identifier.
+- Q: Does the follow-up queue contain every accepted invoice or only invoices with a positive balance? → A: AT-05 names the accepted set as the input, so the queue contains every accepted invoice; a fully paid invoice remains in the queue in the `paid` bucket at the lowest priority.
+- Q: Where should owners and notes be stored, in what format, and how should each annotation be keyed so it survives a restart? → A: In a single versioned UTF-8 JSON file at a caller-supplied path, defaulting to `state/followup_annotations.json` under the project root; each record stores `issuer`, `invoice_id`, `owner`, and `notes`, keyed by the exact `(issuer, invoice_id)` pair, and each successful change is written through immediately with atomic whole-file replacement.
+- Q: What should happen when the annotation store is missing, unreadable, corrupt, or has an unsupported version? → A: A missing file means an empty annotation set; an unreadable, malformed, duplicate-identity, or unsupported-version file raises a clear error and is never overwritten or silently reset.
+- Q: How should an operator assign or clear an owner and notes? → A: Through explicit local library calls that take the annotation-store path, the current accepted identities, the invoice identity, and the new owner or notes value; no CLI, network, or authenticated interface is required.
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 1 - See one deterministic priority order (Priority: P1)
+
+An operator imports the invoice CSV and receives a follow-up queue in a predictable priority order. The most severely overdue invoices come first, larger balances come before smaller balances inside the same aging bucket, and two identical imports always produce the same sequence.
+
+**Why this priority**: If the queue order can change between runs, the operator cannot trust the worklist or compare one review with the next. Determinism is the core of AT-05.
+
+**Independent Test**: Build the queue twice from the same accepted set and as-of date, compare the two sequences, and verify the sequence against the documented bucket and tie-break order.
+
+**Acceptance Scenarios**:
+
+1. **Given** the accepted invoices from the frozen CSV at `as_of = 2026-10-15`, **When** the queue is built, **Then** every accepted invoice appears exactly once, rejected and duplicate rows do not appear, and the order is `INV-1009, INV-1012, INV-1008, INV-1007, INV-1005, INV-1006, INV-1014, INV-1004, INV-1003, INV-1010, INV-1001, INV-1002, INV-1013, INV-1011`.
+2. **Given** the same accepted invoices, **When** the queue is built a second time, **Then** the sequence is byte-for-byte identical in invoice identity and order.
+3. **Given** invoices in the `91+`, `61-90`, `31-60`, `1-30`, `current`, and `paid` buckets, **When** the queue is ordered, **Then** the bucket priority is `91+` first, then `61-90`, `31-60`, `1-30`, `current`, and `paid` last.
+4. **Given** two invoices in the same bucket, **When** their remaining balances differ, **Then** the larger remaining balance comes first.
+5. **Given** two invoices with the same bucket and the same remaining balance, **When** their issuers differ, **Then** the issuer name in ascending order is the next tie-breaker, and only then the invoice identifier in ascending order.
+6. **Given** the fully paid invoice `INV-1011`, **When** the queue is built, **Then** it appears in the `paid` bucket after every other accepted invoice, with a remaining balance of `0`.
+7. **Given** an empty accepted set, **When** the queue is built, **Then** the queue is empty rather than an error.
+
+---
+
+### User Story 2 - Record who owns an invoice and what was noted (Priority: P2)
+
+An operator assigns an owner and writes free-text notes on queue items. Those annotations remain attached to the right invoices after the queue is rebuilt, after the import is repeated, and after the application is restarted.
+
+**Why this priority**: A deterministic queue is only actionable when the operator can record ownership and context without losing it. AT-05 explicitly requires owner and note persistence across restart.
+
+**Independent Test**: Assign an owner to one accepted invoice and notes to another, rebuild the queue, restart the application, and verify that each annotation is still attached to the same invoice identity.
+
+**Acceptance Scenarios**:
+
+1. **Given** an accepted invoice in the queue, **When** an owner value is assigned, **Then** that queue item reports the owner and no other item inherits it.
+2. **Given** an accepted invoice in the queue, **When** free-text notes are assigned, **Then** that queue item reports the exact note text and no other item inherits it.
+3. **Given** an item with an owner and notes, **When** the application is restarted, **Then** the same invoice identity still reports the same owner and the same notes.
+4. **Given** items with owner and note assignments, **When** the queue is rebuilt from the same accepted set, **Then** the annotations are still attached and the ordering is unchanged.
+5. **Given** an item with an owner and notes, **When** the owner is cleared, **Then** only the owner becomes unassigned and the notes remain unchanged; clearing notes behaves the same way in reverse.
+6. **Given** an annotated invoice, **When** the operator changes only its owner or notes, **Then** its balance, days overdue, bucket, and queue position do not change.
+7. **Given** an invoice that is not accepted, **When** an owner or notes assignment is attempted, **Then** no queue item is created and the queue is unchanged.
+8. **Given** no annotation store file exists, **When** the queue is built, **Then** every item reports no owner and no notes and no error occurs.
+9. **Given** an unreadable or malformed annotation store, **When** an owner or notes change is attempted, **Then** the change is refused with a clear error and the existing file is left untouched.
+10. **Given** a successful owner or notes change, **When** the process is stopped immediately afterwards, **Then** the same invoice identity still reports the change after restart.
+
+---
+
+### Edge Cases
+
+- Two accepted invoices from different issuers have the same `invoice_id`; they remain separate queue items with independent owners and notes, and the issuer tie-breaker prevents an ambiguous order.
+- Two invoices share a bucket and a remaining balance; issuer then invoice identifier resolve the order completely.
+- A pending invoice due today or in the future is in `current`; it appears after all overdue buckets and before `paid`.
+- A fully paid invoice remains in the queue in `paid` with a zero balance and the lowest priority.
+- A rejected or duplicate row can never receive an owner or notes and never appears in the queue.
+- An owner or note containing non-ASCII text, punctuation, or multiple lines is preserved exactly across a restart.
+- An empty or whitespace-only owner means unassigned; an empty notes value means no notes.
+- The annotation store file does not exist: the queue still builds and every item reports no owner and no notes.
+- The annotation store is unreadable, malformed, contains duplicate invoice identities, or declares an unsupported version: the feature raises a clear error, leaves the file unchanged, and does not silently rebuild an empty store.
+- An annotation-store write is interrupted: the previous complete store remains readable, and a partially written file is never loaded.
+- An annotation record with both owner and notes empty is equivalent to no annotation and need not be retained.
+- Concurrent writes from multiple processes are out of scope; the annotation store is local single-writer state.
+- Re-importing the same CSV must not duplicate queue items or annotation records.
+- An annotated invoice that is absent from the current accepted set is not shown in the queue, but its annotation is retained by invoice identity and reappears if that invoice is accepted again.
+- Annotation assignments attach to invoice identity, not to a queue position, so a reordering caused by changed balances or aging cannot move an owner or note to another invoice.
+- An empty accepted set produces an empty queue and no errors.
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+- **FR-001**: The feature MUST build a follow-up queue from the accepted invoices produced by the existing `import_invoices` capability, using its explicit `as_of` date. It MUST NOT re-implement import classification or mutate the import result.
+- **FR-002**: The queue MUST contain exactly one item per accepted invoice, keyed by the pair `(issuer, invoice_id)`. Rejected rows and both duplicate classifications MUST NOT produce queue items.
+- **FR-003**: The queue MUST include every accepted invoice, including an invoice with a remaining balance of `0`, which belongs to the `paid` bucket.
+- **FR-004**: Every queue item MUST expose the invoice identity `(issuer, invoice_id)`, `remaining_balance_cents`, `days_overdue`, `aging_bucket`, owner, notes, and its position in the queue.
+- **FR-005**: The queue MUST be sorted by a single total order:
+  1. aging bucket priority: `91+`, then `61-90`, then `31-60`, then `1-30`, then `current`, then `paid`;
+  2. remaining balance in descending order, so the larger balance comes first;
+  3. issuer in ascending, case-sensitive, locale-independent text order;
+  4. invoice identifier in ascending, case-sensitive, locale-independent text order.
+- **FR-006**: The final tie-break sequence MUST be total for accepted invoices. The issuer tie-breaker MUST precede the invoice identifier because invoice identifiers are only unique within an issuer.
+- **FR-007**: Queue ordering MUST be a pure function of invoice row data and the as-of date. It MUST NOT depend on the clock, randomness, insertion order beyond the documented keys, owner, notes, or storage order.
+- **FR-008**: Building the queue twice from the same accepted set and as-of date MUST produce the same sequence of invoice identities.
+- **FR-009**: Each queue item MUST support an optional owner, recorded as free text and attached to the invoice identity. No owner means unassigned.
+- **FR-010**: Each queue item MUST support optional free-text notes, attached to the invoice identity and stored exactly as entered. Notes MAY contain multiple lines and non-ASCII characters.
+- **FR-011**: Owner and notes MUST persist across an application restart and remain attached to the same invoice identity with unchanged content.
+- **FR-012**: Owner and notes MUST be independent of each other: either MAY be set, changed, or cleared without altering the other.
+- **FR-013**: Changing an owner or notes MUST NOT change any invoice's remaining balance, days overdue, aging bucket, or queue position.
+- **FR-014**: Re-importing the same accepted set MUST NOT create duplicate queue items or duplicate annotation records, and MUST NOT detach annotations from their invoice identities.
+- **FR-015**: Annotations MUST be retained by invoice identity when that invoice is absent from the current accepted set. Such annotations MUST NOT be displayed as queue items until the invoice is accepted again.
+- **FR-016**: An owner or notes assignment MUST be refused for an invoice identity that is not in the current accepted set. A rejected or duplicate row identity MUST NOT become annotatable through this feature.
+- **FR-017**: An empty accepted set MUST produce an empty queue without error, and MUST preserve any stored annotations for later accepted sets.
+- **FR-018**: All monetary values used for ordering and display MUST remain integer cents; no floating-point arithmetic may be introduced.
+- **FR-019**: The feature MUST remain local and offline: no network calls, external services, credentials, secrets, or real personal data.
+- **FR-020**: The feature MUST NOT provide authentication, roles, multi-tenancy, reminders, outbound messages, payment processing, or collections automation. Owner is an internal label only.
+- **FR-021**: The feature MUST leave the existing `import_invoices` behaviour unchanged, including its classifications, balances, aging buckets, and totals.
+- **FR-022**: Owner and notes MUST be stored in a single versioned UTF-8 JSON annotation store at a caller-supplied path, defaulting to `state/followup_annotations.json` relative to the project root. Each stored record MUST carry `issuer`, `invoice_id`, `owner`, and `notes`, and MUST be keyed by the exact `(issuer, invoice_id)` pair rather than by row number, queue position, or a concatenated delimiter string.
+- **FR-023**: Each successful owner or notes change MUST be written through to the annotation store immediately, using atomic whole-file replacement, before the change is reported as applied. A crash during a write MUST NOT leave a partially written store that can be loaded.
+- **FR-024**: A missing annotation store MUST be treated as an empty annotation set. An unreadable, malformed, duplicate-identity, or unsupported-version store MUST cause a clear error, MUST leave the existing file untouched, and MUST NOT be silently reset or overwritten.
+- **FR-025**: Owner and notes MUST be assignable and clearable only through explicit local library calls that take the annotation-store path, the current accepted identities, the invoice identity, and the new value. No CLI, network service, or authenticated user interface is required, and hand-editing the store is not a supported assignment path.
+- **FR-026**: The annotation store MUST remain local runtime state, not an import fixture or source of invoice truth. Its contents MUST never feed back into import classification, balances, aging, or queue ordering.
+
+### Key Entities *(include if feature involves data)*
+
+- **Queue item**: One accepted invoice in the follow-up queue, carrying its identity, balance, days overdue, aging bucket, owner, notes, and priority position.
+- **Invoice identity**: The pair `(issuer, invoice_id)`, which uniquely identifies an invoice for ordering and annotation purposes.
+- **Aging bucket priority**: The deterministic severity order `91+`, `61-90`, `31-60`, `1-30`, `current`, `paid`; it is an ordering concept, not a replacement for the existing bucket labels.
+- **Owner**: An optional free-text label on one invoice identity, expressing who is responsible for the next action. It is not an authenticated user.
+- **Notes**: Optional free-text context on one invoice identity, preserved verbatim across rebuilds and restarts.
+- **Annotation record**: The stored `owner` and `notes` for one `(issuer, invoice_id)` identity, independent of queue position and import order. A record with both values empty is equivalent to no annotation.
+- **Annotation store**: The single versioned UTF-8 JSON file that holds annotation records, defaulting to `state/followup_annotations.json` under the project root, keyed by invoice identity and replaced atomically on each successful change.
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-001**: Building the queue repeatedly from the same accepted set and as-of date yields an identical sequence of invoice identities in 100% of runs.
+- **SC-002**: For the frozen accepted set at `as_of = 2026-10-15`, the queue order is exactly `INV-1009, INV-1012, INV-1008, INV-1007, INV-1005, INV-1006, INV-1014, INV-1004, INV-1003, INV-1010, INV-1001, INV-1002, INV-1013, INV-1011`.
+- **SC-003**: For every accepted invoice, the queue position is fully explained by bucket priority, then descending remaining balance, then ascending issuer, then ascending invoice identifier, with zero unresolved ties.
+- **SC-004**: Owner and notes assigned to queue items are still present, on the same invoice identities and with unchanged content, after a restart in 100% of tested assignments.
+- **SC-005**: Changing owner or notes leaves the queue order, balances, days overdue, and aging buckets unchanged in 100% of tested cases.
+- **SC-006**: Rebuilding the queue from the same input produces no duplicated queue items and no duplicated or detached annotation records.
+- **SC-007**: No rejected or duplicate row appears in the queue, and no annotation can be attached to one.
+- **SC-008**: The queue handles an empty accepted set without error and produces zero items.
+- **SC-009**: The feature operates with networking blocked and introduces no credentials, secrets, or real personal data.
+- **SC-010**: The existing import classifications, balances, aging buckets, and totals remain unchanged.
+- **SC-011**: With no annotation store present, the queue builds successfully and all items report no owner and no notes in 100% of runs.
+- **SC-012**: An unreadable, malformed, duplicate-identity, or unsupported-version annotation store produces a clear error and is never silently overwritten in 100% of tested cases.
+- **SC-013**: Every successful owner or notes change is durable before it is reported, and survives an immediate process stop in 100% of tested cases.
+
+## Assumptions
+
+- `ACCEPTANCE.md` AT-05 is the source of truth. Its ordering example uses "e.g.", so the binding requirement is a repeatable, pure ordering; this specification makes the requested keys explicit and adds the issuer tie-breaker needed for a total order.
+- The follow-up queue is built over the full accepted set, including the zero-balance `paid` item, because AT-05 explicitly names the accepted set as the input. Paid invoices are always last.
+- Bucket priority is severity-descending (`91+` before `61-90` before `31-60` before `1-30` before `current` before `paid`), matching the intent of AT-05's `days_overdue` descending example while honoring the requested bucket-first ordering.
+- "Balance" means `remaining_balance_cents` from the import result, ordered descending; "invoice ID" means the invoice identifier, ordered ascending after the issuer.
+- Text comparisons are case-sensitive and locale-independent so the order cannot vary by machine configuration.
+- Each invoice identity carries one owner value and one free-text notes value. Notes may be a multi-line block; a separate append-only note history is not required by AT-05 and is out of scope.
+- Annotations are durable local state for a single operator and are held in one versioned JSON annotation store at a caller-supplied path, defaulting to `state/followup_annotations.json`; "restart" means the same local installation starts again with the same store path and its state intact.
+- JSON is chosen because the project is standard-library-only and the store must remain local and human-inspectable; no database, external service, or new dependency is introduced.
+- The annotation store is single-writer local runtime state. Concurrent writes from multiple processes are out of scope, and the default store path is expected to be excluded from version control rather than treated as a frozen fixture.
+- Annotations are keyed by `(issuer, invoice_id)` rather than by row number or queue position, so sorting and re-importing cannot move an annotation to a different invoice.
+- The queue is rebuilt from a fresh import result whenever the accepted set or as-of date is supplied; no import row state is stored or mutated by this feature.
+- Roadmap R2 payment events, R3 promised-pay annotations, R5 schema migration, R4 filter/queue-hardening extras beyond AT-05, reminders, and deployment remain out of scope.
+[0m
+[0m$ [0mecho "=====DATA====="; cat specs/004-deterministic-followup-queue/data-model.md; echo "=====RESEARCH====="; cat specs/004-deterministic-followup-queue/research.md
+=====DATA=====
+# Data Model: Deterministic follow-up queue with owners and notes
+
+**Feature**: `004-deterministic-followup-queue`
+**Date**: 2026-10-23
+**Source**: [spec.md](./spec.md), [research.md](./research.md)
+
+## Entities
+
+### Import result (existing input)
+
+Produced by `invoice_desk.import_invoices(csv_text, as_of)`; this feature only reads it.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `rows` | `list[dict]` | One entry per CSV data row, in input order |
+| `rows[].status` | `str` | `accepted`, `rejected`, `duplicate_identical`, or `duplicate_inconsistent` |
+| `rows[].issuer` | `str` | Present only on accepted rows |
+| `rows[].invoice_id` | `str` | Present only on accepted rows |
+| `rows[].remaining_balance_cents` | `int` | Present only on accepted rows; non-negative integer cents |
+| `rows[].days_overdue` | `int` | Present only on accepted rows; `0` for zero-balance invoices |
+| `rows[].aging_bucket` | `str` | Present only on accepted rows; one of the six buckets |
+| `totals` | `dict` | Existing totals; never modified by this feature |
+
+The import result remains the sole source of invoice truth. Annotation data never feeds back
+into it (FR-001, FR-026).
+
+### Invoice identity
+
+| Field | Type | Validation |
+|-------|------|------------|
+| `issuer` | `str` | Exact normalized value from the accepted import row; case-sensitive |
+| `invoice_id` | `str` | Exact normalized value from the accepted import row; case-sensitive |
+
+Represented as the tuple `(issuer, invoice_id)`. It is the only key for queue membership and
+annotation lookup. It is never a row number, queue position, or concatenated string.
+
+### Queue item
+
+| Field | Type | Validation / derivation |
+|-------|------|-------------------------|
+| `issuer` | `str` | Copied from an accepted import row |
+| `invoice_id` | `str` | Copied from an accepted import row |
+| `remaining_balance_cents` | `int` | Copied unchanged; integer cents, `>= 0` |
+| `days_overdue` | `int` | Copied unchanged; `>= 0` |
+| `aging_bucket` | `str` | Copied unchanged; one of `91+`, `61-90`, `31-60`, `1-30`, `current`, `paid` |
+| `owner` | `None` or `str` | `None` when unassigned; otherwise the stored owner text |
+| `notes` | `None` or `str` | `None` when no notes; otherwise the stored notes text exactly |
+| `position` | `int` | 1-based, contiguous, assigned after sorting |
+
+Rules:
+
+- Exactly one queue item per accepted `(issuer, invoice_id)`; rejected and duplicate rows
+  produce none (FR-002, FR-003).
+- Every accepted invoice is included, including a zero-balance invoice in `paid`.
+- Additional fields from the import result are not copied into the queue item.
+- Ordering is independent of `owner`, `notes`, storage order, or insertion order
+  (FR-007).
+- `position` is not part of the sort key; it is derived from the final order.
+- Changing annotations never changes any field other than `owner`/`notes` (FR-013).
+
+### Aging bucket priority
+
+| Bucket | Rank |
+|--------|------|
+| `91+` | 0 |
+| `61-90` | 1 |
+| `31-60` | 2 |
+| `1-30` | 3 |
+| `current` | 4 |
+| `paid` | 5 |
+
+Sort key, in order: `(rank, -remaining_balance_cents, issuer, invoice_id)`.
+`issuer` and `invoice_id` use ascending, case-sensitive, locale-independent text order.
+
+### Annotation record
+
+One stored annotation for one invoice identity.
+
+| Field | Type | Validation |
+|-------|------|------------|
+| `issuer` | `str` | Non-empty in a valid store; forms the first half of the key |
+| `invoice_id` | `str` | Non-empty in a valid store; forms the second half of the key |
+| `owner` | `str` | `""` means unassigned; otherwise preserved exactly |
+| `notes` | `str` | `""` means no notes; otherwise preserved exactly, including newlines and non-ASCII |
+
+Rules:
+
+- `owner` and `notes` are independent (FR-012).
+- An empty or whitespace-only owner means unassigned; a non-empty owner is stored with its
+  exact text.
+- `notes == ""` means no notes; a non-empty notes value is stored verbatim.
+- A record with both fields empty is equivalent to no annotation and is omitted on the next
+  write.
+- An annotation may exist for an identity that is not in the current accepted set. It is
+  retained but not displayed until that identity is accepted again (FR-015).
+
+### Annotation store (version 1)
+
+Top-level JSON document:
+
+| Field | Type | Validation |
+|-------|------|------------|
+| `version` | `int` | Must equal `1` |
+| `annotations` | `list[Annotation record]` | Each record has exactly `issuer`, `invoice_id`, `owner`, `notes` as strings |
+
+Serialization rules:
+
+- UTF-8, non-ASCII preserved, trailing newline.
+- Records sorted by ascending `(issuer, invoice_id)`.
+- No timestamp, clock-derived value, or random content inside the document.
+- The file is whole-file replaced; a partially written document is never valid.
+- Missing file = empty annotation mapping; the file is not created by reads.
+
+## Validation and error rules
+
+| Condition | Result |
+|-----------|--------|
+| Missing store file | Empty annotation set; queue items have no owner/notes |
+| Store cannot be opened/read/decoded as UTF-8 | `AnnotationStoreUnreadableError`; existing file untouched |
+| Invalid JSON or wrong document/record shape | `AnnotationStoreMalformedError`; existing file untouched |
+| `version` is not the integer `1` | `AnnotationStoreVersionError`; existing file untouched |
+| Two records share `(issuer, invoice_id)` | `AnnotationStoreDuplicateIdentityError`; existing file untouched |
+| Assignment target not in current accepted identities | `InvoiceNotAcceptedError`; store untouched |
+| Write or replacement fails | `AnnotationStoreWriteError`; previous store intact, temporary file removed |
+
+## State transitions
+
+Annotation state is per invoice identity, not per queue position.
+
+```text
+no record
+   | set owner or notes (identity must be accepted)
+   v
+record(owner?, notes?)
+   | change owner / change notes (independent)
+   v
+record(owner?, notes?)
+   | clear the remaining non-empty field
+   v
+no record (both fields empty, dropped on write)
+
+record for an identity absent from the accepted set
+   | queue rebuild without that identity
+   v
+record retained in store, not shown in queue
+   | identity accepted again
+   v
+record shown on the queue item again
+```
+
+- Assigning an owner does not alter notes, and vice versa.
+- Clearing one field leaves the other intact.
+- Re-importing the same accepted set neither duplicates queue items nor duplicates or
+  detaches annotation records.
+- Ordering is recomputed from import row data only; annotation transitions never affect it.
+
+## Relationships
+
+```text
+Import row (accepted) 1 ─── 0..1 Queue item        by (issuer, invoice_id)
+Invoice identity      1 ─── 0..1 Annotation record  by exact tuple
+Annotation record     1 ─── 0..1 Queue item         when the identity is accepted
+```
+
+An annotation record can outlive its queue item (identity not currently accepted). A queue
+item can appear without an annotation record. The import result never references annotation
+storage.
+=====RESEARCH=====
+# Phase 0 Research: Deterministic follow-up queue with owners and notes
+
+**Feature**: `004-deterministic-followup-queue`
+**Date**: 2026-10-23
+**Inputs**: [spec.md](./spec.md), `.specify/memory/constitution.md`, `ACCEPTANCE.md` AT-05,
+existing `invoice_desk.import_invoices`, `data/invoices.csv`
+
+No `NEEDS CLARIFICATION` markers remain in the specification. The clarifications already
+resolved ordering precedence, accepted-set membership, storage, error handling, and the
+assignment API. This document records the resulting technical decisions.
+
+## 1. Queue input and ordering
+
+- **Decision**: Build the queue only from rows in the `import_invoices` result whose
+  `status == "accepted"`, keyed by the exact `(issuer, invoice_id)` pair. Sort by bucket
+  priority `91+`, `61-90`, `31-60`, `1-30`, `current`, `paid`; then
+  `remaining_balance_cents` descending; then `issuer` ascending; then `invoice_id`
+  ascending. Assign 1-based contiguous positions after sorting.
+- **Rationale**: This is a total order for accepted invoices. The issuer tie-break before
+  invoice ID is required because invoice identifiers are only unique within an issuer
+  (FR-005/FR-006). It matches the requested bucket-first ordering while preserving AT-05's
+  binding requirement that ordering be a repeatable pure function of row data. The computed
+  order for the frozen fixture at `as_of = 2026-10-15` is exactly the SC-002 sequence.
+- **Alternatives considered**:
+  - Sort by `days_overdue` descending only (AT-05's illustrative example): rejected because
+    the user request and spec FR-005 require bucket first, and it would not guarantee the
+    same relative order as bucket boundaries.
+  - Sort by row number or insertion order: rejected because it is not a function of row
+    data and would change with CSV order.
+  - Use invoice ID before issuer: rejected because two issuers may reuse `INV-*` IDs,
+    leaving ties unresolved.
+
+## 2. Separating ordering from annotations
+
+- **Decision**: `invoice_desk/queue.py` contains only pure ordering helpers and returns
+  queue items whose `owner` and `notes` are `None`. `invoice_desk/annotations.py` contains
+  all storage and attachment logic. The convenience `followup_queue` composition lives in
+  the annotations module, not in `queue.py`.
+- **Rationale**: The user requires ordering to be buildable first by a different agent.
+  A pure module with no filesystem or annotation imports can be implemented, tested, and
+  accepted independently. Stage 2 then fills existing item fields without changing the
+  sort keys, item shape, or positions.
+- **Alternatives considered**:
+  - One module containing both ordering and persistence: rejected because it couples a pure
+    computation to local I/O and blocks the independent Stage 1 handoff.
+  - Passing annotations into `build_followup_queue`: rejected because ordering must not
+    depend on owner/notes (FR-007, FR-013).
+
+## 3. Annotation store shape, keying, and path
+
+- **Decision**: Use one versioned UTF-8 JSON document:
+  `{"version": 1, "annotations": [{"issuer", "invoice_id", "owner", "notes"}, ...]}`.
+  Key records in memory by the exact tuple `(issuer, invoice_id)` and emit them sorted by
+  that tuple. Default path is `state/followup_annotations.json` under the project root,
+  computed from the package location; callers may supply any path.
+- **Rationale**: JSON is standard-library-only, local, and human-inspectable. Explicit
+  `issuer` and `invoice_id` fields avoid the delimiter-collision problem of concatenated
+  keys, and a list allows the loader to detect duplicate identities. A sorted list keeps
+  writes deterministic without adding timestamps. The default is project-root-relative
+  rather than current-working-directory-relative so it does not move when commands are run
+  from another directory.
+- **Alternatives considered**:
+  - A single JSON object keyed by `"issuer|invoice_id"`: rejected because delimiter strings
+    can collide and the clarification explicitly excludes concatenated keys.
+  - Nested objects keyed by issuer then invoice ID: workable, but a flat record list more
+    directly satisfies the requirement that each record carries all four fields and makes
+    duplicate detection explicit.
+  - SQLite or another store: rejected by the stdlib/offline/small-scope constraints.
+  - Writing into the repository root directly: rejected because runtime state is not a
+    fixture and should be isolated under `state/` and gitignored.
+
+## 4. Durable atomic writes with the standard library
+
+- **Decision**: Serialize the complete next store in memory, create the parent directory,
+  write to a `tempfile.mkstemp` file in the same directory, flush and `os.fsync` it, close
+  it, then `os.replace` it onto the target. Attempt to fsync the parent directory on POSIX.
+  Remove the temporary file on failure and raise a clear write error. A successful
+  assignment returns only after the replacement completes.
+- **Rationale**: `os.replace` is atomic on the same filesystem, so a reader sees either the
+  previous complete file or the new complete file, never a partial JSON document
+  (FR-023, SC-013). Writing the temporary file beside the target keeps the replacement on
+  one filesystem. No clock or random content is written; the temporary name is the only
+  nondeterministic detail and is never part of the store contract.
+- **Alternatives considered**:
+  - Rewriting the target in place: rejected because an interrupted write can leave
+    unloadable partial JSON.
+  - A separate lock/transaction protocol: rejected as unnecessary for a documented
+    single-writer local store; concurrent processes are out of scope.
+  - `pickle` or a custom format: rejected because JSON is inspectable and safer for local
+    state, and the clarification requires JSON.
+
+## 5. Store errors and assignment refusal
+
+- **Decision**: Missing file means an empty annotation set. Unreadable, malformed,
+  duplicate-identity, or unsupported-version stores raise distinct errors and are never
+  overwritten or silently reset. Assignment first validates that the identity is in the
+  current accepted set and raises an error otherwise. All failures leave existing bytes
+  unchanged.
+- **Rationale**: Directly implements FR-016, FR-024, FR-025, and the spec's edge cases.
+  Distinct error types make the failure mode clear to the operator and testable. Validating
+  the accepted identity before loading prevents a rejected or duplicate row from ever
+  becoming annotatable and makes the refusal independent of store contents.
+- **Alternatives considered**:
+  - Treat any unreadable/corrupt store as empty: rejected because it would silently lose
+    annotations, explicitly forbidden by FR-024.
+  - Auto-repair or overwrite a corrupt store: rejected because it destroys evidence and
+    violates the "never silently reset" requirement.
+  - Allow annotations for any identity present in the CSV: rejected because rejected and
+    duplicate rows must never become annotatable.
+
+## 6. Owner/notes semantics
+
+- **Decision**: Owner and notes are independent free-text fields. Empty or whitespace-only
+  owner clears the owner; `None` or empty notes clears notes. Non-empty text is preserved
+  exactly, including whitespace, punctuation, newlines, and non-ASCII characters. A record
+  with both fields empty is omitted. Queue items expose absent values as `None`; the JSON
+  store uses empty strings.
+- **Rationale**: Satisfies FR-009 to FR-012 and the edge cases for clearing, multi-line
+  notes, and non-ASCII text. Keeping the two fields independent prevents clearing one from
+  resetting the other. The `None` queue representation follows the existing import style
+  for non-applicable values, while empty JSON strings keep every stored record to the
+  required four string fields.
+- **Alternatives considered**:
+  - A unified "annotation blob": rejected because owner and notes must be independently
+    assignable and clearable.
+  - Trimming stored notes: rejected because notes must be stored exactly as entered.
+  - Dropping the record whenever either field is empty: rejected because it would lose the
+    other field.
+
+## 7. Test strategy
+
+- **Decision**: Split tests into `tests/test_followup_queue.py` (Stage 1) and
+  `tests/test_followup_annotations.py` (Stage 2). Keep `tests/test_invoice_desk.py`
+  unchanged. Use pytest, `tmp_path` for stores, and monkeypatching for simulated write
+  failure. Run `python -m pytest -q`.
+- **Rationale**: Mirrors the implementation split so ordering can be verified before
+  storage exists. The existing suite guards FR-021 and AT-01 to AT-04. `tmp_path` keeps
+  tests off the real `state/` path, and byte snapshots before/after error cases prove the
+  store is untouched.
+- **Alternatives considered**:
+  - One combined test module: rejected because it would make Stage 1 depend on Stage 2
+    files and undermine the handoff.
+  - Testing only through the convenience `followup_queue`: rejected because the pure
+    ordering contract and the storage contract need independent, focused coverage.
+
+## Resolved unknowns
+
+| Unknown | Resolution |
+|---------|------------|
+| Ordering keys and total order | Bucket priority, descending balance, ascending issuer, ascending invoice ID |
+| Whether paid invoices appear | Yes; every accepted invoice appears, `paid` last |
+| Store format and version | Versioned UTF-8 JSON, `version: 1`, record list keyed by `(issuer, invoice_id)` |
+| Store path | Caller-supplied, default project-root `state/followup_annotations.json` |
+| Missing/corrupt store behavior | Missing = empty; corrupt/unsupported/duplicate = clear error, untouched file |
+| Atomicity | Same-directory temp file, fsync, `os.replace`, cleanup on failure |
+| Owner/notes API | Explicit `set_owner` / `set_notes` calls with accepted identities and store path |
+| How ordering and annotations stay separable | Pure `queue.py`; all storage and attachment in `annotations.py` |
+[0m
+[0m$ [0mecho "=====API====="; cat specs/004-deterministic-followup-queue/contracts/public-api.md; echo "=====SCHEMA====="; cat specs/004-deterministic-followup-queue/contracts/annotation-store.schema.json; echo "=====QUICK====="; cat specs/004-deterministic-followup-queue/quickstart.md
+=====API=====
+# Public API Contract: invoice_desk follow-up queue and annotations
+
+**Feature**: `004-deterministic-followup-queue`
+**Contract version**: 1
+**Audience**: callers of the `invoice_desk` Python package (local library use only)
+
+This contract adds names to the existing `invoice_desk` package without changing
+`import_invoices`. All money values are integer cents. No network, authentication, CLI, or
+external service is part of this contract.
+
+## Stage 1 — pure queue ordering
+
+### `BUCKET_PRIORITY`
+
+A mapping from aging bucket to its sort rank:
+
+```text
+91+ = 0, 61-90 = 1, 31-60 = 2, 1-30 = 3, current = 4, paid = 5
+```
+
+### `accepted_invoice_identities(import_result) -> set[tuple[str, str]]`
+
+Returns the exact `(issuer, invoice_id)` pairs of rows whose `status == "accepted"`.
+Rejected and duplicate rows are excluded. The input is not modified.
+
+### `build_followup_queue(import_result) -> list[dict]`
+
+Returns a new list with one new dict per accepted import row, sorted by:
+
+1. `BUCKET_PRIORITY[aging_bucket]` ascending;
+2. `remaining_balance_cents` descending;
+3. `issuer` ascending (case-sensitive, locale-independent);
+4. `invoice_id` ascending (case-sensitive, locale-independent).
+
+Each queue item has exactly these keys:
+
+```text
+issuer                  str
+invoice_id              str
+remaining_balance_cents int
+days_overdue            int
+aging_bucket            str
+owner                   None
+notes                   None
+position                int    # 1-based, contiguous
+```
+
+Guarantees:
+
+- Empty accepted set returns `[]`.
+- Every accepted invoice appears exactly once, including a zero-balance `paid` invoice.
+- Rejected and duplicate rows never appear.
+- Repeated calls with the same import result return equal sequences.
+- The function performs no file I/O, reads no clock, uses no randomness, imports no
+  annotation module, and mutates neither the input nor its rows.
+
+Frozen-fixture example at `as_of = 2026-10-15`:
+
+```text
+INV-1009, INV-1012, INV-1008, INV-1007, INV-1005, INV-1006, INV-1014,
+INV-1004, INV-1003, INV-1010, INV-1001, INV-1002, INV-1013, INV-1011
+```
+
+## Stage 2 — annotation persistence
+
+### Store location
+
+`DEFAULT_ANNOTATION_STORE_PATH` resolves to
+`<project root>/state/followup_annotations.json`. Every function accepts an optional
+`store_path`; when supplied, it is used as given. Reads never create the path. The first
+successful write creates the parent directory if needed.
+
+### `load_annotations(store_path=None) -> dict[tuple[str, str], dict[str, str]]`
+
+Reads and validates the whole store, returning a mapping keyed by the exact
+`(issuer, invoice_id)` tuple. Each value has string keys `issuer`, `invoice_id`, `owner`,
+and `notes`.
+
+- Missing file returns `{}`.
+- A valid empty store (`{"version": 1, "annotations": []}`) returns `{}`.
+- Empty owner/notes strings are returned as stored; callers that build queue items map them
+  to `None` when attaching.
+- Any invalid store raises one of the documented errors and never writes.
+
+### `set_owner(accepted_identities, issuer, invoice_id, owner, *, store_path=None) -> None`
+
+Assigns or clears the owner for one identity.
+
+- `(issuer, invoice_id)` must be in `accepted_identities`; otherwise
+  `InvoiceNotAcceptedError` is raised before any store write.
+- `owner=None` or a whitespace-only string clears the owner.
+- A non-empty owner is stored exactly; notes are untouched.
+- The change is persisted atomically before the call returns.
+- A store with both fields empty after the change is omitted.
+
+### `set_notes(accepted_identities, issuer, invoice_id, notes, *, store_path=None) -> None`
+
+Assigns or clears notes for one identity.
+
+- `(issuer, invoice_id)` must be in `accepted_identities`; otherwise
+  `InvoiceNotAcceptedError` is raised before any store write.
+- `notes=None` or `notes == ""` clears the notes.
+- Non-empty notes are stored exactly, including newlines, punctuation, and non-ASCII text;
+  the owner is untouched.
+- The change is persisted atomically before the call returns.
+- A store with both fields empty after the change is omitted.
+
+### `attach_annotations(queue, store_path=None) -> list[dict]`
+
+Returns a new queue list with the same order and `position` values, filling `owner` and
+`notes` on each item from the exact identity match.
+
+- Missing store: every item keeps `owner=None`, `notes=None`.
+- Stored empty strings are exposed as `None`.
+- Annotations for identities not present in `queue` are retained in the store but ignored
+  by this call.
+- The input queue is not mutated.
+- An invalid store raises the same clear error as `load_annotations`; it is not treated as
+  empty.
+
+### `followup_queue(import_result, store_path=None) -> list[dict]`
+
+Convenience composition of `attach_annotations(build_followup_queue(import_result), ...)`.
+It does not re-implement ordering and does not change queue fields other than
+`owner`/`notes`.
+
+## Store document contract
+
+The file is UTF-8 JSON and MUST match
+[`annotation-store.schema.json`](./annotation-store.schema.json):
+
+```json
+{
+  "version": 1,
+  "annotations": [
+    {
+      "issuer": "Acme Cleaning Co",
+      "invoice_id": "INV-1001",
+      "owner": "Dana",
+      "notes": "Call Tuesday.\nAsk for AP."
+    }
+  ]
+}
+```
+
+- `version` is the integer `1`. No other version is supported.
+- `annotations` is a list. Each record has exactly `issuer`, `invoice_id`, `owner`, and
+  `notes`, all strings.
+- Records are keyed by the exact pair; duplicate pairs are invalid.
+- Records are serialized sorted by ascending `(issuer, invoice_id)`.
+- A record with both `owner` and `notes` empty is equivalent to no annotation and is omitted
+  on the next write.
+- The store contains no clock-derived or random content.
+
+## Error contract
+
+All errors derive from `AnnotationError`:
+
+| Error | Meaning |
+|-------|---------|
+| `AnnotationStoreUnreadableError` | The store exists but cannot be opened, read, or decoded as UTF-8 |
+| `AnnotationStoreMalformedError` | Invalid JSON or wrong document/record shape, including missing/non-string fields |
+| `AnnotationStoreVersionError` | The store declares a version other than integer `1` |
+| `AnnotationStoreDuplicateIdentityError` | Two records share the same `(issuer, invoice_id)` |
+| `AnnotationStoreWriteError` | Serialization, temporary-file creation, write, fsync, or replacement failed |
+| `InvoiceNotAcceptedError` | An assignment targets an identity not in the supplied accepted set |
+
+On any load/validation error, the existing file is left untouched and is never silently
+reset or overwritten. On a write error, the previous complete store remains readable and any
+temporary file is removed. Concurrent writers are out of scope.
+
+## Durability and atomicity
+
+Each successful assignment writes a complete new document to a temporary file in the same
+directory, flushes and fsyncs it, then atomically replaces the target with `os.replace`.
+The call returns only after replacement. Readers therefore see either the previous complete
+store or the new complete store, never a partial document.
+=====SCHEMA=====
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://invoice-desk.invalid/schemas/followup-annotations-v1.json",
+  "title": "Invoice Desk follow-up annotation store",
+  "description": "Version 1 annotation store keyed by the exact (issuer, invoice_id) pair. Duplicate pairs are invalid and are also rejected by the loader.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "annotations"],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "annotations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["issuer", "invoice_id", "owner", "notes"],
+        "properties": {
+          "issuer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "invoice_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner": {
+            "type": "string",
+            "description": "Empty string means unassigned; non-empty text is preserved exactly."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Empty string means no notes; non-empty text is preserved exactly, including newlines and non-ASCII characters."
+          }
+        }
+      }
+    }
+  }
+}
+=====QUICK=====
+# Quickstart Validation Guide
+
+**Feature**: `004-deterministic-followup-queue`
+**Purpose**: prove the queue ordering and annotation persistence work end to end
+
+This guide describes validation only. Implementation details live in [plan.md](./plan.md),
+[data-model.md](./data-model.md), and the [public API contract](./contracts/public-api.md).
+
+## Prerequisites
+
+- Python 3.11 or newer.
+- The repository's virtual environment (if used) activated.
+- No third-party runtime packages and no network access.
+- The existing fixture `data/invoices.csv` and synthetic `as_of = 2026-10-15`.
+
+## 1. Run the test suite
+
+```bash
+python -m pytest -q
+```
+
+Expected: all existing import tests and the new queue/annotation tests pass. The existing
+`tests/test_invoice_desk.py` must remain unchanged. `python -m pytest` alone is also valid
+because `pyproject.toml` sets `testpaths = ["tests"]`.
+
+## 2. Verify the frozen queue order
+
+Run a short caller-side check against the public API:
+
+```bash
+python - <<'PY'
+from datetime import date
+from pathlib import Path
+from invoice_desk import build_followup_queue, import_invoices
+
+csv_text = Path("data/invoices.csv").read_text(encoding="utf-8")
+result = import_invoices(csv_text, date(2026, 10, 15))
+queue = build_followup_queue(result)
+print([item["invoice_id"] for item in queue])
+PY
+```
+
+Expected order:
+
+```text
+['INV-1009', 'INV-1012', 'INV-1008', 'INV-1007', 'INV-1005', 'INV-1006',
+ 'INV-1014', 'INV-1004', 'INV-1003', 'INV-1010', 'INV-1001', 'INV-1002',
+ 'INV-1013', 'INV-1011']
+```
+
+Also confirm:
+
+- Every accepted invoice appears exactly once; rejected and duplicate rows do not appear.
+- `INV-1011` is last in `paid` with `remaining_balance_cents == 0`.
+- Every item has contiguous 1-based `position` values.
+- `owner` and `notes` are `None` at this stage.
+
+## 3. Verify determinism
+
+```bash
+python - <<'PY'
+from datetime import date
+from pathlib import Path
+from invoice_desk import build_followup_queue, import_invoices
+
+csv_text = Path("data/invoices.csv").read_text(encoding="utf-8")
+result = import_invoices(csv_text, date(2026, 10, 15))
+first = build_followup_queue(result)
+second = build_followup_queue(result)
+print(first == second)
+PY
+```
+
+Expected: `True`. Rebuilding from the same import result or re-importing the same CSV and
+rebuilding must produce the same identity sequence.
+
+## 4. Verify owner and notes persistence
+
+Use a temporary store so the repository's `state/` directory is untouched:
+
+```bash
+python - <<'PY'
+import tempfile
+from datetime import date
+from pathlib import Path
+from invoice_desk import (
+    accepted_invoice_identities,
+    followup_queue,
+    import_invoices,
+    set_notes,
+    set_owner,
+)
+
+csv_text = Path("data/invoices.csv").read_text(encoding="utf-8")
+result = import_invoices(csv_text, date(2026, 10, 15))
+identities = accepted_invoice_identities(result)
+
+with tempfile.TemporaryDirectory() as tmp:
+    store = Path(tmp) / "followup_annotations.json"
+    set_owner(identities, "Acme Cleaning Co", "INV-1001", "Dana", store_path=store)
+    set_notes(
+        identities,
+        "Acme Cleaning Co",
+        "INV-1002",
+        "Call Tuesday.\nAsk for AP.",
+        store_path=store,
+    )
+
+    first = followup_queue(result, store)
+    second = followup_queue(result, store)
+
+    by_id = {item["invoice_id"]: item for item in first}
+    assert by_id["INV-1001"]["owner"] == "Dana"
+    assert by_id["INV-1001"]["notes"] is None
+    assert by_id["INV-1002"]["owner"] is None
+    assert by_id["INV-1002"]["notes"] == "Call Tuesday.\nAsk for AP."
+    assert [item["invoice_id"] for item in first] == [
+        item["invoice_id"] for item in second
+    ]
+    assert store.exists()
+    print("annotations persisted; order unchanged")
+PY
+```
+
+Expected: `annotations persisted; order unchanged`. Simulate a restart by running
+`followup_queue(result, store)` again in a separate process with the same store path; the
+same identity still reports the same owner/notes. Clearing the owner must leave notes
+unchanged, and clearing notes must leave the owner unchanged.
+
+## 5. Verify missing and invalid stores
+
+- **Missing store**: call `followup_queue(result, path_that_does_not_exist)`. The queue must
+  build with every `owner` and `notes` equal to `None`, and the missing path must not be
+  created.
+- **Malformed store**: write `{not json` to a temporary file, record its bytes, attempt
+  `set_owner`, and expect `AnnotationStoreMalformedError`. The file bytes must be identical
+  afterwards, and the queue must not silently treat the store as empty.
+- **Unsupported version**: write a valid document with `"version": 2` and expect
+  `AnnotationStoreVersionError`; the file must remain unchanged.
+- **Duplicate identity**: write two records with the same `(issuer, invoice_id)` and expect
+  `AnnotationStoreDuplicateIdentityError`; the file must remain unchanged.
+- **Not accepted**: attempt an assignment for a rejected or duplicate row identity and expect
+  `InvoiceNotAcceptedError`; the store must remain unchanged.
+
+The exact error names and store shape are defined in
+[contracts/public-api.md](./contracts/public-api.md) and
+[contracts/annotation-store.schema.json](./contracts/annotation-store.schema.json).
+
+## 6. Verify annotation changes do not reorder the queue
+
+Assign an owner and notes to an existing invoice, rebuild the queue, and compare the
+`invoice_id` sequence and all `position` values with the pre-annotation queue. Expected:
+identical sequence and positions; only `owner`/`notes` differ on the annotated item.
+
+## 7. Verify retained annotations for absent invoices
+
+1. In a temporary store, annotate an accepted identity.
+2. Build a queue from a different accepted set that does not contain that identity.
+3. Confirm the identity is absent from the queue but still present in `load_annotations`.
+4. Import an accepted set containing that identity again and confirm the annotation
+   reappears on the same queue item.
+
+## Expected end state
+
+- Queue ordering is pure, total, and repeatable.
+- All accepted invoices appear once; `paid` is last; empty input yields an empty queue.
+- Owner and notes are independent, survive reloads, and preserve text exactly.
+- Missing stores mean no annotations; invalid stores fail clearly without being overwritten.
+- No changes to import classifications, balances, aging buckets, totals, or `bill_split`.
+[0m
+[0m$ [0mcat .specify/memory/constitution.md 2>/dev/null; echo "=====TREE====="; find invoice_desk bill_split tests -type f | sort; echo "=====PYPROJECT====="; cat pyproject.toml
+# bill-split + Invoice Exception Desk Constitution
+
+## Core Principles
+
+### I. Money is integer cents
+All amounts are integers in cents. No floats anywhere.
+
+### II. Deterministic and pure
+Functions have no I/O, randomness, or clock access. Same input, same output.
+
+### III. Standard library only
+Python 3.11+, no runtime dependencies. Tests use pytest.
+
+### IV. Small and tested
+Every public function has tests in `tests/`. Run with `python -m pytest -q`.
+
+### V. Spec and code together
+A behaviour change and its spec change land in the same commit.
+
+### VI. Synthetic data, offline only
+No real personal data, credentials, or network calls. Fixtures are synthetic (see `NON_GOALS.md`).
+
+### VII. Explicit as-of date
+Anything time-based takes an explicit `as_of` date argument. Never read the clock. Dates are ISO `YYYY-MM-DD` in America/New_York.
+
+### VIII. Sealed answer key per phase
+Each roadmap phase (R1 to R6) is graded against an answer key the builder never sees. The oracle is kept outside the repo during the build. Builder-written tests alone never mean "done".
+
+**Version**: 1.1.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-22
+=====TREE=====
+bill_split/__init__.py
+bill_split/__pycache__/__init__.cpython-313.pyc
+invoice_desk/__init__.py
+invoice_desk/__pycache__/__init__.cpython-313.pyc
+tests/__pycache__/test_invoice_desk.cpython-313-pytest-9.1.1.pyc
+tests/__pycache__/test_split_bill.cpython-313-pytest-9.1.1.pyc
+tests/__pycache__/test_split_weighted.cpython-313-pytest-9.1.1.pyc
+tests/test_invoice_desk.py
+tests/test_split_bill.py
+tests/test_split_weighted.py
+=====PYPROJECT=====
+[project]
+name = "bill-split"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+[0m
+[0m$ [0msed -n '1,80p' invoice_desk/__init__.py; echo "...tail..."; tail -30 invoice_desk/__init__.py; echo "=====GITIGNORE====="; cat .gitignore; echo "=====SAMPLE TASKS====="; sed -n '1,60p' specs/003-desk-import/tasks.md
+"""Pure CSV invoice import and aging for the Invoice Exception Desk.
+
+The public entry point, :func:`import_invoices`, reads invoice CSV text and
+classifies every data row as accepted, rejected with a reason, an identical
+duplicate, or an inconsistent duplicate. Accepted invoices report an integer-cent
+remaining balance, days overdue, and an aging bucket as of an explicit date.
+
+The function is pure and offline: it uses only the standard library, never reads
+the system clock, never touches the network, and keeps no state between calls.
+"""
+
+from __future__ import annotations
+
+import csv
+import io
+import re
+from datetime import date
+
+HEADER_FIELDS = (
+    "issuer",
+    "invoice_id",
+    "issue_date",
+    "due_date",
+    "amount_cents",
+    "currency",
+    "paid_cents",
+)
+
+STATUSES = (
+    "accepted",
+    "rejected",
+    "duplicate_identical",
+    "duplicate_inconsistent",
+)
+
+REJECTION_REASONS = (
+    "empty_row",
+    "missing_required_field",
+    "invalid_date",
+    "invalid_amount",
+    "invalid_currency",
+    "invalid_payment",
+)
+
+DUPLICATE_IDENTICAL_REASON = "identical_duplicate"
+DUPLICATE_INCONSISTENT_REASON = "inconsistent_duplicate"
+
+AGING_BUCKETS = ("current", "1-30", "31-60", "61-90", "91+", "paid")
+
+_DATE_PATTERN = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}\Z")
+_INTEGER_PATTERN = re.compile(r"[0-9]+\Z")
+
+
+def _zero_aging() -> dict[str, dict[str, int]]:
+    """Return a fresh all-zero aging-bucket mapping."""
+    return {bucket: {"count": 0, "remaining_cents": 0} for bucket in AGING_BUCKETS}
+
+
+def _parse_date(value: str) -> date | None:
+    """Parse a strict ``YYYY-MM-DD`` civil date, or return ``None``."""
+    if _DATE_PATTERN.fullmatch(value) is None:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def _parse_csv(csv_text: str) -> list[list[str]]:
+    """Parse CSV text into seven trimmed field values per data row.
+
+    The first row is the header and columns are mapped by name. Blank lines are
+    preserved as data rows, short rows are padded with blanks, extra cells are
+    ignored, and every field is stripped of surrounding whitespace.
+    """
+    reader = csv.reader(io.StringIO(csv_text))
+    try:
+        header = next(reader)
+    except StopIteration:
+        return []
+...tail...
+            bucket = "61-90"
+        else:
+            bucket = "91+"
+
+        rows.append(
+            {
+                "row": row_number,
+                "status": "accepted",
+                "reason": None,
+                "issuer": normalized["issuer"],
+                "invoice_id": normalized["invoice_id"],
+                "amount_cents": amount_cents,
+                "paid_cents": paid_cents,
+                "remaining_balance_cents": remaining_cents,
+                "days_overdue": days_overdue,
+                "aging_bucket": bucket,
+            }
+        )
+
+        totals["accepted"] += 1  # type: ignore[operator]
+        totals["total_paid_cents"] += paid_cents  # type: ignore[operator]
+        if remaining_cents > 0:
+            totals["outstanding_invoice_count"] += 1  # type: ignore[operator]
+            totals["total_outstanding_cents"] += remaining_cents  # type: ignore[operator]
+
+        bucket_totals = aging[bucket]
+        bucket_totals["count"] += 1
+        bucket_totals["remaining_cents"] += remaining_cents
+
+    return {"rows": rows, "totals": totals}
+=====GITIGNORE=====
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+=====SAMPLE TASKS=====
+---
+
+description: "Task list for Invoice Exception Desk import (R1 slice)"
+---
+
+# Tasks: Invoice CSV import and aging
+
+**Input**: Design documents from `/specs/003-desk-import/`
+
+**Prerequisites**: plan.md (required), spec.md (required for user stories)
+
+**Tests**: Included because `plan.md` explicitly scopes `tests/test_invoice_desk.py` and the project constitution requires every public function to have tests.
+
+**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story. `spec.md` and `plan.md` are inputs only and MUST NOT be modified.
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: Can run in parallel (different files, no dependencies)
+- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
+- Include exact file paths in descriptions
+
+## Path Conventions
+
+- **Single project**: `invoice_desk/` package and `tests/` at repository root, per `plan.md`
+- Allowed write scope: `invoice_desk/__init__.py` and `tests/test_invoice_desk.py` only
+
+---
+
+## Phase 1: Setup (Shared Infrastructure)
+
+**Purpose**: Create the package entry point and the test module shared by all stories
+
+- [X] T001 [P] Create `invoice_desk/__init__.py` with the public stub `import_invoices(csv_text: str, as_of: date) -> dict` returning `{"rows": [], "totals": {}}`, importing `date` from `datetime` per the exact interface in `plan.md`
+- [X] T002 [P] Create `tests/test_invoice_desk.py` with a shared helper that reads `data/invoices.csv` as text, a constant `AS_OF = date(2026, 10, 15)`, and a helper for the all-zero six-bucket totals shape
+
+---
+
+## Phase 2: Foundational (Blocking Prerequisites)
+
+**Purpose**: Shared parsing, normalization, and validation primitives required by every user story
+
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+
+- [X] T003 Define in `invoice_desk/__init__.py` the seven header field names in order (`issuer`, `invoice_id`, `issue_date`, `due_date`, `amount_cents`, `currency`, `paid_cents`), the four statuses, the six rejection reasons, the two duplicate reason tokens (`identical_duplicate`, `inconsistent_duplicate`), and the six aging bucket names (`current`, `1-30`, `31-60`, `61-90`, `91+`, `paid`) as module constants
+- [X] T004 Implement a private CSV parsing helper in `invoice_desk/__init__.py` using `csv.reader(io.StringIO(csv_text))` and **not** `DictReader`, mapping columns from the header row, treating empty or header-only input as zero data rows, preserving blank lines as data rows, padding rows shorter than seven cells with `""`, ignoring cells beyond the seventh, and trimming leading/trailing whitespace on all seven fields (FR-002, FR-030, FR-031)
+- [X] T005 Implement a private row validation helper in `invoice_desk/__init__.py` that returns normalized field values or exactly one rejection reason using the precedence `empty_row`, `missing_required_field`, `invalid_date`, `invalid_amount`, `invalid_currency`, `invalid_payment`: `empty_row` when no cells or all cells blank; `missing_required_field` only when `issuer` or `invoice_id` is blank (all other fields use their own reason); `invalid_date` for a blank or non-strict non-real `YYYY-MM-DD` date; `invalid_amount` for a blank or non-`[0-9]+` amount (using `re.fullmatch`, rejecting `+100`, `-500`, `12.50`, `abc`); `invalid_currency` for a blank or non-`USD` currency; `invalid_payment` for a non-`[0-9]+` payment or one exceeding `amount_cents`, with a blank `paid_cents` treated as `0` (FR-005 to FR-011)
+
+**Checkpoint**: Foundation ready - user story implementation can now begin
+
+---
+
+## Phase 3: User Story 1 - Import and classify every invoice row (Priority: P1) 🎯 MVP
+
+**Goal**: Classify every data row as accepted, rejected with a reason, identical duplicate, or inconsistent duplicate, with deterministic import counts and no state between calls.
+
+**Independent Test**: Import the frozen `data/invoices.csv` text as of `2026-10-15`, assert `total_rows = 30`, `accepted = 14`, `rejected = 12`, `duplicate_identical = 2`, `duplicate_inconsistent = 2`, verify every row status and rejection reason, then import the same text again and confirm an identical result with no double-counting.
+
+### Tests for User Story 1 ⚠️
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+[0m
+[0m← [0mWrite specs/004-deterministic-followup-queue/tasks.md
+Wrote file successfully.
+[0m
+[0m$ [0mgrep -n '^- \[ \] T' specs/004-deterministic-followup-queue/tasks.md; echo "count:"; grep -c '^- \[ \] T' specs/004-deterministic-followup-queue/tasks.md; echo "handoff:"; grep -n 'HANDOFF' specs/004-deterministic-followup-queue/tasks.md; echo "blockers above handoff:"; awk '/HANDOFF/{exit} /^- \[ \] T/{print}' specs/004-deterministic-followup-queue/tasks.md | grep -Ei 'annotations|state/|owner|notes' || true
+41:- [ ] T001 [US1] Create `tests/test_followup_queue.py` with a shared helper that reads `data/invoices.csv` as UTF-8 text, a constant `AS_OF = date(2026, 10, 15)`, and a test asserting the exact SC-002 identity sequence for `build_followup_queue(import_invoices(csv_text, AS_OF))`: `INV-1009, INV-1012, INV-1008, INV-1007, INV-1005, INV-1006, INV-1014, INV-1004, INV-1003, INV-1010, INV-1001, INV-1002, INV-1013, INV-1011`
+42:- [ ] T002 [US1] Extend `tests/test_followup_queue.py` with determinism and sort-key tests: two calls return equal sequences and identical identity order; `BUCKET_PRIORITY` maps `91+`=0, `61-90`=1, `31-60`=2, `1-30`=3, `current`=4, `paid`=5; each bucket precedes the next; within a bucket `remaining_balance_cents` is descending; ties then use `issuer` ascending (case-sensitive, locale-independent) before `invoice_id` ascending (case-sensitive, locale-independent); no unresolved ties
+43:- [ ] T003 [US1] Extend `tests/test_followup_queue.py` with edge-case and contract tests: two issuers reusing the same `invoice_id` remain two separate items with the issuer tie-break; zero-balance `INV-1011` appears exactly once in `paid` with `remaining_balance_cents == 0`; an empty accepted set returns `[]`; rejected and both duplicate statuses are excluded; each item has exactly `issuer`, `invoice_id`, `remaining_balance_cents`, `days_overdue`, `aging_bucket`, `owner=None`, `notes=None`, `position`; money and day fields are `int` with `remaining_balance_cents >= 0` and `days_overdue >= 0`; `aging_bucket` is one of `91+`, `61-90`, `31-60`, `1-30`, `current`, `paid`; positions are contiguous 1-based values; `import_result` and its rows are not mutated; the module runs with no `invoice_desk/annotations.py` file and no `state/` directory present
+47:- [ ] T004 [US1] Create `invoice_desk/queue.py` with module constant `BUCKET_PRIORITY` exactly `{"91+": 0, "61-90": 1, "31-60": 2, "1-30": 3, "current": 4, "paid": 5}` and implement `accepted_invoice_identities(import_result) -> set[tuple[str, str]]` returning the exact `(issuer, invoice_id)` pairs of rows whose `status == "accepted"` without modifying the input
+48:- [ ] T005 [US1] Implement `build_followup_queue(import_result) -> list[dict]` in `invoice_desk/queue.py`: select only `status == "accepted"` rows, exclude every rejected and duplicate row, include every accepted invoice including zero-balance `paid`, sort by `(BUCKET_PRIORITY[aging_bucket], -remaining_balance_cents, issuer, invoice_id)`, assign contiguous 1-based `position` after sorting, and return a new list of new dicts with exactly the contract fields and Stage 1 `owner=None`, `notes=None`; perform no file I/O, read no clock, use no randomness, and import no annotation module
+49:- [ ] T006 [US1] Re-export `BUCKET_PRIORITY`, `accepted_invoice_identities`, and `build_followup_queue` from `invoice_desk/__init__.py` without changing `import_invoices` or any import classification, balance, aging bucket, or total behaviour
+50:- [ ] T007 [US1] Run `python -m pytest -q tests/test_followup_queue.py tests/test_invoice_desk.py`, confirm the ordering tests pass and the existing import tests remain green, and confirm no `invoice_desk/annotations.py` or `state/` path is required
+66:- [ ] T008 [P] Add `state/` to `.gitignore` so the default annotation store at `<project root>/state/followup_annotations.json` remains local runtime state and is not committed; do not create `state/` or any annotation file in this task
+78:- [ ] T009 [US2] Create `tests/test_followup_annotations.py` with shared helpers using `tmp_path` and tests for the basic contract: a missing store means an empty annotation mapping and an all-`None` owner/notes queue with no file creation; `load_annotations` returns `{}` for a missing file and for a valid empty store `{"version": 1, "annotations": []}`; `set_owner` and `set_notes` change only the targeted identity; `attach_annotations` preserves queue order and positions and maps stored empty strings to `None`
+79:- [ ] T010 [US2] Extend `tests/test_followup_annotations.py` with persistence and independence tests: annotate two different identities and confirm no cross-contamination; reload from the same path and observe identical values; multi-line and non-ASCII notes round-trip exactly; clearing the owner leaves notes intact and clearing notes leaves the owner intact; clearing both drops the record; a non-accepted identity raises `InvoiceNotAcceptedError` and leaves store bytes unchanged; an annotation for an identity absent from the current accepted set is retained in `load_annotations` but absent from the queue, then reappears when that identity is accepted again; changing annotations never changes queue sequence, positions, balances, days overdue, or aging buckets
+80:- [ ] T011 [US2] Extend `tests/test_followup_annotations.py` with validation and atomicity tests: malformed JSON, non-object documents, missing/non-integer `version`, non-list `annotations`, non-object records, missing/extra/non-string fields, unsupported version, duplicate `(issuer, invoice_id)` pairs, and unreadable paths each raise the documented error and leave the original bytes untouched; a simulated `os.replace` failure raises `AnnotationStoreWriteError`, leaves the previous store readable, and leaves no temporary file behind; a successful write uses UTF-8 with `ensure_ascii=False`, records sorted by ascending `(issuer, invoice_id)`, and a trailing newline
+84:- [ ] T012 [P] [US2] Create `invoice_desk/annotations.py` with `DEFAULT_ANNOTATION_STORE_PATH` computed from the package location as `<project root>/state/followup_annotations.json`, `ANNOTATION_STORE_VERSION = 1`, and the error hierarchy `AnnotationError` with `AnnotationStoreUnreadableError`, `AnnotationStoreMalformedError`, `AnnotationStoreVersionError`, `AnnotationStoreDuplicateIdentityError`, `AnnotationStoreWriteError`, and `InvoiceNotAcceptedError`; use standard library only
+85:- [ ] T013 [US2] Implement `load_annotations(store_path=None) -> dict[tuple[str, str], dict[str, str]]` in `invoice_desk/annotations.py`: a missing file returns `{}` without creating anything; read UTF-8 JSON and validate that `version` is the integer `1`, `annotations` is a list, each record is an object with exactly the four string fields `issuer`, `invoice_id`, `owner`, `notes`, with `issuer` and `invoice_id` non-empty, and no duplicate `(issuer, invoice_id)` pairs; raise `AnnotationStoreUnreadableError`, `AnnotationStoreMalformedError`, `AnnotationStoreVersionError`, or `AnnotationStoreDuplicateIdentityError` as specified and never write during a read
+86:- [ ] T014 [US2] Implement the private atomic store writer in `invoice_desk/annotations.py`: serialize the complete next document in memory as UTF-8 JSON with non-ASCII preserved, records sorted by ascending `(issuer, invoice_id)`, and a trailing newline; omit records whose `owner` and `notes` are both empty; create the parent directory if needed; write to a uniquely named temporary file in the same directory using `tempfile.mkstemp` and `os.fdopen(..., "w", encoding="utf-8", newline="\n")`; flush, `os.fsync`, close, then `os.replace` onto the target; best-effort `os.fsync` the parent directory on POSIX; on failure remove the temporary file, leave the previous store intact, and raise `AnnotationStoreWriteError`
+87:- [ ] T015 [US2] Implement `set_owner(accepted_identities, issuer, invoice_id, owner, *, store_path=None) -> None` in `invoice_desk/annotations.py`: first raise `InvoiceNotAcceptedError` if `(issuer, invoice_id)` is not in `accepted_identities` without touching the store; otherwise load the existing store, set only `owner` (`None` or whitespace-only clears it), preserve `notes`, drop the record only when both fields are empty, persist atomically, and return only after `os.replace` completes
+88:- [ ] T016 [US2] Implement `set_notes(accepted_identities, issuer, invoice_id, notes, *, store_path=None) -> None` in `invoice_desk/annotations.py`: first raise `InvoiceNotAcceptedError` if `(issuer, invoice_id)` is not in `accepted_identities` without touching the store; otherwise load the existing store, set only `notes` (`None` or `""` clears it), preserve non-empty notes exactly including newlines, punctuation, and non-ASCII text, preserve `owner`, drop the record only when both fields are empty, persist atomically, and return only after `os.replace` completes
+89:- [ ] T017 [US2] Implement `attach_annotations(queue, store_path=None) -> list[dict]` in `invoice_desk/annotations.py`: load and validate the store once, return a new queue list with the same order and `position` values, fill `owner`/`notes` only on exact `(issuer, invoice_id)` matches, expose stored empty strings as `None`, leave unmatched items at `owner=None`/`notes=None`, ignore stored records absent from the queue without deleting them, do not mutate the input queue, and do not write during attachment
+90:- [ ] T018 [US2] Implement `followup_queue(import_result, store_path=None) -> list[dict]` in `invoice_desk/annotations.py` as `attach_annotations(build_followup_queue(import_result), store_path)`, importing `build_followup_queue` from `invoice_desk/queue.py`; do not re-implement ordering or change any queue field other than `owner`/`notes`
+91:- [ ] T019 [US2] Re-export `DEFAULT_ANNOTATION_STORE_PATH`, `ANNOTATION_STORE_VERSION`, `load_annotations`, `set_owner`, `set_notes`, `attach_annotations`, `followup_queue`, and all `AnnotationError` subclasses from `invoice_desk/__init__.py` without changing `import_invoices` or the Stage 1 exports
+92:- [ ] T020 [US2] Run `python -m pytest -q tests/test_followup_annotations.py tests/test_followup_queue.py tests/test_invoice_desk.py`, confirm all annotation persistence, validation, atomicity, ordering, and existing import tests pass, and confirm `state/` is never created by reads or by the temporary-path tests
+102:- [ ] T021 [P] Run the full suite with `python -m pytest -q`, confirm every test passes, and confirm `tests/test_invoice_desk.py` remains unchanged and green
+103:- [ ] T022 [P] Run the `quickstart.md` validation checks in sections 2 through 7, including the frozen queue order, determinism, annotation persistence, missing/invalid stores, order preservation after annotation changes, and retained annotations for absent invoices, using temporary store paths only
+104:- [ ] T023 [P] Review `invoice_desk/queue.py` and `invoice_desk/annotations.py` for integer-cents-only money handling, standard-library-only imports, no clock/randomness/network access, no annotation influence on ordering, and no changes to import classifications, balances, aging buckets, or totals
+105:- [ ] T024 [P] Inspect `git status` and the diff to confirm only `invoice_desk/queue.py`, `invoice_desk/annotations.py`, `invoice_desk/__init__.py`, `tests/test_followup_queue.py`, `tests/test_followup_annotations.py`, and `.gitignore` changed, and that no `state/` file is committed or tracked
+count:
+24
+handoff:
+58:--- HANDOFF: Agent B (OpenAI hosted) owns the tasks above; Agent A (OpenCode) keeps the tasks below (owners/notes, annotation storage, polish) ---
+blockers above handoff:
+- [ ] T003 [US1] Extend `tests/test_followup_queue.py` with edge-case and contract tests: two issuers reusing the same `invoice_id` remain two separate items with the issuer tie-break; zero-balance `INV-1011` appears exactly once in `paid` with `remaining_balance_cents == 0`; an empty accepted set returns `[]`; rejected and both duplicate statuses are excluded; each item has exactly `issuer`, `invoice_id`, `remaining_balance_cents`, `days_overdue`, `aging_bucket`, `owner=None`, `notes=None`, `position`; money and day fields are `int` with `remaining_balance_cents >= 0` and `days_overdue >= 0`; `aging_bucket` is one of `91+`, `61-90`, `31-60`, `1-30`, `current`, `paid`; positions are contiguous 1-based values; `import_result` and its rows are not mutated; the module runs with no `invoice_desk/annotations.py` file and no `state/` directory present
+- [ ] T005 [US1] Implement `build_followup_queue(import_result) -> list[dict]` in `invoice_desk/queue.py`: select only `status == "accepted"` rows, exclude every rejected and duplicate row, include every accepted invoice including zero-balance `paid`, sort by `(BUCKET_PRIORITY[aging_bucket], -remaining_balance_cents, issuer, invoice_id)`, assign contiguous 1-based `position` after sorting, and return a new list of new dicts with exactly the contract fields and Stage 1 `owner=None`, `notes=None`; perform no file I/O, read no clock, use no randomness, and import no annotation module
+- [ ] T007 [US1] Run `python -m pytest -q tests/test_followup_queue.py tests/test_invoice_desk.py`, confirm the ordering tests pass and the existing import tests remain green, and confirm no `invoice_desk/annotations.py` or `state/` path is required
+[0m
+[0m$ [0mgit status --short
+M run.log
+?? specs/004-deterministic-followup-queue/tasks.md
+[0m
+Generated `specs/004-deterministic-followup-queue/tasks.md`.
+
+- **Total tasks**: 24 (T001-T024)
+- **Per story**: US1 queue ordering = 7 (T001-T007, above handoff); US2 owners/notes = 12 (T009-T020); setup = 1 (T008); polish = 4 (T021-T024)
+- **Handoff**: line inserted at the boundary between T007 and T008; no ordering task depends on annotations, `state/`, or owners/notes work
+- **Parallel opportunities**: T008, T012, and T021-T024
+- **Independent tests**: US1 = frozen SC-002 order, determinism, tie-breaks, item contract, exclusions, non-mutation, no annotation dependency; US2 = persistence/reload, independence, clearing, refusal, retained absent annotations, malformed/version/duplicate errors, atomic replacement
+- **Suggested MVP**: Stage 1 / US1 only (T001-T007)
+- **Format validation**: all tasks use `- [ ] TNNN [P?] [Story?] description with file path`; setup/polish have no story label
+
+No `.specify/extensions.yml` exists, so no extension hooks were checked or run. Nothing was implemented.
 exit=0
