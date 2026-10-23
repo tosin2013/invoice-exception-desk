@@ -14,6 +14,9 @@
 
 - Q: AT-05 gives an illustrative ordering (`days_overdue` descending, then balance, then issuer, then invoice ID), while the request says bucket, then balance, then invoice ID. Which is binding? → A: AT-05's binding pass criterion is that ordering is a pure function of row data and is identical on repeated runs. The request's keys are used, with `issuer` inserted before `invoice_id` so the order is total even when two issuers reuse the same invoice identifier.
 - Q: Does the follow-up queue contain every accepted invoice or only invoices with a positive balance? → A: AT-05 names the accepted set as the input, so the queue contains every accepted invoice; a fully paid invoice remains in the queue in the `paid` bucket at the lowest priority.
+- Q: Where should owners and notes be stored, in what format, and how should each annotation be keyed so it survives a restart? → A: In a single versioned UTF-8 JSON file at a caller-supplied path, defaulting to `state/followup_annotations.json` under the project root; each record stores `issuer`, `invoice_id`, `owner`, and `notes`, keyed by the exact `(issuer, invoice_id)` pair, and each successful change is written through immediately with atomic whole-file replacement.
+- Q: What should happen when the annotation store is missing, unreadable, corrupt, or has an unsupported version? → A: A missing file means an empty annotation set; an unreadable, malformed, duplicate-identity, or unsupported-version file raises a clear error and is never overwritten or silently reset.
+- Q: How should an operator assign or clear an owner and notes? → A: Through explicit local library calls that take the annotation-store path, the current accepted identities, the invoice identity, and the new owner or notes value; no CLI, network, or authenticated interface is required.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -54,6 +57,9 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 5. **Given** an item with an owner and notes, **When** the owner is cleared, **Then** only the owner becomes unassigned and the notes remain unchanged; clearing notes behaves the same way in reverse.
 6. **Given** an annotated invoice, **When** the operator changes only its owner or notes, **Then** its balance, days overdue, bucket, and queue position do not change.
 7. **Given** an invoice that is not accepted, **When** an owner or notes assignment is attempted, **Then** no queue item is created and the queue is unchanged.
+8. **Given** no annotation store file exists, **When** the queue is built, **Then** every item reports no owner and no notes and no error occurs.
+9. **Given** an unreadable or malformed annotation store, **When** an owner or notes change is attempted, **Then** the change is refused with a clear error and the existing file is left untouched.
+10. **Given** a successful owner or notes change, **When** the process is stopped immediately afterwards, **Then** the same invoice identity still reports the change after restart.
 
 ---
 
@@ -66,6 +72,11 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 - A rejected or duplicate row can never receive an owner or notes and never appears in the queue.
 - An owner or note containing non-ASCII text, punctuation, or multiple lines is preserved exactly across a restart.
 - An empty or whitespace-only owner means unassigned; an empty notes value means no notes.
+- The annotation store file does not exist: the queue still builds and every item reports no owner and no notes.
+- The annotation store is unreadable, malformed, contains duplicate invoice identities, or declares an unsupported version: the feature raises a clear error, leaves the file unchanged, and does not silently rebuild an empty store.
+- An annotation-store write is interrupted: the previous complete store remains readable, and a partially written file is never loaded.
+- An annotation record with both owner and notes empty is equivalent to no annotation and need not be retained.
+- Concurrent writes from multiple processes are out of scope; the annotation store is local single-writer state.
 - Re-importing the same CSV must not duplicate queue items or annotation records.
 - An annotated invoice that is absent from the current accepted set is not shown in the queue, but its annotation is retained by invoice identity and reappears if that invoice is accepted again.
 - Annotation assignments attach to invoice identity, not to a queue position, so a reordering caused by changed balances or aging cannot move an owner or note to another invoice.
@@ -100,6 +111,11 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 - **FR-019**: The feature MUST remain local and offline: no network calls, external services, credentials, secrets, or real personal data.
 - **FR-020**: The feature MUST NOT provide authentication, roles, multi-tenancy, reminders, outbound messages, payment processing, or collections automation. Owner is an internal label only.
 - **FR-021**: The feature MUST leave the existing `import_invoices` behaviour unchanged, including its classifications, balances, aging buckets, and totals.
+- **FR-022**: Owner and notes MUST be stored in a single versioned UTF-8 JSON annotation store at a caller-supplied path, defaulting to `state/followup_annotations.json` relative to the project root. Each stored record MUST carry `issuer`, `invoice_id`, `owner`, and `notes`, and MUST be keyed by the exact `(issuer, invoice_id)` pair rather than by row number, queue position, or a concatenated delimiter string.
+- **FR-023**: Each successful owner or notes change MUST be written through to the annotation store immediately, using atomic whole-file replacement, before the change is reported as applied. A crash during a write MUST NOT leave a partially written store that can be loaded.
+- **FR-024**: A missing annotation store MUST be treated as an empty annotation set. An unreadable, malformed, duplicate-identity, or unsupported-version store MUST cause a clear error, MUST leave the existing file untouched, and MUST NOT be silently reset or overwritten.
+- **FR-025**: Owner and notes MUST be assignable and clearable only through explicit local library calls that take the annotation-store path, the current accepted identities, the invoice identity, and the new value. No CLI, network service, or authenticated user interface is required, and hand-editing the store is not a supported assignment path.
+- **FR-026**: The annotation store MUST remain local runtime state, not an import fixture or source of invoice truth. Its contents MUST never feed back into import classification, balances, aging, or queue ordering.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -108,7 +124,8 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 - **Aging bucket priority**: The deterministic severity order `91+`, `61-90`, `31-60`, `1-30`, `current`, `paid`; it is an ordering concept, not a replacement for the existing bucket labels.
 - **Owner**: An optional free-text label on one invoice identity, expressing who is responsible for the next action. It is not an authenticated user.
 - **Notes**: Optional free-text context on one invoice identity, preserved verbatim across rebuilds and restarts.
-- **Annotation record**: The owner and notes stored for one invoice identity, independent of queue position and import order.
+- **Annotation record**: The stored `owner` and `notes` for one `(issuer, invoice_id)` identity, independent of queue position and import order. A record with both values empty is equivalent to no annotation.
+- **Annotation store**: The single versioned UTF-8 JSON file that holds annotation records, defaulting to `state/followup_annotations.json` under the project root, keyed by invoice identity and replaced atomically on each successful change.
 
 ## Success Criteria *(mandatory)*
 
@@ -124,6 +141,9 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 - **SC-008**: The queue handles an empty accepted set without error and produces zero items.
 - **SC-009**: The feature operates with networking blocked and introduces no credentials, secrets, or real personal data.
 - **SC-010**: The existing import classifications, balances, aging buckets, and totals remain unchanged.
+- **SC-011**: With no annotation store present, the queue builds successfully and all items report no owner and no notes in 100% of runs.
+- **SC-012**: An unreadable, malformed, duplicate-identity, or unsupported-version annotation store produces a clear error and is never silently overwritten in 100% of tested cases.
+- **SC-013**: Every successful owner or notes change is durable before it is reported, and survives an immediate process stop in 100% of tested cases.
 
 ## Assumptions
 
@@ -133,7 +153,9 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 - "Balance" means `remaining_balance_cents` from the import result, ordered descending; "invoice ID" means the invoice identifier, ordered ascending after the issuer.
 - Text comparisons are case-sensitive and locale-independent so the order cannot vary by machine configuration.
 - Each invoice identity carries one owner value and one free-text notes value. Notes may be a multi-line block; a separate append-only note history is not required by AT-05 and is out of scope.
-- Annotations are durable local state for a single operator. The storage mechanism is not prescribed; "restart" means the same local installation starts again with its state intact.
+- Annotations are durable local state for a single operator and are held in one versioned JSON annotation store at a caller-supplied path, defaulting to `state/followup_annotations.json`; "restart" means the same local installation starts again with the same store path and its state intact.
+- JSON is chosen because the project is standard-library-only and the store must remain local and human-inspectable; no database, external service, or new dependency is introduced.
+- The annotation store is single-writer local runtime state. Concurrent writes from multiple processes are out of scope, and the default store path is expected to be excluded from version control rather than treated as a frozen fixture.
 - Annotations are keyed by `(issuer, invoice_id)` rather than by row number or queue position, so sorting and re-importing cannot move an annotation to a different invoice.
 - The queue is rebuilt from a fresh import result whenever the accepted set or as-of date is supplied; no import row state is stored or mutated by this feature.
 - Roadmap R2 payment events, R3 promised-pay annotations, R5 schema migration, R4 filter/queue-hardening extras beyond AT-05, reminders, and deployment remain out of scope.

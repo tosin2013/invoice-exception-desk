@@ -7428,3 +7428,1895 @@ markers 0
 
 No implementation performed. Ready for `/speckit.clarify` or `/speckit.plan`.
 exit=0
+===== opencode run: clarify (Fri Oct 23 15:29:24 EDT 2026) =====
+[0m
+> build · deepseek-v4.1-flash-free
+[0m
+[0m$ [0mls -la && echo "---" && ls .specify 2>/dev/null && echo "---" && cat .specify/extensions.yml 2>/dev/null
+total 532
+drwxr-xr-x   12 box box   4096 Oct 23 15:27 .
+drwxr-xr-x. 128 box box  12288 Oct 23 15:26 ..
+drwxr-xr-x    8 box box   4096 Oct 23 15:29 .git
+-rw-r--r--    1 box box     66 Oct 23 15:26 .gitignore
+drwxr-xr-x    4 box box   4096 Oct 23 15:27 .opencode
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 .pytest_cache
+drwxr-xr-x    7 box box   4096 Oct 23 15:28 .specify
+drwxr-xr-x    5 box box   4096 Oct 23 15:26 .venv
+-rw-r--r--    1 box box   6918 Oct 23 15:26 ACCEPTANCE.md
+-rw-r--r--    1 box box   1989 Oct 23 15:26 NON_GOALS.md
+-rw-r--r--    1 box box   1171 Oct 23 15:26 README.md
+-rw-r--r--    1 box box   6621 Oct 23 15:26 ROADMAP.md
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 bill_split
+drwxr-xr-x    2 box box   4096 Oct 23 15:26 data
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 invoice_desk
+-rw-r--r--    1 box box    124 Oct 23 15:26 pyproject.toml
+-rw-r--r--    1 box box 451649 Oct 23 15:29 run.log
+drwxr-xr-x    6 box box   4096 Oct 23 15:28 specs
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 tests
+---
+feature.json
+init-options.json
+integration.json
+integrations
+memory
+scripts
+templates
+workflows
+---
+[0m
+[0m$ [0m.specify/scripts/bash/check-prerequisites.sh --json --paths-only 2>&1
+{"REPO_ROOT":"/workspace/l35-run","BRANCH":"004-deterministic-followup-queue","FEATURE_DIR":"/workspace/l35-run/specs/004-deterministic-followup-queue","FEATURE_SPEC":"/workspace/l35-run/specs/004-deterministic-followup-queue/spec.md","IMPL_PLAN":"/workspace/l35-run/specs/004-deterministic-followup-queue/plan.md","TASKS":"/workspace/l35-run/specs/004-deterministic-followup-queue/tasks.md"}
+[0m
+[0m$ [0mcat specs/004-deterministic-followup-queue/spec.md; echo "=== CHECKLIST ==="; ls specs/004-deterministic-followup-queue/checklists/ 2>/dev/null && cat specs/004-deterministic-followup-queue/checklists/requirements.md 2>/dev/null
+# Feature Specification: Deterministic follow-up queue with owners and notes
+
+**Feature Branch**: `004-deterministic-followup-queue`
+
+**Created**: 2026-10-23
+
+**Status**: Draft
+
+**Input**: User description: "AT-05 (full): a deterministic follow-up queue on top of L3's import_invoices. Order the queue by bucket, then balance, then invoice ID. Each queue item can carry an owner and free-text notes. Use ACCEPTANCE.md AT-05 as the source of truth. Do not implement anything."
+
+## Clarifications
+
+### Session 2026-10-23
+
+- Q: AT-05 gives an illustrative ordering (`days_overdue` descending, then balance, then issuer, then invoice ID), while the request says bucket, then balance, then invoice ID. Which is binding? → A: AT-05's binding pass criterion is that ordering is a pure function of row data and is identical on repeated runs. The request's keys are used, with `issuer` inserted before `invoice_id` so the order is total even when two issuers reuse the same invoice identifier.
+- Q: Does the follow-up queue contain every accepted invoice or only invoices with a positive balance? → A: AT-05 names the accepted set as the input, so the queue contains every accepted invoice; a fully paid invoice remains in the queue in the `paid` bucket at the lowest priority.
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 1 - See one deterministic priority order (Priority: P1)
+
+An operator imports the invoice CSV and receives a follow-up queue in a predictable priority order. The most severely overdue invoices come first, larger balances come before smaller balances inside the same aging bucket, and two identical imports always produce the same sequence.
+
+**Why this priority**: If the queue order can change between runs, the operator cannot trust the worklist or compare one review with the next. Determinism is the core of AT-05.
+
+**Independent Test**: Build the queue twice from the same accepted set and as-of date, compare the two sequences, and verify the sequence against the documented bucket and tie-break order.
+
+**Acceptance Scenarios**:
+
+1. **Given** the accepted invoices from the frozen CSV at `as_of = 2026-10-15`, **When** the queue is built, **Then** every accepted invoice appears exactly once, rejected and duplicate rows do not appear, and the order is `INV-1009, INV-1012, INV-1008, INV-1007, INV-1005, INV-1006, INV-1014, INV-1004, INV-1003, INV-1010, INV-1001, INV-1002, INV-1013, INV-1011`.
+2. **Given** the same accepted invoices, **When** the queue is built a second time, **Then** the sequence is byte-for-byte identical in invoice identity and order.
+3. **Given** invoices in the `91+`, `61-90`, `31-60`, `1-30`, `current`, and `paid` buckets, **When** the queue is ordered, **Then** the bucket priority is `91+` first, then `61-90`, `31-60`, `1-30`, `current`, and `paid` last.
+4. **Given** two invoices in the same bucket, **When** their remaining balances differ, **Then** the larger remaining balance comes first.
+5. **Given** two invoices with the same bucket and the same remaining balance, **When** their issuers differ, **Then** the issuer name in ascending order is the next tie-breaker, and only then the invoice identifier in ascending order.
+6. **Given** the fully paid invoice `INV-1011`, **When** the queue is built, **Then** it appears in the `paid` bucket after every other accepted invoice, with a remaining balance of `0`.
+7. **Given** an empty accepted set, **When** the queue is built, **Then** the queue is empty rather than an error.
+
+---
+
+### User Story 2 - Record who owns an invoice and what was noted (Priority: P2)
+
+An operator assigns an owner and writes free-text notes on queue items. Those annotations remain attached to the right invoices after the queue is rebuilt, after the import is repeated, and after the application is restarted.
+
+**Why this priority**: A deterministic queue is only actionable when the operator can record ownership and context without losing it. AT-05 explicitly requires owner and note persistence across restart.
+
+**Independent Test**: Assign an owner to one accepted invoice and notes to another, rebuild the queue, restart the application, and verify that each annotation is still attached to the same invoice identity.
+
+**Acceptance Scenarios**:
+
+1. **Given** an accepted invoice in the queue, **When** an owner value is assigned, **Then** that queue item reports the owner and no other item inherits it.
+2. **Given** an accepted invoice in the queue, **When** free-text notes are assigned, **Then** that queue item reports the exact note text and no other item inherits it.
+3. **Given** an item with an owner and notes, **When** the application is restarted, **Then** the same invoice identity still reports the same owner and the same notes.
+4. **Given** items with owner and note assignments, **When** the queue is rebuilt from the same accepted set, **Then** the annotations are still attached and the ordering is unchanged.
+5. **Given** an item with an owner and notes, **When** the owner is cleared, **Then** only the owner becomes unassigned and the notes remain unchanged; clearing notes behaves the same way in reverse.
+6. **Given** an annotated invoice, **When** the operator changes only its owner or notes, **Then** its balance, days overdue, bucket, and queue position do not change.
+7. **Given** an invoice that is not accepted, **When** an owner or notes assignment is attempted, **Then** no queue item is created and the queue is unchanged.
+
+---
+
+### Edge Cases
+
+- Two accepted invoices from different issuers have the same `invoice_id`; they remain separate queue items with independent owners and notes, and the issuer tie-breaker prevents an ambiguous order.
+- Two invoices share a bucket and a remaining balance; issuer then invoice identifier resolve the order completely.
+- A pending invoice due today or in the future is in `current`; it appears after all overdue buckets and before `paid`.
+- A fully paid invoice remains in the queue in `paid` with a zero balance and the lowest priority.
+- A rejected or duplicate row can never receive an owner or notes and never appears in the queue.
+- An owner or note containing non-ASCII text, punctuation, or multiple lines is preserved exactly across a restart.
+- An empty or whitespace-only owner means unassigned; an empty notes value means no notes.
+- Re-importing the same CSV must not duplicate queue items or annotation records.
+- An annotated invoice that is absent from the current accepted set is not shown in the queue, but its annotation is retained by invoice identity and reappears if that invoice is accepted again.
+- Annotation assignments attach to invoice identity, not to a queue position, so a reordering caused by changed balances or aging cannot move an owner or note to another invoice.
+- An empty accepted set produces an empty queue and no errors.
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+- **FR-001**: The feature MUST build a follow-up queue from the accepted invoices produced by the existing `import_invoices` capability, using its explicit `as_of` date. It MUST NOT re-implement import classification or mutate the import result.
+- **FR-002**: The queue MUST contain exactly one item per accepted invoice, keyed by the pair `(issuer, invoice_id)`. Rejected rows and both duplicate classifications MUST NOT produce queue items.
+- **FR-003**: The queue MUST include every accepted invoice, including an invoice with a remaining balance of `0`, which belongs to the `paid` bucket.
+- **FR-004**: Every queue item MUST expose the invoice identity `(issuer, invoice_id)`, `remaining_balance_cents`, `days_overdue`, `aging_bucket`, owner, notes, and its position in the queue.
+- **FR-005**: The queue MUST be sorted by a single total order:
+  1. aging bucket priority: `91+`, then `61-90`, then `31-60`, then `1-30`, then `current`, then `paid`;
+  2. remaining balance in descending order, so the larger balance comes first;
+  3. issuer in ascending, case-sensitive, locale-independent text order;
+  4. invoice identifier in ascending, case-sensitive, locale-independent text order.
+- **FR-006**: The final tie-break sequence MUST be total for accepted invoices. The issuer tie-breaker MUST precede the invoice identifier because invoice identifiers are only unique within an issuer.
+- **FR-007**: Queue ordering MUST be a pure function of invoice row data and the as-of date. It MUST NOT depend on the clock, randomness, insertion order beyond the documented keys, owner, notes, or storage order.
+- **FR-008**: Building the queue twice from the same accepted set and as-of date MUST produce the same sequence of invoice identities.
+- **FR-009**: Each queue item MUST support an optional owner, recorded as free text and attached to the invoice identity. No owner means unassigned.
+- **FR-010**: Each queue item MUST support optional free-text notes, attached to the invoice identity and stored exactly as entered. Notes MAY contain multiple lines and non-ASCII characters.
+- **FR-011**: Owner and notes MUST persist across an application restart and remain attached to the same invoice identity with unchanged content.
+- **FR-012**: Owner and notes MUST be independent of each other: either MAY be set, changed, or cleared without altering the other.
+- **FR-013**: Changing an owner or notes MUST NOT change any invoice's remaining balance, days overdue, aging bucket, or queue position.
+- **FR-014**: Re-importing the same accepted set MUST NOT create duplicate queue items or duplicate annotation records, and MUST NOT detach annotations from their invoice identities.
+- **FR-015**: Annotations MUST be retained by invoice identity when that invoice is absent from the current accepted set. Such annotations MUST NOT be displayed as queue items until the invoice is accepted again.
+- **FR-016**: An owner or notes assignment MUST be refused for an invoice identity that is not in the current accepted set. A rejected or duplicate row identity MUST NOT become annotatable through this feature.
+- **FR-017**: An empty accepted set MUST produce an empty queue without error, and MUST preserve any stored annotations for later accepted sets.
+- **FR-018**: All monetary values used for ordering and display MUST remain integer cents; no floating-point arithmetic may be introduced.
+- **FR-019**: The feature MUST remain local and offline: no network calls, external services, credentials, secrets, or real personal data.
+- **FR-020**: The feature MUST NOT provide authentication, roles, multi-tenancy, reminders, outbound messages, payment processing, or collections automation. Owner is an internal label only.
+- **FR-021**: The feature MUST leave the existing `import_invoices` behaviour unchanged, including its classifications, balances, aging buckets, and totals.
+
+### Key Entities *(include if feature involves data)*
+
+- **Queue item**: One accepted invoice in the follow-up queue, carrying its identity, balance, days overdue, aging bucket, owner, notes, and priority position.
+- **Invoice identity**: The pair `(issuer, invoice_id)`, which uniquely identifies an invoice for ordering and annotation purposes.
+- **Aging bucket priority**: The deterministic severity order `91+`, `61-90`, `31-60`, `1-30`, `current`, `paid`; it is an ordering concept, not a replacement for the existing bucket labels.
+- **Owner**: An optional free-text label on one invoice identity, expressing who is responsible for the next action. It is not an authenticated user.
+- **Notes**: Optional free-text context on one invoice identity, preserved verbatim across rebuilds and restarts.
+- **Annotation record**: The owner and notes stored for one invoice identity, independent of queue position and import order.
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-001**: Building the queue repeatedly from the same accepted set and as-of date yields an identical sequence of invoice identities in 100% of runs.
+- **SC-002**: For the frozen accepted set at `as_of = 2026-10-15`, the queue order is exactly `INV-1009, INV-1012, INV-1008, INV-1007, INV-1005, INV-1006, INV-1014, INV-1004, INV-1003, INV-1010, INV-1001, INV-1002, INV-1013, INV-1011`.
+- **SC-003**: For every accepted invoice, the queue position is fully explained by bucket priority, then descending remaining balance, then ascending issuer, then ascending invoice identifier, with zero unresolved ties.
+- **SC-004**: Owner and notes assigned to queue items are still present, on the same invoice identities and with unchanged content, after a restart in 100% of tested assignments.
+- **SC-005**: Changing owner or notes leaves the queue order, balances, days overdue, and aging buckets unchanged in 100% of tested cases.
+- **SC-006**: Rebuilding the queue from the same input produces no duplicated queue items and no duplicated or detached annotation records.
+- **SC-007**: No rejected or duplicate row appears in the queue, and no annotation can be attached to one.
+- **SC-008**: The queue handles an empty accepted set without error and produces zero items.
+- **SC-009**: The feature operates with networking blocked and introduces no credentials, secrets, or real personal data.
+- **SC-010**: The existing import classifications, balances, aging buckets, and totals remain unchanged.
+
+## Assumptions
+
+- `ACCEPTANCE.md` AT-05 is the source of truth. Its ordering example uses "e.g.", so the binding requirement is a repeatable, pure ordering; this specification makes the requested keys explicit and adds the issuer tie-breaker needed for a total order.
+- The follow-up queue is built over the full accepted set, including the zero-balance `paid` item, because AT-05 explicitly names the accepted set as the input. Paid invoices are always last.
+- Bucket priority is severity-descending (`91+` before `61-90` before `31-60` before `1-30` before `current` before `paid`), matching the intent of AT-05's `days_overdue` descending example while honoring the requested bucket-first ordering.
+- "Balance" means `remaining_balance_cents` from the import result, ordered descending; "invoice ID" means the invoice identifier, ordered ascending after the issuer.
+- Text comparisons are case-sensitive and locale-independent so the order cannot vary by machine configuration.
+- Each invoice identity carries one owner value and one free-text notes value. Notes may be a multi-line block; a separate append-only note history is not required by AT-05 and is out of scope.
+- Annotations are durable local state for a single operator. The storage mechanism is not prescribed; "restart" means the same local installation starts again with its state intact.
+- Annotations are keyed by `(issuer, invoice_id)` rather than by row number or queue position, so sorting and re-importing cannot move an annotation to a different invoice.
+- The queue is rebuilt from a fresh import result whenever the accepted set or as-of date is supplied; no import row state is stored or mutated by this feature.
+- Roadmap R2 payment events, R3 promised-pay annotations, R5 schema migration, R4 filter/queue-hardening extras beyond AT-05, reminders, and deployment remain out of scope.
+=== CHECKLIST ===
+requirements.md
+# Specification Quality Checklist: Deterministic follow-up queue with owners and notes
+
+**Purpose**: Validate specification completeness and quality before proceeding to planning
+**Created**: 2026-10-23
+**Feature**: [spec.md](../spec.md)
+
+## Content Quality
+
+- [x] No implementation details (languages, frameworks, APIs)
+- [x] Focused on user value and business needs
+- [x] Written for non-technical stakeholders
+- [x] All mandatory sections completed
+
+## Requirement Completeness
+
+- [x] No [NEEDS CLARIFICATION] markers remain
+- [x] Requirements are testable and unambiguous
+- [x] Success criteria are measurable
+- [x] Success criteria are technology-agnostic (no implementation details)
+- [x] All acceptance scenarios are defined
+- [x] Edge cases are identified
+- [x] Scope is clearly bounded
+- [x] Dependencies and assumptions identified
+
+## Feature Readiness
+
+- [x] All functional requirements have clear acceptance criteria
+- [x] User scenarios cover primary flows
+- [x] Feature meets measurable outcomes defined in Success Criteria
+- [x] No implementation details leak into specification
+
+## Notes
+
+- Validation iteration 1 passed all items.
+- `import_invoices` is named only as the existing upstream dependency the user explicitly required ("on top of L3's import_invoices"); no new implementation design is prescribed.
+- AT-05's ordering example is treated as illustrative ("e.g.") and its binding determinism requirement is preserved. The requested bucket, balance, and invoice-ID keys are specified explicitly, with issuer inserted before invoice ID to guarantee a total order for invoice identities.
+- The full accepted set includes the zero-balance `paid` invoice, per AT-05's stated input; paid is ordered last.
+- Owner and notes persistence, restart behavior, note independence, and annotation stability across re-imports are all covered by testable requirements.
+- Out of scope is explicitly bounded: payment events (R2), promised-pay annotations (R3), migration (R5), reminders, authentication, and deployment.
+[0m
+[0m$ [0mcat .specify/memory/constitution.md 2>/dev/null; echo "=== ACCEPTANCE ==="; cat ACCEPTANCE.md; echo "=== NONGOALS ==="; cat NON_GOALS.md
+# bill-split + Invoice Exception Desk Constitution
+
+## Core Principles
+
+### I. Money is integer cents
+All amounts are integers in cents. No floats anywhere.
+
+### II. Deterministic and pure
+Functions have no I/O, randomness, or clock access. Same input, same output.
+
+### III. Standard library only
+Python 3.11+, no runtime dependencies. Tests use pytest.
+
+### IV. Small and tested
+Every public function has tests in `tests/`. Run with `python -m pytest -q`.
+
+### V. Spec and code together
+A behaviour change and its spec change land in the same commit.
+
+### VI. Synthetic data, offline only
+No real personal data, credentials, or network calls. Fixtures are synthetic (see `NON_GOALS.md`).
+
+### VII. Explicit as-of date
+Anything time-based takes an explicit `as_of` date argument. Never read the clock. Dates are ISO `YYYY-MM-DD` in America/New_York.
+
+### VIII. Sealed answer key per phase
+Each roadmap phase (R1 to R6) is graded against an answer key the builder never sees. The oracle is kept outside the repo during the build. Builder-written tests alone never mean "done".
+
+**Version**: 1.1.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-22
+=== ACCEPTANCE ===
+# ACCEPTANCE — Invoice Exception Desk (AT-01 .. AT-10)
+
+Acceptance suite specification. The executable R0 checks live in `tests/test_oracle.py`; the
+application acceptance for AT-01..AT-05, AT-09, AT-10 is executed in **R1**, and AT-06/AT-07/AT-08
+in **R2/R3/R5** respectively.
+
+**Frozen fixture.** `data/invoices.csv` (30 rows, seed `20261015`, as_of `2026-10-15`).
+**Source of truth.** `data/oracle.json`, produced by `data/compute_oracle.py`. Expected values below
+quote the oracle; if the seed changes, the oracle — not this table — wins.
+
+Import totals (oracle): `total_rows=30`, `accepted=14`, `rejected=12`,
+`duplicate_identical=2`, `duplicate_inconsistent=2`, `outstanding_invoice_count=13`,
+`total_outstanding_cents=2139435`, `total_paid_cents=289999`.
+
+Aging totals (accepted rows): `current={3, 597047}`, `1-30={3, 396862}`, `31-60={3, 259664}`,
+`61-90={2, 863731}`, `91+={2, 22131}`, `paid={1, 0}`.
+
+---
+
+## AT-01 — Import counts & idempotency
+
+- **Inputs:** `data/invoices.csv`; import twice in the same store.
+- **Expected outcomes:** First import yields accepted 14, rejected 12, duplicate_identical 2,
+  duplicate_inconsistent 2 (rows 15–18 are the duplicates; row 11 `INV-1011` fully pays down).
+  Second import changes no counts and no balances (identical duplicates remain no-ops; nothing
+  is re-imported as new).
+- **Oracle refs:** `rows[].status`; `totals.*` in `data/oracle.json`.
+- **Pass criterion:** After both runs, store counts equal the oracle totals and row-level statuses
+  match `oracle.rows` exactly.
+
+## AT-02 — Rejection reasons, no partial import
+
+- **Inputs:** rows 19–30 of `data/invoices.csv`.
+- **Expected outcomes:** each rejected row carries exactly its oracle reason, and **no** field from a
+  rejected row is written to the store:
+  `19 invalid_amount`, `20 invalid_amount`, `21 invalid_amount`, `22 invalid_date`, `23 invalid_date`,
+  `24 invalid_date`, `25 missing_required_field`, `26 invalid_currency`, `27 invalid_payment`,
+  `28 invalid_payment`, `29 empty_row`, `30 empty_row`.
+- **Oracle refs:** rows 19–30 (all `status=rejected`).
+- **Pass criterion:** reason per row matches; store contains zero records derived from rejected rows.
+
+## AT-03 — Integer-cent sums, zero balance excluded
+
+- **Inputs:** accepted rows; store the fully paid row `INV-1011` (row 11, remaining `0`).
+- **Expected outcomes:** all balances are integer cents; `total_outstanding_cents=2139435`
+  over `outstanding_invoice_count=13`; `INV-1011` is excluded from the outstanding sum and bucket
+  `paid` holds `remaining_cents=0`.
+- **Oracle refs:** `totals.total_outstanding_cents`, `totals.outstanding_invoice_count`,
+  `totals.aging.paid`, row 11.
+- **Pass criterion:** reported outstanding equals the oracle sum and count; no float rounding;
+  the zero-balance invoice contributes `0` and is not counted as outstanding.
+
+## AT-04 — Aging boundaries
+
+- **Inputs:** accepted rows 1–14; as_of `2026-10-15` (America/New_York).
+- **Expected outcomes:** `overdue = balance > 0 AND due_date < as_of`; buckets:
+  `INV-1001` not due → `current`; `INV-1002` due today → `current`; `INV-1003` 1d → `1-30`;
+  `INV-1004` 30d → `1-30`; `INV-1005` 31d → `31-60`; `INV-1006` 60d → `31-60`;
+  `INV-1007` 61d → `61-90`; `INV-1008` 90d → `61-90`; `INV-1009` 91d → `91+`;
+  `INV-1012` 91d → `91+`; `INV-1014` 31d → `31-60`; `INV-1013` future → `current`.
+- **Oracle refs:** `rows[].days_overdue`, `rows[].aging_bucket`.
+- **Pass criterion:** every row's `days_overdue` and `aging_bucket` equal the oracle; boundaries at
+  0/1/30/31/60/61/90/91 land in the specified bucket.
+
+## AT-05 — Deterministic prioritization + owner/notes persistence
+
+- **Inputs:** the accepted set; two owner/note assignments; a restart.
+- **Expected outcomes:** the follow-up queue order is a pure function of row data (e.g. sort by
+  `days_overdue` desc, then `remaining_balance_cents` desc, then `issuer`, then `invoice_id`), so two
+  runs produce identical order; owners and notes persist across restart.
+- **Oracle refs:** `rows[].days_overdue`, `rows[].remaining_balance_cents`, `rows[].issuer`,
+  `rows[].invoice_id`.
+- **Pass criterion:** identical ordering on repeated runs; owner/notes survive a restart unchanged.
+
+## AT-06 — Payment events: idempotency, overpay, negative (R2)
+
+- **Inputs:** a payment event against an accepted row; the same event ID replayed; an overpay
+  (`paid > amount`); a negative payment. The oracle already rejects raw overpay/negative rows
+  (rows 27, 28 → `invalid_payment`).
+- **Expected outcomes:** replaying an event ID is a no-op (balance unchanged); an overpayment is
+  rejected; a negative payment is rejected; the original `amount_cents` is never overwritten;
+  remaining balance = `amount_cents - sum(valid payments)`.
+- **Oracle refs:** rows 27, 28; partial-payment rows 10 (`INV-1010`, remaining `60000`),
+  11 (`INV-1011`, remaining `0`), 12 (`INV-1012`, remaining `1`).
+- **Pass criterion:** replay is idempotent; invalid payments are rejected; original amounts immutable.
+
+## AT-07 — Promised-pay date never reduces balance (R3)
+
+- **Inputs:** set, then clear, a promised-pay date on an overdue accepted row.
+- **Expected outcomes:** balance, `days_overdue` and `aging_bucket` are unchanged; the promised-pay
+  date is stored as a note only.
+- **Oracle refs:** any accepted overdue row, e.g. row 7 `INV-1007` (61d, `61-90`).
+- **Pass criterion:** before/after balances and buckets are identical; only the annotation changes.
+
+## AT-08 — Migration preserves v1 (R5)
+
+- **Inputs:** a v1 data store; migrate to v2a (payments) and v2b (promised-pay).
+- **Expected outcomes:** migrated data reproduces pre-migration accepted rows, balances, buckets and
+  queue order exactly (equivalent to the oracle for the same CSV).
+- **Oracle refs:** full `rows[]` and `totals` from `data/oracle.json`.
+- **Pass criterion:** post-migration snapshot equals pre-migration snapshot; no row lost or altered.
+
+## AT-09 — No network / no secrets
+
+- **Inputs:** the repository and the running app during acceptance.
+- **Expected outcomes:** no outbound network calls, no external services, no credentials/tokens in
+  code, fixtures, or logs (see `NON_GOALS.md`).
+- **Oracle refs:** n/a (guardrail).
+- **Pass criterion:** acceptance passes with networking blocked; secret/PII scan is clean.
+
+## AT-10 — Fresh-checkout reproducibility
+
+- **Inputs:** a clean checkout with only the Python standard library.
+- **Expected outcomes:** `python3 data/generate_invoices.py` reproduces `data/invoices.csv`
+  byte-for-byte; `python3 data/compute_oracle.py` reproduces `data/oracle.json`; the test suite is green.
+- **Oracle refs:** `data/invoices.csv`, `data/oracle.json`.
+- **Pass criterion:** `python3 -m unittest discover -s tests -v` reports **OK** with 15 tests on a
+  fresh checkout, and regenerated artifacts are byte-identical to the committed ones.
+=== NONGOALS ===
+# NON_GOALS — Invoice Exception Desk
+
+Explicit exclusions. If a proposed change touches one of these, it is out of scope for this effort
+and needs a separate decision (and, for anything touching data protection, separate review).
+
+1. **No real personal data (PII).** Only synthetic, fabricated fixtures. No customer, employee, or
+   contact records; no names, emails, phone numbers, addresses, or account numbers that map to people.
+2. **No credentials or secrets.** No API keys, tokens, passwords, connection strings, or `.env`
+   secrets in code, fixtures, or logs. The runtime is offline by design.
+3. **No reminders or outbound messages.** The tool never sends email/SMS/notifications and never
+   contacts anyone. Owner/notes are internal annotations only.
+4. **No payment processing.** It does not move money, charge cards, initiate ACH, or integrate with
+   payment gateways. Payment *events* (R2) are records for balance math, not transactions.
+5. **No tax advice or tax computation.** No tax rates, filing logic, or advice; amounts are the raw
+   invoice figures only.
+6. **No deployment or hosting.** No servers, containers, CI/CD to production, infra-as-code, or
+   release automation.
+7. **No authentication or multi-tenancy.** Single-operator, local, offline use. No logins, roles,
+   SSO, org accounts, or tenant isolation.
+8. **Not a QuickBooks/invoicing replacement.** It does not create invoices, define charts of
+   accounts, or reconcile ledgers. It is a decision queue over an imported CSV.
+9. **No external services / network calls.** Standard-library-only processing; no outbound requests
+   of any kind during import, aging, or queueing.
+10. **No collections workflow.** No dunning, promises-to-pay automation, escalation policies, or
+    legal/collections actions. A promised-pay date (R3) is a note, never a balance adjustment.
+
+See `ACCEPTANCE.md` AT-09 (no network/secrets) for the guardrail test intent, and `ROADMAP.md` for
+which stage owns each capability.
+[0m
+[0m$ [0mcat README.md; echo "=== ROADMAP ==="; cat ROADMAP.md; echo "=== TREE ==="; find invoice_desk bill_split data tests specs -maxdepth 3 -type f | sort
+# L3 start: a real multi-feature project (Invoice Exception Desk)
+
+This branch is the starting point for **L3: Invoice Exception Desk walkthrough** in the [Spec Kit Developer Guide](https://tosin2013.github.io/invoice-exception-desk/L3-invoice-desk.html).
+
+It is the finished L2 project (`bill_split`, specify-cli 1.1.3, OpenCode integration) plus the frozen **R0 discovery kit** for the Invoice Exception Desk:
+
+- `ROADMAP.md`: phases R0 to R6. L3 builds the first slice of **R1**.
+- `ACCEPTANCE.md`: acceptance items AT-01 to AT-10. L3 covers AT-01 to AT-04.
+- `NON_GOALS.md`: what the Desk must never do.
+- `data/invoices.csv`: 30 synthetic rows (valid, duplicate, invalid, empty), plus the deterministic generator that wrote them.
+
+The oracle (`data/oracle.json` and `data/compute_oracle.py`) is **deliberately not on this branch**. It's the reviewer's sealed answer key, so the builder never sees it.
+
+What to do:
+1. Install the pinned CLI: `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@v1.1.3`
+2. Run the existing tests: `python -m pytest -q`
+3. Follow the L3 page step by step.
+
+The finished result is on the `l3-solution` branch.
+=== ROADMAP ===
+# ROADMAP — Invoice Exception Desk
+
+Decision queue for a fictional B2B commercial-cleaning operator. Answers: *Which unpaid
+invoices need attention, what is truly outstanding, who does what next?* This is not
+invoicing, collections, payments, or a QuickBooks replacement (see `NON_GOALS.md`).
+
+- Product source: Notion child plan **"DRAFT v0.1 — Invoice Exception Desk"** (`<internal-plan-id>`).
+- This roadmap starts at **R0**, the only stage marked `[planned]` on the source plan.
+
+Legend — status: `done` | `planned` | `blocked`. Owner is the accountable party; the
+reviewer approves stage exit.
+
+| ID | Objective (one line) | Depends on | Owner | Status |
+|----|----------------------|------------|-------|--------|
+| R0 | Freeze discovery artifacts: data contract, oracle, acceptance suite, guardrails | — | Implementer (review: Founder) | done |
+| R1 | Build the read-only exception desk MVP: import, aging, follow-up queue | R0 | Implementer (review: Founder) | planned |
+| R2 | Add payment events: partial payments, idempotent event IDs, overpay/negative guards | R1 | Implementer (review: Founder) | planned |
+| R3 | Add promised-pay annotations (note-only; never mutates balance) | R2 | Implementer (review: Founder) | planned |
+| R4 | Prioritization, owners, notes persistence and queue workflow hardening | R1 | Implementer (review: Founder) | planned |
+| R5 | Schema/version migration (v1 → v2a → v2b) with no data loss | R2, R3 | Implementer (review: Founder) | planned |
+| R6 | Review, hardening, and hand-off readiness (no deployment) | R4, R5 | Implementer (review: Founder) | planned |
+
+---
+
+## R0 — Discovery & Spec Kit
+
+- **Objective:** Produce the frozen, verifiable discovery kit (data contract, deterministic
+  fixture, independently computed oracle, acceptance suite, guardrails) with no application build.
+- **In scope:** `SPEC.md`; `data/generate_invoices.py`; `data/invoices.csv`; `data/compute_oracle.py`;
+  `data/oracle.json`; `tests/test_oracle.py`; `ACCEPTANCE.md`; `NON_GOALS.md`; this roadmap; `R0_REPORT.md`.
+- **Out of scope:** Any application/runtime code, UI, persistence, network calls, deployment (**R1**).
+- **Dependencies:** None. Blocking dependency for every later stage.
+- **Owner:** Implementer; exit reviewed by Founder.
+- **Spec/test links:** `SPEC.md` (T1–T7); `tests/test_oracle.py`; `ACCEPTANCE.md` (AT-01..AT-10).
+- **Exit evidence:** Generator is byte-for-byte deterministic; `python3 -m unittest discover -s tests -v`
+  is green; `data/oracle.json` recomputes exactly; boundary cases match policy.
+
+## R1 — Exception Desk MVP
+
+- **Objective:** Import a CSV, classify accepted/rejected/duplicate rows with reasons, compute exact
+  remaining balance, days overdue and aging bucket as of an explicit as-of date, and present a
+  follow-up queue with owner and notes.
+- **In scope:** Import (AT-01, AT-02), integer-cent balances and sums (AT-03), aging (AT-04),
+  deterministic prioritization + owner/notes persistence (AT-05), no network/secrets (AT-09),
+  fresh-checkout reproducibility (AT-10).
+- **Out of scope:** Payments/partial payments (**R2**), promised-pay notes (**R3**), schema migration (**R5**),
+  deployment, auth/multi-tenancy (**R6 / NON_GOALS**).
+- **Dependencies:** R0.
+- **Owner:** Implementer; exit reviewed by Founder.
+- **Spec/test links:** `ACCEPTANCE.md` AT-01..AT-05, AT-09, AT-10; `data/oracle.json`.
+- **Exit evidence:** All R1 acceptance items pass against the frozen oracle on the generated CSV;
+  rejected rows never partially import; re-import is idempotent.
+
+## R2 — Payment Events (v2a)
+
+- **Objective:** Record (never overwrite) payment events so partial payments recalculate the
+  remaining balance without altering the original invoice amount.
+- **In scope:** Event-ID idempotency, no negative payments, no overpayment (AT-06); balance recalc.
+- **Out of scope:** Outbound payment collection/processing, bank feeds, promised pay (**R3**).
+- **Dependencies:** R1.
+- **Owner:** Implementer; exit reviewed by Founder.
+- **Spec/test links:** `ACCEPTANCE.md` AT-06; `data/oracle.json` (rows the partial-payment fixtures).
+- **Exit evidence:** Replaying the same payment event ID is a no-op; overpay/negative are rejected;
+  original `amount_cents` is immutable.
+
+## R3 — Promised-Pay Annotations (v2b)
+
+- **Objective:** Let an operator record a promised-pay date as a note for prioritization.
+- **In scope:** Store promised-pay date; it may influence ordering but **never** reduces balance (AT-07).
+- **Out of scope:** Automated reminders/messages, calendar sync, contracts.
+- **Dependencies:** R2.
+- **Owner:** Implementer; exit reviewed by Founder.
+- **Spec/test links:** `ACCEPTANCE.md` AT-07; `SPEC.md` user story BR-05.
+- **Exit evidence:** Setting/clearing a promised-pay date leaves all balances and aging buckets unchanged.
+
+## R4 — Prioritization, Owners & Notes
+
+- **Objective:** Harden the follow-up queue: deterministic priority ordering, owner assignment,
+  note history, and stable persistence across restarts.
+- **In scope:** AT-05 deterministic ordering + owner/notes persistence, queue filters.
+- **Out of scope:** Notifications, SLAs/automation, analytics beyond the queue.
+- **Dependencies:** R1 (R2/R3 fields become available during this stage).
+- **Owner:** Implementer; exit reviewed by Founder.
+- **Spec/test links:** `ACCEPTANCE.md` AT-05.
+- **Exit evidence:** Same input yields the same queue order; owner/notes survive restart; ties broken deterministically.
+
+## R5 — Schema & Version Migration
+
+- **Objective:** Migrate persisted data across v1 → v2a → v2b without data loss or balance drift.
+- **In scope:** Migration preserves v1 rows (AT-08); forward/backward compatibility checks.
+- **Out of scope:** Cross-tenant or cloud migration, deployment.
+- **Dependencies:** R2, R3.
+- **Owner:** Implementer; exit reviewed by Founder.
+- **Spec/test links:** `ACCEPTANCE.md` AT-08.
+- **Exit evidence:** Migrated store reproduces the pre-migration balances and queue exactly.
+
+## R6 — Review & Hand-off Readiness
+
+- **Objective:** Final review/hardening pass and a clean hand-off package; confirm guardrails hold.
+- **In scope:** Full acceptance run (AT-01..AT-10), secrecy/network checks (AT-09), reproducibility on a
+  fresh checkout (AT-10), documentation sync.
+- **Out of scope:** Deployment, hosting, auth/multi-tenancy, production operations.
+- **Dependencies:** R4, R5.
+- **Owner:** Implementer; approved by Founder.
+- **Spec/test links:** `ACCEPTANCE.md` AT-01..AT-10; `NON_GOALS.md`.
+- **Exit evidence:** Every acceptance item passes from a clean checkout with no network access.
+=== TREE ===
+bill_split/__init__.py
+bill_split/__pycache__/__init__.cpython-313.pyc
+data/generate_invoices.py
+data/invoices.csv
+invoice_desk/__init__.py
+invoice_desk/__pycache__/__init__.cpython-313.pyc
+specs/001-split-bill/plan.md
+specs/001-split-bill/spec.md
+specs/001-split-bill/tasks.md
+specs/002-weighted-split/analysis.md
+specs/002-weighted-split/checklists/requirements.md
+specs/002-weighted-split/plan.md
+specs/002-weighted-split/spec.md
+specs/002-weighted-split/tasks.md
+specs/003-desk-import/analysis.md
+specs/003-desk-import/checklists/requirements.md
+specs/003-desk-import/plan.md
+specs/003-desk-import/spec.md
+specs/003-desk-import/tasks.md
+specs/004-deterministic-followup-queue/checklists/requirements.md
+specs/004-deterministic-followup-queue/spec.md
+tests/__pycache__/test_invoice_desk.cpython-313-pytest-9.1.1.pyc
+tests/__pycache__/test_split_bill.cpython-313-pytest-9.1.1.pyc
+tests/__pycache__/test_split_weighted.cpython-313-pytest-9.1.1.pyc
+tests/test_invoice_desk.py
+tests/test_split_bill.py
+tests/test_split_weighted.py
+[0m
+[0m$ [0mls specs; echo "---"; for f in specs/*/spec.md; do echo "=== $f ==="; grep -n -i "stor\|persist\|json\|sqlite\|file" "$f" | head -40; done
+001-split-bill
+002-weighted-split
+003-desk-import
+004-deterministic-followup-queue
+---
+=== specs/001-split-bill/spec.md ===
+8:### User Story 1 - Even split with remainder (Priority: P1)
+16:### User Story 2 - Bad input is rejected (Priority: P1)
+=== specs/002-weighted-split/spec.md ===
+20:### User Story 1 - Split in proportion to what each person ordered (Priority: P1)
+37:### User Story 2 - Fair rounding when proportions are not whole cents (Priority: P1)
+53:### User Story 3 - Invalid input is rejected (Priority: P1)
+=== specs/003-desk-import/spec.md ===
+15:- Q: When a later CSV differs from the original but contains invoice rows already accepted in the store, how should those overlapping rows be classified? → A: There is no store; import is a pure per-call function, so duplicate detection is scoped to the rows within that single call.
+21:### User Story 1 - Import and classify every invoice row (Priority: P1)
+23:An operator feeds the invoice CSV text into the desk and gets one clear outcome for every row: accepted, rejected with a reason, identical duplicate, or inconsistent duplicate. Invalid rows never leak into the desk, and importing the same file again does not double-count anything.
+31:1. **Given** `data/invoices.csv` and `as_of = 2026-10-15`, **When** the file is imported, **Then** the result contains `total_rows = 30`, `accepted = 14`, `rejected = 12`, `duplicate_identical = 2`, and `duplicate_inconsistent = 2`.
+39:### User Story 2 - See the exact amount still outstanding (Priority: P2)
+57:### User Story 3 - Age invoices against an explicit as-of date (Priority: P3)
+87:- Processing the same CSV text again in a separate call produces an identical result; there is no stored state in which rows could accumulate.
+91:- An empty CSV data set, or a file with only a header, yields zero rows and zero totals rather than an error.
+100:- **FR-004**: Import MUST be a pure per-call function: no state persists between calls, duplicate detection is scoped to the rows of that single call, and the same CSV text and `as_of` date MUST return an identical result with no accumulated or double-counted records.
+125:- **FR-029**: The follow-up queue, prioritization order, owner assignment, note persistence, payment events, promised-pay annotations, and schema migration are out of scope for this feature.
+134:- **Import result**: The value returned by one pure import call, containing the classification of every source row plus the accepted invoices and totals. No store or state persists between calls.
+157:- Import is a pure per-call function with no store or persistence; re-running the same input reproduces the same result. Persistence across process restarts, owners, notes, and the follow-up queue belong to AT-05 and are out of scope.
+=== specs/004-deterministic-followup-queue/spec.md ===
+20:### User Story 1 - See one deterministic priority order (Priority: P1)
+40:### User Story 2 - Record who owns an invoice and what was noted (Priority: P2)
+44:**Why this priority**: A deterministic queue is only actionable when the operator can record ownership and context without losing it. AT-05 explicitly requires owner and note persistence across restart.
+88:- **FR-007**: Queue ordering MUST be a pure function of invoice row data and the as-of date. It MUST NOT depend on the clock, randomness, insertion order beyond the documented keys, owner, notes, or storage order.
+91:- **FR-010**: Each queue item MUST support optional free-text notes, attached to the invoice identity and stored exactly as entered. Notes MAY contain multiple lines and non-ASCII characters.
+92:- **FR-011**: Owner and notes MUST persist across an application restart and remain attached to the same invoice identity with unchanged content.
+98:- **FR-017**: An empty accepted set MUST produce an empty queue without error, and MUST preserve any stored annotations for later accepted sets.
+111:- **Annotation record**: The owner and notes stored for one invoice identity, independent of queue position and import order.
+135:- Each invoice identity carries one owner value and one free-text notes value. Notes may be a multi-line block; a separate append-only note history is not required by AT-05 and is out of scope.
+136:- Annotations are durable local state for a single operator. The storage mechanism is not prescribed; "restart" means the same local installation starts again with its state intact.
+138:- The queue is rebuilt from a fresh import result whenever the accepted set or as-of date is supplied; no import row state is stored or mutated by this feature.
+[0m
+[0m$ [0mcat invoice_desk/__init__.py; echo "=== TESTS ==="; cat tests/test_invoice_desk.py; echo "=== DATA LS ==="; ls -la data
+"""Pure CSV invoice import and aging for the Invoice Exception Desk.
+
+The public entry point, :func:`import_invoices`, reads invoice CSV text and
+classifies every data row as accepted, rejected with a reason, an identical
+duplicate, or an inconsistent duplicate. Accepted invoices report an integer-cent
+remaining balance, days overdue, and an aging bucket as of an explicit date.
+
+The function is pure and offline: it uses only the standard library, never reads
+the system clock, never touches the network, and keeps no state between calls.
+"""
+
+from __future__ import annotations
+
+import csv
+import io
+import re
+from datetime import date
+
+HEADER_FIELDS = (
+    "issuer",
+    "invoice_id",
+    "issue_date",
+    "due_date",
+    "amount_cents",
+    "currency",
+    "paid_cents",
+)
+
+STATUSES = (
+    "accepted",
+    "rejected",
+    "duplicate_identical",
+    "duplicate_inconsistent",
+)
+
+REJECTION_REASONS = (
+    "empty_row",
+    "missing_required_field",
+    "invalid_date",
+    "invalid_amount",
+    "invalid_currency",
+    "invalid_payment",
+)
+
+DUPLICATE_IDENTICAL_REASON = "identical_duplicate"
+DUPLICATE_INCONSISTENT_REASON = "inconsistent_duplicate"
+
+AGING_BUCKETS = ("current", "1-30", "31-60", "61-90", "91+", "paid")
+
+_DATE_PATTERN = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}\Z")
+_INTEGER_PATTERN = re.compile(r"[0-9]+\Z")
+
+
+def _zero_aging() -> dict[str, dict[str, int]]:
+    """Return a fresh all-zero aging-bucket mapping."""
+    return {bucket: {"count": 0, "remaining_cents": 0} for bucket in AGING_BUCKETS}
+
+
+def _parse_date(value: str) -> date | None:
+    """Parse a strict ``YYYY-MM-DD`` civil date, or return ``None``."""
+    if _DATE_PATTERN.fullmatch(value) is None:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def _parse_csv(csv_text: str) -> list[list[str]]:
+    """Parse CSV text into seven trimmed field values per data row.
+
+    The first row is the header and columns are mapped by name. Blank lines are
+    preserved as data rows, short rows are padded with blanks, extra cells are
+    ignored, and every field is stripped of surrounding whitespace.
+    """
+    reader = csv.reader(io.StringIO(csv_text))
+    try:
+        header = next(reader)
+    except StopIteration:
+        return []
+
+    positions: dict[str, int] = {}
+    for position, raw_name in enumerate(header):
+        name = raw_name.strip().lstrip("\ufeff")
+        if name in HEADER_FIELDS and name not in positions:
+            positions[name] = position
+
+    data_rows: list[list[str]] = []
+    for raw_cells in reader:
+        values = []
+        for name in HEADER_FIELDS:
+            position = positions.get(name)
+            if position is None or position >= len(raw_cells):
+                values.append("")
+            else:
+                values.append(raw_cells[position].strip())
+        data_rows.append(values)
+    return data_rows
+
+
+def _validate_row(
+    values: list[str],
+) -> tuple[dict[str, object] | None, str | None]:
+    """Validate one parsed row in precedence order.
+
+    Returns the normalized seven fields and ``None`` on success, or ``None`` and
+    exactly one rejection reason on failure.
+    """
+    if not values or all(value == "" for value in values):
+        return None, "empty_row"
+
+    (
+        issuer,
+        invoice_id,
+        issue_text,
+        due_text,
+        amount_text,
+        currency,
+        paid_text,
+    ) = values
+
+    if issuer == "" or invoice_id == "":
+        return None, "missing_required_field"
+
+    issue_date = _parse_date(issue_text)
+    due_date = _parse_date(due_text)
+    if issue_date is None or due_date is None:
+        return None, "invalid_date"
+
+    if _INTEGER_PATTERN.fullmatch(amount_text) is None:
+        return None, "invalid_amount"
+    amount_cents = int(amount_text)
+
+    if currency != "USD":
+        return None, "invalid_currency"
+
+    if paid_text == "":
+        paid_cents = 0
+    elif _INTEGER_PATTERN.fullmatch(paid_text) is None:
+        return None, "invalid_payment"
+    else:
+        paid_cents = int(paid_text)
+
+    if paid_cents > amount_cents:
+        return None, "invalid_payment"
+
+    return (
+        {
+            "issuer": issuer,
+            "invoice_id": invoice_id,
+            "issue_date": issue_date,
+            "due_date": due_date,
+            "amount_cents": amount_cents,
+            "currency": currency,
+            "paid_cents": paid_cents,
+        },
+        None,
+    )
+
+
+def import_invoices(csv_text: str, as_of: date) -> dict:
+    """Import invoice CSV text and compute balances, aging, and totals.
+
+    ``as_of`` is supplied explicitly; the function never reads the clock. Money is
+    handled strictly as integer cents. Duplicate detection is scoped to this call
+    and keyed by ``(issuer, invoice_id)``. The same text and date always produce
+    the same result.
+    """
+    rows: list[dict[str, object]] = []
+    totals: dict[str, object] = {
+        "total_rows": 0,
+        "accepted": 0,
+        "rejected": 0,
+        "duplicate_identical": 0,
+        "duplicate_inconsistent": 0,
+        "outstanding_invoice_count": 0,
+        "total_outstanding_cents": 0,
+        "total_paid_cents": 0,
+        "aging": _zero_aging(),
+    }
+    aging: dict[str, dict[str, int]] = totals["aging"]  # type: ignore[assignment]
+    first_accepted: dict[tuple[str, str], dict[str, object]] = {}
+
+    for row_number, values in enumerate(_parse_csv(csv_text), start=1):
+        totals["total_rows"] += 1  # type: ignore[operator]
+        normalized, reason = _validate_row(values)
+
+        if reason is not None:
+            totals["rejected"] += 1  # type: ignore[operator]
+            rows.append(
+                {
+                    "row": row_number,
+                    "status": "rejected",
+                    "reason": reason,
+                    "remaining_balance_cents": None,
+                    "days_overdue": None,
+                    "aging_bucket": None,
+                }
+            )
+            continue
+
+        assert normalized is not None
+        identity = (
+            normalized["issuer"],
+            normalized["invoice_id"],
+        )
+        original = first_accepted.get(identity)
+
+        if original is not None:
+            is_identical = all(
+                normalized[field] == original[field] for field in HEADER_FIELDS
+            )
+            status = (
+                "duplicate_identical"
+                if is_identical
+                else "duplicate_inconsistent"
+            )
+            totals[status] += 1  # type: ignore[operator]
+            rows.append(
+                {
+                    "row": row_number,
+                    "status": status,
+                    "reason": (
+                        DUPLICATE_IDENTICAL_REASON
+                        if is_identical
+                        else DUPLICATE_INCONSISTENT_REASON
+                    ),
+                    "remaining_balance_cents": None,
+                    "days_overdue": None,
+                    "aging_bucket": None,
+                }
+            )
+            continue
+
+        first_accepted[identity] = normalized
+        amount_cents = int(normalized["amount_cents"])
+        paid_cents = int(normalized["paid_cents"])
+        remaining_cents = amount_cents - paid_cents
+        # FR-017/FR-018: a fully paid invoice is never overdue.
+        days_overdue = (
+            max(0, (as_of - normalized["due_date"]).days)  # type: ignore[operator]
+            if remaining_cents > 0
+            else 0
+        )
+
+        if remaining_cents == 0:
+            bucket = "paid"
+        elif days_overdue == 0:
+            bucket = "current"
+        elif days_overdue <= 30:
+            bucket = "1-30"
+        elif days_overdue <= 60:
+            bucket = "31-60"
+        elif days_overdue <= 90:
+            bucket = "61-90"
+        else:
+            bucket = "91+"
+
+        rows.append(
+            {
+                "row": row_number,
+                "status": "accepted",
+                "reason": None,
+                "issuer": normalized["issuer"],
+                "invoice_id": normalized["invoice_id"],
+                "amount_cents": amount_cents,
+                "paid_cents": paid_cents,
+                "remaining_balance_cents": remaining_cents,
+                "days_overdue": days_overdue,
+                "aging_bucket": bucket,
+            }
+        )
+
+        totals["accepted"] += 1  # type: ignore[operator]
+        totals["total_paid_cents"] += paid_cents  # type: ignore[operator]
+        if remaining_cents > 0:
+            totals["outstanding_invoice_count"] += 1  # type: ignore[operator]
+            totals["total_outstanding_cents"] += remaining_cents  # type: ignore[operator]
+
+        bucket_totals = aging[bucket]
+        bucket_totals["count"] += 1
+        bucket_totals["remaining_cents"] += remaining_cents
+
+    return {"rows": rows, "totals": totals}
+=== TESTS ===
+from datetime import date, timedelta
+
+import pytest
+
+from invoice_desk import import_invoices
+
+CSV_PATH = "data/invoices.csv"
+AS_OF = date(2026, 10, 15)
+BUCKETS = ("current", "1-30", "31-60", "61-90", "91+", "paid")
+HEADER = (
+    "issuer",
+    "invoice_id",
+    "issue_date",
+    "due_date",
+    "amount_cents",
+    "currency",
+    "paid_cents",
+)
+
+
+def frozen_csv_text():
+    with open(CSV_PATH, encoding="utf-8") as handle:
+        return handle.read()
+
+
+def make_csv(*rows):
+    return "\n".join([",".join(HEADER), *rows])
+
+
+def zero_totals():
+    return {
+        "total_rows": 0,
+        "accepted": 0,
+        "rejected": 0,
+        "duplicate_identical": 0,
+        "duplicate_inconsistent": 0,
+        "outstanding_invoice_count": 0,
+        "total_outstanding_cents": 0,
+        "total_paid_cents": 0,
+        "aging": {bucket: {"count": 0, "remaining_cents": 0} for bucket in BUCKETS},
+    }
+
+
+def frozen_result():
+    return import_invoices(frozen_csv_text(), AS_OF)
+
+
+def accepted_by_id(result):
+    return {
+        row["invoice_id"]: row
+        for row in result["rows"]
+        if row["status"] == "accepted"
+    }
+
+
+def due_before(days):
+    return (AS_OF - timedelta(days=days)).isoformat()
+
+
+# ---------------------------------------------------------------------------
+# User Story 1 -- import and classify every invoice row (AT-01, AT-02)
+# ---------------------------------------------------------------------------
+
+
+def test_frozen_import_counts():
+    result = frozen_result()
+
+    assert len(result["rows"]) == 30
+    assert result["totals"]["total_rows"] == 30
+    assert result["totals"]["accepted"] == 14
+    assert result["totals"]["rejected"] == 12
+    assert result["totals"]["duplicate_identical"] == 2
+    assert result["totals"]["duplicate_inconsistent"] == 2
+    assert (
+        result["totals"]["accepted"]
+        + result["totals"]["rejected"]
+        + result["totals"]["duplicate_identical"]
+        + result["totals"]["duplicate_inconsistent"]
+        == 30
+    )
+
+
+def test_frozen_row_statuses_and_numbers():
+    result = frozen_result()
+
+    assert [row["row"] for row in result["rows"]] == list(range(1, 31))
+    expected = (
+        ["accepted"] * 14
+        + ["duplicate_identical"] * 2
+        + ["duplicate_inconsistent"] * 2
+        + ["rejected"] * 12
+    )
+    assert [row["status"] for row in result["rows"]] == expected
+
+
+def test_frozen_rejection_reasons():
+    result = frozen_result()
+    expected = {
+        19: "invalid_amount",
+        20: "invalid_amount",
+        21: "invalid_amount",
+        22: "invalid_date",
+        23: "invalid_date",
+        24: "invalid_date",
+        25: "missing_required_field",
+        26: "invalid_currency",
+        27: "invalid_payment",
+        28: "invalid_payment",
+        29: "empty_row",
+        30: "empty_row",
+    }
+    for row_number, reason in expected.items():
+        row = result["rows"][row_number - 1]
+        assert row["row"] == row_number
+        assert row["status"] == "rejected"
+        assert row["reason"] == reason
+
+
+def test_frozen_duplicate_reasons():
+    rows = frozen_result()["rows"]
+
+    assert rows[14]["status"] == "duplicate_identical"
+    assert rows[14]["reason"] == "identical_duplicate"
+    assert rows[15]["status"] == "duplicate_identical"
+    assert rows[15]["reason"] == "identical_duplicate"
+    assert rows[16]["status"] == "duplicate_inconsistent"
+    assert rows[16]["reason"] == "inconsistent_duplicate"
+    assert rows[17]["status"] == "duplicate_inconsistent"
+    assert rows[17]["reason"] == "inconsistent_duplicate"
+
+
+def test_duplicates_never_alter_the_first_accepted_record():
+    result = frozen_result()
+    invoices = accepted_by_id(result)
+
+    assert len(invoices) == 14
+    assert invoices["INV-1003"]["amount_cents"] == 105038
+    assert invoices["INV-1005"]["amount_cents"] == 253172
+    assert invoices["INV-1005"]["remaining_balance_cents"] == 253172
+
+
+def test_rejected_and_duplicate_rows_expose_no_accepted_fields():
+    result = frozen_result()
+
+    for row in result["rows"]:
+        if row["status"] == "accepted":
+            continue
+        assert "issuer" not in row
+        assert "invoice_id" not in row
+        assert "amount_cents" not in row
+        assert "paid_cents" not in row
+        assert row["remaining_balance_cents"] is None
+        assert row["days_overdue"] is None
+        assert row["aging_bucket"] is None
+
+
+def test_accepted_rows_expose_normalized_fields():
+    result = frozen_result()
+
+    for row in result["rows"]:
+        if row["status"] != "accepted":
+            continue
+        assert isinstance(row["issuer"], str) and row["issuer"]
+        assert isinstance(row["invoice_id"], str) and row["invoice_id"]
+        assert type(row["amount_cents"]) is int
+        assert type(row["paid_cents"]) is int
+        assert 0 <= row["paid_cents"] <= row["amount_cents"]
+
+
+def test_second_import_is_identical_and_has_no_state():
+    first = frozen_result()
+    second = frozen_result()
+
+    assert first == second
+
+
+def test_empty_input_returns_zero_rows_and_zero_totals():
+    result = import_invoices("", AS_OF)
+
+    assert result == {"rows": [], "totals": zero_totals()}
+
+
+def test_header_only_input_returns_zero_rows_and_zero_totals():
+    result = import_invoices(",".join(HEADER), AS_OF)
+
+    assert result == {"rows": [], "totals": zero_totals()}
+
+
+def test_header_mapping_trims_whitespace_and_follows_names():
+    text = "\n".join(
+        [
+            "paid_cents, currency ,amount_cents,due_date,issue_date,invoice_id,issuer",
+            " 0 , USD , 1000 , 2026-10-01 , 2026-09-01 , INV-H1 , Acme ",
+        ]
+    )
+
+    result = import_invoices(text, AS_OF)
+    row = result["rows"][0]
+
+    assert row["status"] == "accepted"
+    assert row["issuer"] == "Acme"
+    assert row["invoice_id"] == "INV-H1"
+    assert row["amount_cents"] == 1000
+    assert row["paid_cents"] == 0
+    assert row["remaining_balance_cents"] == 1000
+    assert row["days_overdue"] == 14
+    assert row["aging_bucket"] == "1-30"
+
+
+def test_whitespace_is_trimmed_before_duplicate_comparison():
+    text = make_csv(
+        " Acme , INV-W1 , 2026-09-01 , 2026-10-01 , 1000 , USD , 0 ",
+        "Acme,INV-W1,2026-09-01,2026-10-01,1000,USD,0",
+    )
+
+    rows = import_invoices(text, AS_OF)["rows"]
+
+    assert rows[0]["status"] == "accepted"
+    assert rows[1]["status"] == "duplicate_identical"
+
+
+def test_blank_lines_are_preserved_as_empty_rows():
+    text = "\n".join(
+        [
+            ",".join(HEADER),
+            "Acme,INV-E1,2026-09-01,2026-10-01,1000,USD,0",
+            "",
+            "   ,   ,   ,   ,   ,   ,   ",
+            "Acme,INV-E2,2026-09-01,2026-10-01,1000,USD,0",
+        ]
+    )
+
+    result = import_invoices(text, AS_OF)
+
+    assert result["totals"]["total_rows"] == 4
+    assert [row["status"] for row in result["rows"]] == [
+        "accepted",
+        "rejected",
+        "rejected",
+        "accepted",
+    ]
+    assert result["rows"][1]["reason"] == "empty_row"
+    assert result["rows"][2]["reason"] == "empty_row"
+
+
+def test_short_rows_are_padded_with_blanks():
+    result = import_invoices(
+        make_csv(
+            "Acme,INV-S1,2026-09-01,2026-10-01,1000,USD",
+            "Acme,INV-S2,2026-09-01,2026-10-01,1000",
+            "Acme,INV-S3,2026-09-01,2026-10-01",
+            "Acme",
+        ),
+        AS_OF,
+    )
+    rows = result["rows"]
+
+    assert rows[0]["status"] == "accepted"
+    assert rows[0]["paid_cents"] == 0
+    assert rows[1]["reason"] == "invalid_currency"
+    assert rows[2]["reason"] == "invalid_amount"
+    assert rows[3]["reason"] == "missing_required_field"
+
+
+def test_cells_beyond_the_seventh_are_ignored():
+    result = import_invoices(
+        make_csv("Acme,INV-X1,2026-09-01,2026-10-01,1000,USD,0,ignored,more"),
+        AS_OF,
+    )
+    row = result["rows"][0]
+
+    assert row["status"] == "accepted"
+    assert row["amount_cents"] == 1000
+    assert row["paid_cents"] == 0
+
+
+def test_same_invoice_id_from_a_different_issuer_is_not_a_duplicate():
+    result = import_invoices(
+        make_csv(
+            "Acme,INV-C1,2026-09-01,2026-10-01,1000,USD,0",
+            "Other,INV-C1,2026-09-01,2026-10-01,1000,USD,0",
+        ),
+        AS_OF,
+    )
+
+    assert result["totals"]["accepted"] == 2
+    assert result["totals"]["duplicate_identical"] == 0
+    assert result["totals"]["duplicate_inconsistent"] == 0
+
+
+def test_zero_amount_is_valid_and_lands_in_paid():
+    result = import_invoices(
+        make_csv("Acme,INV-Z1,2026-09-01,2026-09-01,0,USD,"),
+        AS_OF,
+    )
+    row = result["rows"][0]
+
+    assert row["status"] == "accepted"
+    assert row["amount_cents"] == 0
+    assert row["paid_cents"] == 0
+    assert row["remaining_balance_cents"] == 0
+    assert row["aging_bucket"] == "paid"
+
+
+def test_inconsistent_duplicate_does_not_replace_first_record():
+    result = import_invoices(
+        make_csv(
+            "Acme,INV-D1,2026-09-01,2026-10-01,1000,USD,0",
+            "Acme,INV-D1,2026-09-02,2026-10-01,2000,USD,0",
+        ),
+        AS_OF,
+    )
+
+    assert result["rows"][0]["status"] == "accepted"
+    assert result["rows"][0]["amount_cents"] == 1000
+    assert result["rows"][1]["status"] == "duplicate_inconsistent"
+    assert "amount_cents" not in result["rows"][1]
+    assert result["totals"]["accepted"] == 1
+    assert result["totals"]["duplicate_inconsistent"] == 1
+
+
+@pytest.mark.parametrize(
+    ("row", "reason"),
+    [
+        ("Acme,INV-V1,2026-09-01,2026-10-01,+100,USD,0", "invalid_amount"),
+        ("Acme,INV-V2,2026-09-01,2026-10-01,abc,USD,0", "invalid_amount"),
+        ("Acme,INV-V3,2026-09-01,2026-10-01,12.50,USD,0", "invalid_amount"),
+        ("Acme,INV-V4,2026-09-01,2026-10-01,-500,USD,0", "invalid_amount"),
+        ("Acme,INV-V5,2026-09-01,2026-10-01,,USD,0", "invalid_amount"),
+        ("Acme,INV-V6,2026-13-40,2026-10-01,1000,USD,0", "invalid_date"),
+        ("Acme,INV-V7,not-a-date,2026-10-01,1000,USD,0", "invalid_date"),
+        ("Acme,INV-V8,10/15/2026,2026-10-01,1000,USD,0", "invalid_date"),
+        ("Acme,INV-V9,2026-09-01,,1000,USD,0", "invalid_date"),
+        ("Acme,,2026-09-01,2026-10-01,1000,USD,0", "missing_required_field"),
+        (",INV-V11,2026-09-01,2026-10-01,1000,USD,0", "missing_required_field"),
+        (",INV-V12,2026-09-01,2026-10-01,abc,USD,0", "missing_required_field"),
+        ("Acme,INV-V13,,2026-10-01,abc,USD,0", "invalid_date"),
+        ("Acme,INV-V14,2026-09-01,2026-10-01,abc,EUR,0", "invalid_amount"),
+        ("Acme,INV-V15,2026-09-01,2026-10-01,1000,EUR,15000", "invalid_currency"),
+        ("Acme,INV-V16,2026-09-01,2026-10-01,1000,usd,0", "invalid_currency"),
+        ("Acme,INV-V17,2026-09-01,2026-10-01,1000, EUR ,0", "invalid_currency"),
+        ("Acme,INV-V18,2026-09-01,2026-10-01,1000,USD,-1", "invalid_payment"),
+        ("Acme,INV-V19,2026-09-01,2026-10-01,1000,USD,1.5", "invalid_payment"),
+        ("Acme,INV-V20,2026-09-01,2026-10-01,1000,USD,abc", "invalid_payment"),
+        ("Acme,INV-V21,2026-09-01,2026-10-01,1000,USD,2000", "invalid_payment"),
+    ],
+)
+def test_validation_reasons_and_precedence(row, reason):
+    result = import_invoices(make_csv(row), AS_OF)
+
+    assert result["rows"][0]["status"] == "rejected"
+    assert result["rows"][0]["reason"] == reason
+    assert result["totals"]["rejected"] == 1
+
+
+def test_blank_paid_cents_means_zero():
+    result = import_invoices(
+        make_csv("Acme,INV-P1,2026-09-01,2026-10-01,1000,USD,"),
+        AS_OF,
+    )
+    row = result["rows"][0]
+
+    assert row["status"] == "accepted"
+    assert row["paid_cents"] == 0
+    assert row["remaining_balance_cents"] == 1000
+
+
+# ---------------------------------------------------------------------------
+# User Story 2 -- exact outstanding amount (AT-03)
+# ---------------------------------------------------------------------------
+
+
+def test_remaining_balance_is_amount_minus_paid_for_every_accepted_row():
+    for row in frozen_result()["rows"]:
+        if row["status"] != "accepted":
+            continue
+        assert row["remaining_balance_cents"] == (
+            row["amount_cents"] - row["paid_cents"]
+        )
+        assert type(row["remaining_balance_cents"]) is int
+        assert row["remaining_balance_cents"] >= 0
+
+
+def test_frozen_outstanding_and_paid_totals():
+    totals = frozen_result()["totals"]
+
+    assert totals["outstanding_invoice_count"] == 13
+    assert totals["total_outstanding_cents"] == 2139435
+    assert totals["total_paid_cents"] == 289999
+
+
+def test_fully_paid_invoice_is_excluded_from_outstanding():
+    result = frozen_result()
+    invoice = accepted_by_id(result)["INV-1011"]
+
+    assert invoice["amount_cents"] == 50000
+    assert invoice["paid_cents"] == 50000
+    assert invoice["remaining_balance_cents"] == 0
+    assert result["totals"]["aging"]["paid"] == {"count": 1, "remaining_cents": 0}
+
+
+def test_non_accepted_rows_have_no_remaining_balance():
+    for row in frozen_result()["rows"]:
+        if row["status"] != "accepted":
+            assert row["remaining_balance_cents"] is None
+
+
+def test_all_reported_money_values_are_integers():
+    result = frozen_result()
+    totals = result["totals"]
+
+    for key in (
+        "total_outstanding_cents",
+        "total_paid_cents",
+    ):
+        assert type(totals[key]) is int
+    for bucket in BUCKETS:
+        assert type(totals["aging"][bucket]["remaining_cents"]) is int
+    for row in result["rows"]:
+        if row["status"] == "accepted":
+            assert type(row["remaining_balance_cents"]) is int
+
+
+# ---------------------------------------------------------------------------
+# User Story 3 -- aging against an explicit as-of date (AT-04)
+# ---------------------------------------------------------------------------
+
+
+def test_frozen_days_overdue_and_buckets():
+    invoices = accepted_by_id(frozen_result())
+    expected = {
+        "INV-1001": (0, "current"),
+        "INV-1002": (0, "current"),
+        "INV-1003": (1, "1-30"),
+        "INV-1004": (30, "1-30"),
+        "INV-1005": (31, "31-60"),
+        "INV-1006": (60, "31-60"),
+        "INV-1007": (61, "61-90"),
+        "INV-1008": (90, "61-90"),
+        "INV-1009": (91, "91+"),
+        "INV-1010": (30, "1-30"),
+        "INV-1011": (0, "paid"),  # review fix R1: zero balance is never overdue
+        "INV-1012": (91, "91+"),
+        "INV-1013": (0, "current"),
+        "INV-1014": (31, "31-60"),
+    }
+
+    for invoice_id, (days, bucket) in expected.items():
+        assert invoices[invoice_id]["days_overdue"] == days
+        assert invoices[invoice_id]["aging_bucket"] == bucket
+
+
+def test_aging_bucket_boundaries():
+    offsets = (
+        (0, "current"),
+        (1, "1-30"),
+        (30, "1-30"),
+        (31, "31-60"),
+        (60, "31-60"),
+        (61, "61-90"),
+        (90, "61-90"),
+        (91, "91+"),
+        (365, "91+"),
+    )
+    rows = [
+        f"Acme,INV-B{offset},2026-01-01,{due_before(offset)},1000,USD,0"
+        for offset, _bucket in offsets
+    ]
+
+    result = import_invoices(make_csv(*rows), AS_OF)
+    invoices = accepted_by_id(result)
+
+    for offset, bucket in offsets:
+        invoice = invoices[f"INV-B{offset}"]
+        assert invoice["days_overdue"] == offset
+        assert invoice["aging_bucket"] == bucket
+
+
+def test_due_today_and_future_are_current_with_zero_days():
+    rows = [
+        f"Acme,INV-TODAY,2026-01-01,{due_before(0)},1000,USD,0",
+        f"Acme,INV-FUTURE,2026-01-01,{due_before(-10)},1000,USD,0",
+    ]
+
+    invoices = accepted_by_id(import_invoices(make_csv(*rows), AS_OF))
+
+    assert invoices["INV-TODAY"]["days_overdue"] == 0
+    assert invoices["INV-TODAY"]["aging_bucket"] == "current"
+    assert invoices["INV-FUTURE"]["days_overdue"] == 0
+    assert invoices["INV-FUTURE"]["aging_bucket"] == "current"
+
+
+def test_fully_paid_overdue_invoice_is_paid_not_overdue():
+    result = import_invoices(
+        make_csv(f"Acme,INV-PAID,2026-01-01,{due_before(61)},1000,USD,1000"),
+        AS_OF,
+    )
+    row = result["rows"][0]
+
+    assert row["status"] == "accepted"
+    assert row["remaining_balance_cents"] == 0
+    assert row["days_overdue"] == 0  # review fix R1
+    assert row["aging_bucket"] == "paid"
+    assert result["totals"]["outstanding_invoice_count"] == 0
+    assert result["totals"]["total_outstanding_cents"] == 0
+
+
+def test_frozen_aging_totals():
+    aging = frozen_result()["totals"]["aging"]
+
+    assert aging["current"] == {"count": 3, "remaining_cents": 597047}
+    assert aging["1-30"] == {"count": 3, "remaining_cents": 396862}
+    assert aging["31-60"] == {"count": 3, "remaining_cents": 259664}
+    assert aging["61-90"] == {"count": 2, "remaining_cents": 863731}
+    assert aging["91+"] == {"count": 2, "remaining_cents": 22131}
+    assert aging["paid"] == {"count": 1, "remaining_cents": 0}
+
+
+def test_all_buckets_are_always_present():
+    aging = import_invoices("", AS_OF)["totals"]["aging"]
+
+    assert tuple(aging) == BUCKETS
+    for bucket in BUCKETS:
+        assert aging[bucket] == {"count": 0, "remaining_cents": 0}
+
+
+def test_non_accepted_rows_have_no_aging_values():
+    for row in frozen_result()["rows"]:
+        if row["status"] != "accepted":
+            assert row["days_overdue"] is None
+            assert row["aging_bucket"] is None
+=== DATA LS ===
+total 20
+drwxr-xr-x  2 box box 4096 Oct 23 15:26 .
+drwxr-xr-x 12 box box 4096 Oct 23 15:27 ..
+-rw-r--r--  1 box box 5799 Oct 23 15:26 generate_invoices.py
+-rw-r--r--  1 box box 1787 Oct 23 15:26 invoices.csv
+[0m
+[0m$ [0mcat specs/003-desk-import/plan.md 2>/dev/null | head -100; echo "=== 004 plan? ==="; ls specs/004-deterministic-followup-queue/
+# Implementation Plan: Invoice Exception Desk import (R1 slice)
+
+**Branch**: `003-desk-import` | **Date**: 2026-10-23 | **Spec**: [spec.md](./spec.md)
+
+## Summary
+One pure function, `import_invoices`, that reads CSV text, classifies each data row, and computes balances, aging and totals as of an explicit date. Written by the human/strong role, from the spec and the public `ACCEPTANCE.md` only.
+
+## Technical Context
+**Language/Version**: Python 3.11+ | **Primary Dependencies**: none (stdlib `csv`, `io`, `re`, `datetime`) | **Testing**: pytest (`python -m pytest -q`)
+**Project Type**: library | **Scope**: create `invoice_desk/__init__.py` and `tests/test_invoice_desk.py`. Do not change `bill_split`, its tests, `data/`, `pyproject.toml`, `ROADMAP.md`, `ACCEPTANCE.md` or `NON_GOALS.md`. Nothing else.
+
+## Constitution Check (v1.1.0)
+I integer cents PASS · II pure PASS · III stdlib only PASS · IV tests PASS · V spec/plan/tasks/code land together on the branch (squash on merge) · VI synthetic, offline PASS · VII explicit `as_of` PASS · VIII sealed answer key held by the reviewer PASS
+
+## Interface (exact)
+```python
+from datetime import date
+def import_invoices(csv_text: str, as_of: date) -> dict: ...
+```
+Returns `{"rows": [...], "totals": {...}}`.
+
+- `rows`: one dict per data row, in input order. Keys: `row` (1-based data-row number; the header is not counted), `status` (`accepted`, `rejected`, `duplicate_identical`, `duplicate_inconsistent`), `reason` (the rejection reason for rejected rows, `None` for accepted, `"identical_duplicate"` / `"inconsistent_duplicate"` for duplicates), `remaining_balance_cents`, `days_overdue`, `aging_bucket` (integers/strings for accepted rows, `None` otherwise). Accepted rows also carry the normalized `issuer`, `invoice_id`, `amount_cents` and `paid_cents` *(analyze fix C1)*.
+- Empty `csv_text` (no header) returns zero rows and zero totals, with all six aging buckets present as `{"count": 0, "remaining_cents": 0}` *(analyze fix A2)*.
+- `totals`: `total_rows`, `accepted`, `rejected`, `duplicate_identical`, `duplicate_inconsistent`, `outstanding_invoice_count`, `total_outstanding_cents`, `total_paid_cents`, and `aging`: a dict with all six buckets `current`, `1-30`, `31-60`, `61-90`, `91+`, `paid`, each `{"count": int, "remaining_cents": int}`.
+
+## Design
+1. Parse with `csv.reader(io.StringIO(csv_text))`. **Not** `DictReader`: it silently skips blank lines, and blank lines are data rows that must be reported as `empty_row` (ACCEPTANCE rows 29 and 30).
+2. The first row is the header; map columns by name. Pad short rows with `""`; ignore extra cells (clarification 3). Strip whitespace on every field (clarification 2).
+3. Validate in the spec's precedence order (FR-011). Integers: the stripped text must match the ASCII pattern `[0-9]+` (use `re.fullmatch`, not `str.isdigit()`, which accepts characters like `²`), so `12.50`, `-500`, `+100` and `abc` fail. A blank `paid_cents` is `0`. Dates: `date.fromisoformat` on a string matching `YYYY-MM-DD` exactly.
+4. Duplicates: keep a dict of the first accepted row per `(issuer, invoice_id)` and its seven normalized values; compare later valid rows against it (FR-012 to FR-014).
+5. Balance and aging per FR-016 to FR-020, using `(as_of - due_date).days`.
+6. Totals per FR-021 to FR-024. All six aging buckets are always present.
+7. `tests/test_invoice_desk.py`: read `data/invoices.csv` and check every AT-01 to AT-04 number in `ACCEPTANCE.md`, plus unit tests for each rejection reason, the bucket boundaries, whitespace, short rows, and calling the function twice.
+
+## Out of scope
+Follow-up queue, owners, notes (AT-05), payments (R2), promised pay (R3), migration (R5), CLI, persistence.
+=== 004 plan? ===
+checklists
+spec.md
+[0m
+[0m$ [0mcat .gitignore; echo "---"; cat pyproject.toml
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+---
+[project]
+name = "bill-split"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+[0m
+[0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
+Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+===================================================================
+--- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
++++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+@@ -13,8 +13,11 @@
+ ### Session 2026-10-23
+ 
+ - Q: AT-05 gives an illustrative ordering (`days_overdue` descending, then balance, then issuer, then invoice ID), while the request says bucket, then balance, then invoice ID. Which is binding? → A: AT-05's binding pass criterion is that ordering is a pure function of row data and is identical on repeated runs. The request's keys are used, with `issuer` inserted before `invoice_id` so the order is total even when two issuers reuse the same invoice identifier.
+ - Q: Does the follow-up queue contain every accepted invoice or only invoices with a positive balance? → A: AT-05 names the accepted set as the input, so the queue contains every accepted invoice; a fully paid invoice remains in the queue in the `paid` bucket at the lowest priority.
++- Q: Where should owners and notes be stored, in what format, and how should each annotation be keyed so it survives a restart? → A: In a single versioned UTF-8 JSON file at a caller-supplied path, defaulting to `state/followup_annotations.json` under the project root; each record stores `issuer`, `invoice_id`, `owner`, and `notes`, keyed by the exact `(issuer, invoice_id)` pair, and each successful change is written through immediately with atomic whole-file replacement.
++- Q: What should happen when the annotation store is missing, unreadable, corrupt, or has an unsupported version? → A: A missing file means an empty annotation set; an unreadable, malformed, duplicate-identity, or unsupported-version file raises a clear error and is never overwritten or silently reset.
++- Q: How should an operator assign or clear an owner and notes? → A: Through explicit local library calls that take the annotation-store path, the invoice identity, and the new owner or notes value; no CLI, network, or authenticated interface is required.
+ 
+ ## User Scenarios & Testing *(mandatory)*
+ 
+ ### User Story 1 - See one deterministic priority order (Priority: P1)
+
+[0m
+[0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
+Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+===================================================================
+--- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
++++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+@@ -56,8 +56,11 @@
+ 4. **Given** items with owner and note assignments, **When** the queue is rebuilt from the same accepted set, **Then** the annotations are still attached and the ordering is unchanged.
+ 5. **Given** an item with an owner and notes, **When** the owner is cleared, **Then** only the owner becomes unassigned and the notes remain unchanged; clearing notes behaves the same way in reverse.
+ 6. **Given** an annotated invoice, **When** the operator changes only its owner or notes, **Then** its balance, days overdue, bucket, and queue position do not change.
+ 7. **Given** an invoice that is not accepted, **When** an owner or notes assignment is attempted, **Then** no queue item is created and the queue is unchanged.
++8. **Given** no annotation store file exists, **When** the queue is built, **Then** every item reports no owner and no notes and no error occurs.
++9. **Given** an unreadable or malformed annotation store, **When** an owner or notes change is attempted, **Then** the change is refused with a clear error and the existing file is left untouched.
++10. **Given** a successful owner or notes change, **When** the process is stopped immediately afterwards, **Then** the same invoice identity still reports the change after restart.
+ 
+ ---
+ 
+ ### Edge Cases
+
+[0m
+[0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
+Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+===================================================================
+--- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
++++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+@@ -71,8 +71,13 @@
+ - A fully paid invoice remains in the queue in `paid` with a zero balance and the lowest priority.
+ - A rejected or duplicate row can never receive an owner or notes and never appears in the queue.
+ - An owner or note containing non-ASCII text, punctuation, or multiple lines is preserved exactly across a restart.
+ - An empty or whitespace-only owner means unassigned; an empty notes value means no notes.
++- The annotation store file does not exist: the queue still builds and every item reports no owner and no notes.
++- The annotation store is unreadable, malformed, contains duplicate invoice identities, or declares an unsupported version: the feature raises a clear error, leaves the file unchanged, and does not silently rebuild an empty store.
++- An annotation-store write is interrupted: the previous complete store remains readable, and a partially written file is never loaded.
++- An annotation record with both owner and notes empty is equivalent to no annotation and need not be retained.
++- Concurrent writes from multiple processes are out of scope; the annotation store is local single-writer state.
+ - Re-importing the same CSV must not duplicate queue items or annotation records.
+ - An annotated invoice that is absent from the current accepted set is not shown in the queue, but its annotation is retained by invoice identity and reappears if that invoice is accepted again.
+ - Annotation assignments attach to invoice identity, not to a queue position, so a reordering caused by changed balances or aging cannot move an owner or note to another invoice.
+ - An empty accepted set produces an empty queue and no errors.
+
+[0m
+[0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
+Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+===================================================================
+--- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
++++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+@@ -110,8 +110,13 @@
+ - **FR-018**: All monetary values used for ordering and display MUST remain integer cents; no floating-point arithmetic may be introduced.
+ - **FR-019**: The feature MUST remain local and offline: no network calls, external services, credentials, secrets, or real personal data.
+ - **FR-020**: The feature MUST NOT provide authentication, roles, multi-tenancy, reminders, outbound messages, payment processing, or collections automation. Owner is an internal label only.
+ - **FR-021**: The feature MUST leave the existing `import_invoices` behaviour unchanged, including its classifications, balances, aging buckets, and totals.
++- **FR-022**: Owner and notes MUST be stored in a single versioned UTF-8 JSON annotation store at a caller-supplied path, defaulting to `state/followup_annotations.json` relative to the project root. Each stored record MUST carry `issuer`, `invoice_id`, `owner`, and `notes`, and MUST be keyed by the exact `(issuer, invoice_id)` pair rather than by row number, queue position, or a concatenated delimiter string.
++- **FR-023**: Each successful owner or notes change MUST be written through to the annotation store immediately, using atomic whole-file replacement, before the change is reported as applied. A crash during a write MUST NOT leave a partially written store that can be loaded.
++- **FR-024**: A missing annotation store MUST be treated as an empty annotation set. An unreadable, malformed, duplicate-identity, or unsupported-version store MUST cause a clear error, MUST leave the existing file untouched, and MUST NOT be silently reset or overwritten.
++- **FR-025**: Owner and notes MUST be assignable and clearable only through explicit local library calls that take the annotation-store path, the invoice identity, and the new value. No CLI, network service, or authenticated user interface is required, and hand-editing the store is not a supported assignment path.
++- **FR-026**: The annotation store MUST remain local runtime state, not an import fixture or source of invoice truth. Its contents MUST never feed back into import classification, balances, aging, or queue ordering.
+ 
+ ### Key Entities *(include if feature involves data)*
+ 
+ - **Queue item**: One accepted invoice in the follow-up queue, carrying its identity, balance, days overdue, aging bucket, owner, notes, and priority position.
+
+[0m
+[0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
+Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+===================================================================
+--- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
++++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+@@ -123,9 +123,10 @@
+ - **Invoice identity**: The pair `(issuer, invoice_id)`, which uniquely identifies an invoice for ordering and annotation purposes.
+ - **Aging bucket priority**: The deterministic severity order `91+`, `61-90`, `31-60`, `1-30`, `current`, `paid`; it is an ordering concept, not a replacement for the existing bucket labels.
+ - **Owner**: An optional free-text label on one invoice identity, expressing who is responsible for the next action. It is not an authenticated user.
+ - **Notes**: Optional free-text context on one invoice identity, preserved verbatim across rebuilds and restarts.
+-- **Annotation record**: The owner and notes stored for one invoice identity, independent of queue position and import order.
++- **Annotation record**: The stored `owner` and `notes` for one `(issuer, invoice_id)` identity, independent of queue position and import order. A record with both values empty is equivalent to no annotation.
++- **Annotation store**: The single versioned UTF-8 JSON file that holds annotation records, defaulting to `state/followup_annotations.json` under the project root, keyed by invoice identity and replaced atomically on each successful change.
+ 
+ ## Success Criteria *(mandatory)*
+ 
+ ### Measurable Outcomes
+
+[0m
+[0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
+Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+===================================================================
+--- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
++++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+@@ -140,8 +140,11 @@
+ - **SC-007**: No rejected or duplicate row appears in the queue, and no annotation can be attached to one.
+ - **SC-008**: The queue handles an empty accepted set without error and produces zero items.
+ - **SC-009**: The feature operates with networking blocked and introduces no credentials, secrets, or real personal data.
+ - **SC-010**: The existing import classifications, balances, aging buckets, and totals remain unchanged.
++- **SC-011**: With no annotation store present, the queue builds successfully and all items report no owner and no notes in 100% of runs.
++- **SC-012**: An unreadable, malformed, duplicate-identity, or unsupported-version annotation store produces a clear error and is never silently overwritten in 100% of tested cases.
++- **SC-013**: Every successful owner or notes change is durable before it is reported, and survives an immediate process stop in 100% of tested cases.
+ 
+ ## Assumptions
+ 
+ - `ACCEPTANCE.md` AT-05 is the source of truth. Its ordering example uses "e.g.", so the binding requirement is a repeatable, pure ordering; this specification makes the requested keys explicit and adds the issuer tie-breaker needed for a total order.
+
+[0m
+[0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
+Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+===================================================================
+--- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
++++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+@@ -152,8 +152,10 @@
+ - Bucket priority is severity-descending (`91+` before `61-90` before `31-60` before `1-30` before `current` before `paid`), matching the intent of AT-05's `days_overdue` descending example while honoring the requested bucket-first ordering.
+ - "Balance" means `remaining_balance_cents` from the import result, ordered descending; "invoice ID" means the invoice identifier, ordered ascending after the issuer.
+ - Text comparisons are case-sensitive and locale-independent so the order cannot vary by machine configuration.
+ - Each invoice identity carries one owner value and one free-text notes value. Notes may be a multi-line block; a separate append-only note history is not required by AT-05 and is out of scope.
+-- Annotations are durable local state for a single operator. The storage mechanism is not prescribed; "restart" means the same local installation starts again with its state intact.
++- Annotations are durable local state for a single operator and are held in one versioned JSON annotation store at a caller-supplied path, defaulting to `state/followup_annotations.json`; "restart" means the same local installation starts again with the same store path and its state intact.
++- JSON is chosen because the project is standard-library-only and the store must remain local and human-inspectable; no database, external service, or new dependency is introduced.
++- The annotation store is single-writer local runtime state. Concurrent writes from multiple processes are out of scope, and the default store path is expected to be excluded from version control rather than treated as a frozen fixture.
+ - Annotations are keyed by `(issuer, invoice_id)` rather than by row number or queue position, so sorting and re-importing cannot move an annotation to a different invoice.
+ - The queue is rebuilt from a fresh import result whenever the accepted set or as-of date is supplied; no import row state is stored or mutated by this feature.
+ - Roadmap R2 payment events, R3 promised-pay annotations, R5 schema migration, R4 filter/queue-hardening extras beyond AT-05, reminders, and deployment remain out of scope.
+
+[0m
+[0m$ [0mcat specs/004-deterministic-followup-queue/spec.md
+# Feature Specification: Deterministic follow-up queue with owners and notes
+
+**Feature Branch**: `004-deterministic-followup-queue`
+
+**Created**: 2026-10-23
+
+**Status**: Draft
+
+**Input**: User description: "AT-05 (full): a deterministic follow-up queue on top of L3's import_invoices. Order the queue by bucket, then balance, then invoice ID. Each queue item can carry an owner and free-text notes. Use ACCEPTANCE.md AT-05 as the source of truth. Do not implement anything."
+
+## Clarifications
+
+### Session 2026-10-23
+
+- Q: AT-05 gives an illustrative ordering (`days_overdue` descending, then balance, then issuer, then invoice ID), while the request says bucket, then balance, then invoice ID. Which is binding? → A: AT-05's binding pass criterion is that ordering is a pure function of row data and is identical on repeated runs. The request's keys are used, with `issuer` inserted before `invoice_id` so the order is total even when two issuers reuse the same invoice identifier.
+- Q: Does the follow-up queue contain every accepted invoice or only invoices with a positive balance? → A: AT-05 names the accepted set as the input, so the queue contains every accepted invoice; a fully paid invoice remains in the queue in the `paid` bucket at the lowest priority.
+- Q: Where should owners and notes be stored, in what format, and how should each annotation be keyed so it survives a restart? → A: In a single versioned UTF-8 JSON file at a caller-supplied path, defaulting to `state/followup_annotations.json` under the project root; each record stores `issuer`, `invoice_id`, `owner`, and `notes`, keyed by the exact `(issuer, invoice_id)` pair, and each successful change is written through immediately with atomic whole-file replacement.
+- Q: What should happen when the annotation store is missing, unreadable, corrupt, or has an unsupported version? → A: A missing file means an empty annotation set; an unreadable, malformed, duplicate-identity, or unsupported-version file raises a clear error and is never overwritten or silently reset.
+- Q: How should an operator assign or clear an owner and notes? → A: Through explicit local library calls that take the annotation-store path, the invoice identity, and the new owner or notes value; no CLI, network, or authenticated interface is required.
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 1 - See one deterministic priority order (Priority: P1)
+
+An operator imports the invoice CSV and receives a follow-up queue in a predictable priority order. The most severely overdue invoices come first, larger balances come before smaller balances inside the same aging bucket, and two identical imports always produce the same sequence.
+
+**Why this priority**: If the queue order can change between runs, the operator cannot trust the worklist or compare one review with the next. Determinism is the core of AT-05.
+
+**Independent Test**: Build the queue twice from the same accepted set and as-of date, compare the two sequences, and verify the sequence against the documented bucket and tie-break order.
+
+**Acceptance Scenarios**:
+
+1. **Given** the accepted invoices from the frozen CSV at `as_of = 2026-10-15`, **When** the queue is built, **Then** every accepted invoice appears exactly once, rejected and duplicate rows do not appear, and the order is `INV-1009, INV-1012, INV-1008, INV-1007, INV-1005, INV-1006, INV-1014, INV-1004, INV-1003, INV-1010, INV-1001, INV-1002, INV-1013, INV-1011`.
+2. **Given** the same accepted invoices, **When** the queue is built a second time, **Then** the sequence is byte-for-byte identical in invoice identity and order.
+3. **Given** invoices in the `91+`, `61-90`, `31-60`, `1-30`, `current`, and `paid` buckets, **When** the queue is ordered, **Then** the bucket priority is `91+` first, then `61-90`, `31-60`, `1-30`, `current`, and `paid` last.
+4. **Given** two invoices in the same bucket, **When** their remaining balances differ, **Then** the larger remaining balance comes first.
+5. **Given** two invoices with the same bucket and the same remaining balance, **When** their issuers differ, **Then** the issuer name in ascending order is the next tie-breaker, and only then the invoice identifier in ascending order.
+6. **Given** the fully paid invoice `INV-1011`, **When** the queue is built, **Then** it appears in the `paid` bucket after every other accepted invoice, with a remaining balance of `0`.
+7. **Given** an empty accepted set, **When** the queue is built, **Then** the queue is empty rather than an error.
+
+---
+
+### User Story 2 - Record who owns an invoice and what was noted (Priority: P2)
+
+An operator assigns an owner and writes free-text notes on queue items. Those annotations remain attached to the right invoices after the queue is rebuilt, after the import is repeated, and after the application is restarted.
+
+**Why this priority**: A deterministic queue is only actionable when the operator can record ownership and context without losing it. AT-05 explicitly requires owner and note persistence across restart.
+
+**Independent Test**: Assign an owner to one accepted invoice and notes to another, rebuild the queue, restart the application, and verify that each annotation is still attached to the same invoice identity.
+
+**Acceptance Scenarios**:
+
+1. **Given** an accepted invoice in the queue, **When** an owner value is assigned, **Then** that queue item reports the owner and no other item inherits it.
+2. **Given** an accepted invoice in the queue, **When** free-text notes are assigned, **Then** that queue item reports the exact note text and no other item inherits it.
+3. **Given** an item with an owner and notes, **When** the application is restarted, **Then** the same invoice identity still reports the same owner and the same notes.
+4. **Given** items with owner and note assignments, **When** the queue is rebuilt from the same accepted set, **Then** the annotations are still attached and the ordering is unchanged.
+5. **Given** an item with an owner and notes, **When** the owner is cleared, **Then** only the owner becomes unassigned and the notes remain unchanged; clearing notes behaves the same way in reverse.
+6. **Given** an annotated invoice, **When** the operator changes only its owner or notes, **Then** its balance, days overdue, bucket, and queue position do not change.
+7. **Given** an invoice that is not accepted, **When** an owner or notes assignment is attempted, **Then** no queue item is created and the queue is unchanged.
+8. **Given** no annotation store file exists, **When** the queue is built, **Then** every item reports no owner and no notes and no error occurs.
+9. **Given** an unreadable or malformed annotation store, **When** an owner or notes change is attempted, **Then** the change is refused with a clear error and the existing file is left untouched.
+10. **Given** a successful owner or notes change, **When** the process is stopped immediately afterwards, **Then** the same invoice identity still reports the change after restart.
+
+---
+
+### Edge Cases
+
+- Two accepted invoices from different issuers have the same `invoice_id`; they remain separate queue items with independent owners and notes, and the issuer tie-breaker prevents an ambiguous order.
+- Two invoices share a bucket and a remaining balance; issuer then invoice identifier resolve the order completely.
+- A pending invoice due today or in the future is in `current`; it appears after all overdue buckets and before `paid`.
+- A fully paid invoice remains in the queue in `paid` with a zero balance and the lowest priority.
+- A rejected or duplicate row can never receive an owner or notes and never appears in the queue.
+- An owner or note containing non-ASCII text, punctuation, or multiple lines is preserved exactly across a restart.
+- An empty or whitespace-only owner means unassigned; an empty notes value means no notes.
+- The annotation store file does not exist: the queue still builds and every item reports no owner and no notes.
+- The annotation store is unreadable, malformed, contains duplicate invoice identities, or declares an unsupported version: the feature raises a clear error, leaves the file unchanged, and does not silently rebuild an empty store.
+- An annotation-store write is interrupted: the previous complete store remains readable, and a partially written file is never loaded.
+- An annotation record with both owner and notes empty is equivalent to no annotation and need not be retained.
+- Concurrent writes from multiple processes are out of scope; the annotation store is local single-writer state.
+- Re-importing the same CSV must not duplicate queue items or annotation records.
+- An annotated invoice that is absent from the current accepted set is not shown in the queue, but its annotation is retained by invoice identity and reappears if that invoice is accepted again.
+- Annotation assignments attach to invoice identity, not to a queue position, so a reordering caused by changed balances or aging cannot move an owner or note to another invoice.
+- An empty accepted set produces an empty queue and no errors.
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+- **FR-001**: The feature MUST build a follow-up queue from the accepted invoices produced by the existing `import_invoices` capability, using its explicit `as_of` date. It MUST NOT re-implement import classification or mutate the import result.
+- **FR-002**: The queue MUST contain exactly one item per accepted invoice, keyed by the pair `(issuer, invoice_id)`. Rejected rows and both duplicate classifications MUST NOT produce queue items.
+- **FR-003**: The queue MUST include every accepted invoice, including an invoice with a remaining balance of `0`, which belongs to the `paid` bucket.
+- **FR-004**: Every queue item MUST expose the invoice identity `(issuer, invoice_id)`, `remaining_balance_cents`, `days_overdue`, `aging_bucket`, owner, notes, and its position in the queue.
+- **FR-005**: The queue MUST be sorted by a single total order:
+  1. aging bucket priority: `91+`, then `61-90`, then `31-60`, then `1-30`, then `current`, then `paid`;
+  2. remaining balance in descending order, so the larger balance comes first;
+  3. issuer in ascending, case-sensitive, locale-independent text order;
+  4. invoice identifier in ascending, case-sensitive, locale-independent text order.
+- **FR-006**: The final tie-break sequence MUST be total for accepted invoices. The issuer tie-breaker MUST precede the invoice identifier because invoice identifiers are only unique within an issuer.
+- **FR-007**: Queue ordering MUST be a pure function of invoice row data and the as-of date. It MUST NOT depend on the clock, randomness, insertion order beyond the documented keys, owner, notes, or storage order.
+- **FR-008**: Building the queue twice from the same accepted set and as-of date MUST produce the same sequence of invoice identities.
+- **FR-009**: Each queue item MUST support an optional owner, recorded as free text and attached to the invoice identity. No owner means unassigned.
+- **FR-010**: Each queue item MUST support optional free-text notes, attached to the invoice identity and stored exactly as entered. Notes MAY contain multiple lines and non-ASCII characters.
+- **FR-011**: Owner and notes MUST persist across an application restart and remain attached to the same invoice identity with unchanged content.
+- **FR-012**: Owner and notes MUST be independent of each other: either MAY be set, changed, or cleared without altering the other.
+- **FR-013**: Changing an owner or notes MUST NOT change any invoice's remaining balance, days overdue, aging bucket, or queue position.
+- **FR-014**: Re-importing the same accepted set MUST NOT create duplicate queue items or duplicate annotation records, and MUST NOT detach annotations from their invoice identities.
+- **FR-015**: Annotations MUST be retained by invoice identity when that invoice is absent from the current accepted set. Such annotations MUST NOT be displayed as queue items until the invoice is accepted again.
+- **FR-016**: An owner or notes assignment MUST be refused for an invoice identity that is not in the current accepted set. A rejected or duplicate row identity MUST NOT become annotatable through this feature.
+- **FR-017**: An empty accepted set MUST produce an empty queue without error, and MUST preserve any stored annotations for later accepted sets.
+- **FR-018**: All monetary values used for ordering and display MUST remain integer cents; no floating-point arithmetic may be introduced.
+- **FR-019**: The feature MUST remain local and offline: no network calls, external services, credentials, secrets, or real personal data.
+- **FR-020**: The feature MUST NOT provide authentication, roles, multi-tenancy, reminders, outbound messages, payment processing, or collections automation. Owner is an internal label only.
+- **FR-021**: The feature MUST leave the existing `import_invoices` behaviour unchanged, including its classifications, balances, aging buckets, and totals.
+- **FR-022**: Owner and notes MUST be stored in a single versioned UTF-8 JSON annotation store at a caller-supplied path, defaulting to `state/followup_annotations.json` relative to the project root. Each stored record MUST carry `issuer`, `invoice_id`, `owner`, and `notes`, and MUST be keyed by the exact `(issuer, invoice_id)` pair rather than by row number, queue position, or a concatenated delimiter string.
+- **FR-023**: Each successful owner or notes change MUST be written through to the annotation store immediately, using atomic whole-file replacement, before the change is reported as applied. A crash during a write MUST NOT leave a partially written store that can be loaded.
+- **FR-024**: A missing annotation store MUST be treated as an empty annotation set. An unreadable, malformed, duplicate-identity, or unsupported-version store MUST cause a clear error, MUST leave the existing file untouched, and MUST NOT be silently reset or overwritten.
+- **FR-025**: Owner and notes MUST be assignable and clearable only through explicit local library calls that take the annotation-store path, the invoice identity, and the new value. No CLI, network service, or authenticated user interface is required, and hand-editing the store is not a supported assignment path.
+- **FR-026**: The annotation store MUST remain local runtime state, not an import fixture or source of invoice truth. Its contents MUST never feed back into import classification, balances, aging, or queue ordering.
+
+### Key Entities *(include if feature involves data)*
+
+- **Queue item**: One accepted invoice in the follow-up queue, carrying its identity, balance, days overdue, aging bucket, owner, notes, and priority position.
+- **Invoice identity**: The pair `(issuer, invoice_id)`, which uniquely identifies an invoice for ordering and annotation purposes.
+- **Aging bucket priority**: The deterministic severity order `91+`, `61-90`, `31-60`, `1-30`, `current`, `paid`; it is an ordering concept, not a replacement for the existing bucket labels.
+- **Owner**: An optional free-text label on one invoice identity, expressing who is responsible for the next action. It is not an authenticated user.
+- **Notes**: Optional free-text context on one invoice identity, preserved verbatim across rebuilds and restarts.
+- **Annotation record**: The stored `owner` and `notes` for one `(issuer, invoice_id)` identity, independent of queue position and import order. A record with both values empty is equivalent to no annotation.
+- **Annotation store**: The single versioned UTF-8 JSON file that holds annotation records, defaulting to `state/followup_annotations.json` under the project root, keyed by invoice identity and replaced atomically on each successful change.
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-001**: Building the queue repeatedly from the same accepted set and as-of date yields an identical sequence of invoice identities in 100% of runs.
+- **SC-002**: For the frozen accepted set at `as_of = 2026-10-15`, the queue order is exactly `INV-1009, INV-1012, INV-1008, INV-1007, INV-1005, INV-1006, INV-1014, INV-1004, INV-1003, INV-1010, INV-1001, INV-1002, INV-1013, INV-1011`.
+- **SC-003**: For every accepted invoice, the queue position is fully explained by bucket priority, then descending remaining balance, then ascending issuer, then ascending invoice identifier, with zero unresolved ties.
+- **SC-004**: Owner and notes assigned to queue items are still present, on the same invoice identities and with unchanged content, after a restart in 100% of tested assignments.
+- **SC-005**: Changing owner or notes leaves the queue order, balances, days overdue, and aging buckets unchanged in 100% of tested cases.
+- **SC-006**: Rebuilding the queue from the same input produces no duplicated queue items and no duplicated or detached annotation records.
+- **SC-007**: No rejected or duplicate row appears in the queue, and no annotation can be attached to one.
+- **SC-008**: The queue handles an empty accepted set without error and produces zero items.
+- **SC-009**: The feature operates with networking blocked and introduces no credentials, secrets, or real personal data.
+- **SC-010**: The existing import classifications, balances, aging buckets, and totals remain unchanged.
+- **SC-011**: With no annotation store present, the queue builds successfully and all items report no owner and no notes in 100% of runs.
+- **SC-012**: An unreadable, malformed, duplicate-identity, or unsupported-version annotation store produces a clear error and is never silently overwritten in 100% of tested cases.
+- **SC-013**: Every successful owner or notes change is durable before it is reported, and survives an immediate process stop in 100% of tested cases.
+
+## Assumptions
+
+- `ACCEPTANCE.md` AT-05 is the source of truth. Its ordering example uses "e.g.", so the binding requirement is a repeatable, pure ordering; this specification makes the requested keys explicit and adds the issuer tie-breaker needed for a total order.
+- The follow-up queue is built over the full accepted set, including the zero-balance `paid` item, because AT-05 explicitly names the accepted set as the input. Paid invoices are always last.
+- Bucket priority is severity-descending (`91+` before `61-90` before `31-60` before `1-30` before `current` before `paid`), matching the intent of AT-05's `days_overdue` descending example while honoring the requested bucket-first ordering.
+- "Balance" means `remaining_balance_cents` from the import result, ordered descending; "invoice ID" means the invoice identifier, ordered ascending after the issuer.
+- Text comparisons are case-sensitive and locale-independent so the order cannot vary by machine configuration.
+- Each invoice identity carries one owner value and one free-text notes value. Notes may be a multi-line block; a separate append-only note history is not required by AT-05 and is out of scope.
+- Annotations are durable local state for a single operator and are held in one versioned JSON annotation store at a caller-supplied path, defaulting to `state/followup_annotations.json`; "restart" means the same local installation starts again with the same store path and its state intact.
+- JSON is chosen because the project is standard-library-only and the store must remain local and human-inspectable; no database, external service, or new dependency is introduced.
+- The annotation store is single-writer local runtime state. Concurrent writes from multiple processes are out of scope, and the default store path is expected to be excluded from version control rather than treated as a frozen fixture.
+- Annotations are keyed by `(issuer, invoice_id)` rather than by row number or queue position, so sorting and re-importing cannot move an annotation to a different invoice.
+- The queue is rebuilt from a fresh import result whenever the accepted set or as-of date is supplied; no import row state is stored or mutated by this feature.
+- Roadmap R2 payment events, R3 promised-pay annotations, R5 schema migration, R4 filter/queue-hardening extras beyond AT-05, reminders, and deployment remain out of scope.
+[0m
+[0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
+Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+===================================================================
+--- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
++++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+@@ -15,9 +15,9 @@
+ - Q: AT-05 gives an illustrative ordering (`days_overdue` descending, then balance, then issuer, then invoice ID), while the request says bucket, then balance, then invoice ID. Which is binding? → A: AT-05's binding pass criterion is that ordering is a pure function of row data and is identical on repeated runs. The request's keys are used, with `issuer` inserted before `invoice_id` so the order is total even when two issuers reuse the same invoice identifier.
+ - Q: Does the follow-up queue contain every accepted invoice or only invoices with a positive balance? → A: AT-05 names the accepted set as the input, so the queue contains every accepted invoice; a fully paid invoice remains in the queue in the `paid` bucket at the lowest priority.
+ - Q: Where should owners and notes be stored, in what format, and how should each annotation be keyed so it survives a restart? → A: In a single versioned UTF-8 JSON file at a caller-supplied path, defaulting to `state/followup_annotations.json` under the project root; each record stores `issuer`, `invoice_id`, `owner`, and `notes`, keyed by the exact `(issuer, invoice_id)` pair, and each successful change is written through immediately with atomic whole-file replacement.
+ - Q: What should happen when the annotation store is missing, unreadable, corrupt, or has an unsupported version? → A: A missing file means an empty annotation set; an unreadable, malformed, duplicate-identity, or unsupported-version file raises a clear error and is never overwritten or silently reset.
+-- Q: How should an operator assign or clear an owner and notes? → A: Through explicit local library calls that take the annotation-store path, the invoice identity, and the new owner or notes value; no CLI, network, or authenticated interface is required.
++- Q: How should an operator assign or clear an owner and notes? → A: Through explicit local library calls that take the annotation-store path, the current accepted identities, the invoice identity, and the new owner or notes value; no CLI, network, or authenticated interface is required.
+ 
+ ## User Scenarios & Testing *(mandatory)*
+ 
+ ### User Story 1 - See one deterministic priority order (Priority: P1)
+
+[0m
+[0m← [0mEdit specs/004-deterministic-followup-queue/spec.md
+Index: /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+===================================================================
+--- /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
++++ /workspace/l35-run/specs/004-deterministic-followup-queue/spec.md
+@@ -113,9 +113,9 @@
+ - **FR-021**: The feature MUST leave the existing `import_invoices` behaviour unchanged, including its classifications, balances, aging buckets, and totals.
+ - **FR-022**: Owner and notes MUST be stored in a single versioned UTF-8 JSON annotation store at a caller-supplied path, defaulting to `state/followup_annotations.json` relative to the project root. Each stored record MUST carry `issuer`, `invoice_id`, `owner`, and `notes`, and MUST be keyed by the exact `(issuer, invoice_id)` pair rather than by row number, queue position, or a concatenated delimiter string.
+ - **FR-023**: Each successful owner or notes change MUST be written through to the annotation store immediately, using atomic whole-file replacement, before the change is reported as applied. A crash during a write MUST NOT leave a partially written store that can be loaded.
+ - **FR-024**: A missing annotation store MUST be treated as an empty annotation set. An unreadable, malformed, duplicate-identity, or unsupported-version store MUST cause a clear error, MUST leave the existing file untouched, and MUST NOT be silently reset or overwritten.
+-- **FR-025**: Owner and notes MUST be assignable and clearable only through explicit local library calls that take the annotation-store path, the invoice identity, and the new value. No CLI, network service, or authenticated user interface is required, and hand-editing the store is not a supported assignment path.
++- **FR-025**: Owner and notes MUST be assignable and clearable only through explicit local library calls that take the annotation-store path, the current accepted identities, the invoice identity, and the new value. No CLI, network service, or authenticated user interface is required, and hand-editing the store is not a supported assignment path.
+ - **FR-026**: The annotation store MUST remain local runtime state, not an import fixture or source of invoice truth. Its contents MUST never feed back into import classification, balances, aging, or queue ordering.
+ 
+ ### Key Entities *(include if feature involves data)*
+ 
+
+[0m
+[0m$ [0mgrep -c '^- \[x\]' specs/004-deterministic-followup-queue/checklists/requirements.md; grep -c '^- \[ \]' specs/004-deterministic-followup-queue/checklists/requirements.md; grep -n '\[ \]' specs/004-deterministic-followup-queue/checklists/requirements.md || true
+16
+0
+[0m
+[0m$ [0mgrep -n "storage mechanism is not prescribed\|TODO\|NEEDS CLARIFICATION" specs/004-deterministic-followup-queue/spec.md || true; grep -c '^- Q:' specs/004-deterministic-followup-queue/spec.md
+5
+[0m
+## Clarifications (non-interactive, auto-applied)
+
+**Question 1:** Where should owners and notes be stored, in what format, and how should each annotation be keyed so it survives a restart?  
+Why it matters: Without a fixed local store and identity key, restart persistence and re-import stability cannot be tested.
+
+**Recommended:** Option A - stdlib-only, human-inspectable, and keys records by the exact `(issuer, invoice_id)` pair without delimiter ambiguity.
+
+| Option | Description |
+|--------|-------------|
+| A | Single versioned UTF-8 JSON file at a caller-supplied path, defaulting to `state/followup_annotations.json`; one record per `(issuer, invoice_id)`; immediate atomic whole-file replacement |
+| B | Single SQLite database file keyed by `(issuer, invoice_id)` |
+| C | CSV sidecar with `issuer` and `invoice_id` columns |
+| D | Separate text files per invoice identity |
+| Short | Provide a different short answer (<=5 words) |
+
+**Applied:** A.
+
+**Question 2:** What should happen when the annotation store is missing, unreadable, corrupt, or has an unsupported version?  
+Why it matters: Silently treating damaged ownership data as empty would erase operator work on the next save.
+
+**Recommended:** Option A - A missing file is harmless, while damaged data fails safely without being overwritten.
+
+| Option | Description |
+|--------|-------------|
+| A | Missing = empty; corruption, duplicate identities, or unsupported version = clear error, file untouched |
+| B | Missing or corrupt = empty, then overwrite on next save |
+| C | Missing = error; corrupt = back up and start empty |
+| D | Missing = empty; corrupt = ignore bad records and continue |
+| Short | Provide a different short answer (<=5 words) |
+
+**Applied:** A.
+
+**Question 3:** How should an operator assign or clear an owner and notes?  
+Why it matters: The assignment entry point determines the test surface and task breakdown for User Story 2.
+
+**Recommended:** Option A - Explicit local library calls match the existing library-only, stdlib-only project.
+
+| Option | Description |
+|--------|-------------|
+| A | Local library calls taking the store path, current accepted identities, invoice identity, and new value |
+| B | CLI commands only |
+| C | Both library calls and CLI commands |
+| D | Hand-edit the JSON file only |
+| Short | Provide a different short answer (<=5 words) |
+
+**Applied:** A.
+
+## Completion Report
+
+- **Questions asked & answered:** 3 (all auto-resolved non-interactively)
+- **Updated spec:** `specs/004-deterministic-followup-queue/spec.md`
+- **Sections touched:** Clarifications; User Story 2 Acceptance Scenarios; Edge Cases; Functional Requirements (FR-022–FR-026); Key Entities; Success Criteria (SC-011–SC-013); Assumptions
+- **Spec quality checklist:** 16/16 → 16/16 items passing; no items changed state
+- **Extension hooks:** none; `.specify/extensions.yml` is absent
+
+| Category | Status |
+|----------|--------|
+| Functional Scope & Behavior | Clear |
+| Domain & Data Model | Resolved — annotation store, record fields, identity keying |
+| Interaction & UX Flow | Resolved — local library assignment calls; missing-store behavior |
+| Non-Functional Quality Attributes | Resolved — durability, atomic writes, corruption handling |
+| Integration & External Dependencies | Clear — local/offline only |
+| Edge Cases & Failure Handling | Resolved — missing/corrupt/interrupted store, duplicate identities |
+| Constraints & Tradeoffs | Resolved — JSON, stdlib-only, single-writer local state |
+| Terminology & Consistency | Clear |
+| Completion Signals | Resolved — measurable SC-011–SC-013 |
+| Misc / Placeholders | Clear |
+
+Multi-process concurrency is explicitly out of scope per the single-operator constraint; schema migration remains an R5 concern, though the store is now versioned to support it.
+
+**Suggested next command:** `/speckit.plan`
+exit=0
