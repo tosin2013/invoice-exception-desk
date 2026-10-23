@@ -5419,3 +5419,2012 @@ Implemented all 20 tasks and committed once (`fe6139e`).
 - `python -m pytest -q`: **119 passed**.
 - No `.specify/extensions.yml` hooks present.
 
+
+===== L3.5 Agent A (OpenCode) run =====
+===== preflight Fri Oct 23 15:26:56 EDT 2026 =====
+│     CLI Version    1.1.3                                                     │
+Integration status: OK
+Default integration: opencode
+Installed integrations: opencode
+Multi-install safe: yes
+Shared templates target alignment: opencode
+Modified managed files: 0
+Missing managed files: 0
+Invalid manifest paths: 0
+Unchecked manifests: 0
+1.19.3
+===== opencode run: specify (Fri Oct 23 15:27:10 EDT 2026) =====
+[0m
+> build · deepseek-v4.1-flash-free
+[0m
+[0m$ [0mfind . -maxdepth 3 -iname "ACCEPTANCE.md" -o -maxdepth 3 -iname "extensions.yml" -o -maxdepth 2 -iname "constitution.md" -o -maxdepth 3 -iname "init-options.json" | head -50
+./ACCEPTANCE.md
+./.specify/memory/constitution.md
+./.specify/init-options.json
+[0m
+[0m$ [0mls -la && echo "---SPECIFY---" && ls -la .specify 2>/dev/null && echo "---SPECS---" && ls -la specs 2>/dev/null
+total 428
+drwxr-xr-x   12 box box   4096 Oct 23 15:27 .
+drwxr-xr-x. 128 box box  12288 Oct 23 15:26 ..
+drwxr-xr-x    8 box box   4096 Oct 23 15:27 .git
+-rw-r--r--    1 box box     66 Oct 23 15:26 .gitignore
+drwxr-xr-x    4 box box   4096 Oct 23 15:27 .opencode
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 .pytest_cache
+drwxr-xr-x    7 box box   4096 Oct 23 15:26 .specify
+drwxr-xr-x    5 box box   4096 Oct 23 15:26 .venv
+-rw-r--r--    1 box box   6918 Oct 23 15:26 ACCEPTANCE.md
+-rw-r--r--    1 box box   1989 Oct 23 15:26 NON_GOALS.md
+-rw-r--r--    1 box box   1171 Oct 23 15:26 README.md
+-rw-r--r--    1 box box   6621 Oct 23 15:26 ROADMAP.md
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 bill_split
+drwxr-xr-x    2 box box   4096 Oct 23 15:26 data
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 invoice_desk
+-rw-r--r--    1 box box    124 Oct 23 15:26 pyproject.toml
+-rw-r--r--    1 box box 346320 Oct 23 15:27 run.log
+drwxr-xr-x    5 box box   4096 Oct 23 15:26 specs
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 tests
+---SPECIFY---
+total 40
+drwxr-xr-x  7 box box 4096 Oct 23 15:26 .
+drwxr-xr-x 12 box box 4096 Oct 23 15:27 ..
+-rw-r--r--  1 box box  586 Oct 23 15:26 .gitignore
+-rw-r--r--  1 box box  153 Oct 23 15:26 init-options.json
+-rw-r--r--  1 box box  283 Oct 23 15:26 integration.json
+drwxr-xr-x  2 box box 4096 Oct 23 15:26 integrations
+drwxr-xr-x  2 box box 4096 Oct 23 15:26 memory
+drwxr-xr-x  3 box box 4096 Oct 23 15:26 scripts
+drwxr-xr-x  2 box box 4096 Oct 23 15:26 templates
+drwxr-xr-x  3 box box 4096 Oct 23 15:26 workflows
+---SPECS---
+total 20
+drwxr-xr-x  5 box box 4096 Oct 23 15:26 .
+drwxr-xr-x 12 box box 4096 Oct 23 15:27 ..
+drwxr-xr-x  2 box box 4096 Oct 23 15:26 001-split-bill
+drwxr-xr-x  3 box box 4096 Oct 23 15:26 002-weighted-split
+drwxr-xr-x  3 box box 4096 Oct 23 15:26 003-desk-import
+[0m
+[0m$ [0mcat ACCEPTANCE.md && echo "===NON_GOALS===" && cat NON_GOALS.md && echo "===ROADMAP===" && cat ROADMAP.md
+# ACCEPTANCE — Invoice Exception Desk (AT-01 .. AT-10)
+
+Acceptance suite specification. The executable R0 checks live in `tests/test_oracle.py`; the
+application acceptance for AT-01..AT-05, AT-09, AT-10 is executed in **R1**, and AT-06/AT-07/AT-08
+in **R2/R3/R5** respectively.
+
+**Frozen fixture.** `data/invoices.csv` (30 rows, seed `20261015`, as_of `2026-10-15`).
+**Source of truth.** `data/oracle.json`, produced by `data/compute_oracle.py`. Expected values below
+quote the oracle; if the seed changes, the oracle — not this table — wins.
+
+Import totals (oracle): `total_rows=30`, `accepted=14`, `rejected=12`,
+`duplicate_identical=2`, `duplicate_inconsistent=2`, `outstanding_invoice_count=13`,
+`total_outstanding_cents=2139435`, `total_paid_cents=289999`.
+
+Aging totals (accepted rows): `current={3, 597047}`, `1-30={3, 396862}`, `31-60={3, 259664}`,
+`61-90={2, 863731}`, `91+={2, 22131}`, `paid={1, 0}`.
+
+---
+
+## AT-01 — Import counts & idempotency
+
+- **Inputs:** `data/invoices.csv`; import twice in the same store.
+- **Expected outcomes:** First import yields accepted 14, rejected 12, duplicate_identical 2,
+  duplicate_inconsistent 2 (rows 15–18 are the duplicates; row 11 `INV-1011` fully pays down).
+  Second import changes no counts and no balances (identical duplicates remain no-ops; nothing
+  is re-imported as new).
+- **Oracle refs:** `rows[].status`; `totals.*` in `data/oracle.json`.
+- **Pass criterion:** After both runs, store counts equal the oracle totals and row-level statuses
+  match `oracle.rows` exactly.
+
+## AT-02 — Rejection reasons, no partial import
+
+- **Inputs:** rows 19–30 of `data/invoices.csv`.
+- **Expected outcomes:** each rejected row carries exactly its oracle reason, and **no** field from a
+  rejected row is written to the store:
+  `19 invalid_amount`, `20 invalid_amount`, `21 invalid_amount`, `22 invalid_date`, `23 invalid_date`,
+  `24 invalid_date`, `25 missing_required_field`, `26 invalid_currency`, `27 invalid_payment`,
+  `28 invalid_payment`, `29 empty_row`, `30 empty_row`.
+- **Oracle refs:** rows 19–30 (all `status=rejected`).
+- **Pass criterion:** reason per row matches; store contains zero records derived from rejected rows.
+
+## AT-03 — Integer-cent sums, zero balance excluded
+
+- **Inputs:** accepted rows; store the fully paid row `INV-1011` (row 11, remaining `0`).
+- **Expected outcomes:** all balances are integer cents; `total_outstanding_cents=2139435`
+  over `outstanding_invoice_count=13`; `INV-1011` is excluded from the outstanding sum and bucket
+  `paid` holds `remaining_cents=0`.
+- **Oracle refs:** `totals.total_outstanding_cents`, `totals.outstanding_invoice_count`,
+  `totals.aging.paid`, row 11.
+- **Pass criterion:** reported outstanding equals the oracle sum and count; no float rounding;
+  the zero-balance invoice contributes `0` and is not counted as outstanding.
+
+## AT-04 — Aging boundaries
+
+- **Inputs:** accepted rows 1–14; as_of `2026-10-15` (America/New_York).
+- **Expected outcomes:** `overdue = balance > 0 AND due_date < as_of`; buckets:
+  `INV-1001` not due → `current`; `INV-1002` due today → `current`; `INV-1003` 1d → `1-30`;
+  `INV-1004` 30d → `1-30`; `INV-1005` 31d → `31-60`; `INV-1006` 60d → `31-60`;
+  `INV-1007` 61d → `61-90`; `INV-1008` 90d → `61-90`; `INV-1009` 91d → `91+`;
+  `INV-1012` 91d → `91+`; `INV-1014` 31d → `31-60`; `INV-1013` future → `current`.
+- **Oracle refs:** `rows[].days_overdue`, `rows[].aging_bucket`.
+- **Pass criterion:** every row's `days_overdue` and `aging_bucket` equal the oracle; boundaries at
+  0/1/30/31/60/61/90/91 land in the specified bucket.
+
+## AT-05 — Deterministic prioritization + owner/notes persistence
+
+- **Inputs:** the accepted set; two owner/note assignments; a restart.
+- **Expected outcomes:** the follow-up queue order is a pure function of row data (e.g. sort by
+  `days_overdue` desc, then `remaining_balance_cents` desc, then `issuer`, then `invoice_id`), so two
+  runs produce identical order; owners and notes persist across restart.
+- **Oracle refs:** `rows[].days_overdue`, `rows[].remaining_balance_cents`, `rows[].issuer`,
+  `rows[].invoice_id`.
+- **Pass criterion:** identical ordering on repeated runs; owner/notes survive a restart unchanged.
+
+## AT-06 — Payment events: idempotency, overpay, negative (R2)
+
+- **Inputs:** a payment event against an accepted row; the same event ID replayed; an overpay
+  (`paid > amount`); a negative payment. The oracle already rejects raw overpay/negative rows
+  (rows 27, 28 → `invalid_payment`).
+- **Expected outcomes:** replaying an event ID is a no-op (balance unchanged); an overpayment is
+  rejected; a negative payment is rejected; the original `amount_cents` is never overwritten;
+  remaining balance = `amount_cents - sum(valid payments)`.
+- **Oracle refs:** rows 27, 28; partial-payment rows 10 (`INV-1010`, remaining `60000`),
+  11 (`INV-1011`, remaining `0`), 12 (`INV-1012`, remaining `1`).
+- **Pass criterion:** replay is idempotent; invalid payments are rejected; original amounts immutable.
+
+## AT-07 — Promised-pay date never reduces balance (R3)
+
+- **Inputs:** set, then clear, a promised-pay date on an overdue accepted row.
+- **Expected outcomes:** balance, `days_overdue` and `aging_bucket` are unchanged; the promised-pay
+  date is stored as a note only.
+- **Oracle refs:** any accepted overdue row, e.g. row 7 `INV-1007` (61d, `61-90`).
+- **Pass criterion:** before/after balances and buckets are identical; only the annotation changes.
+
+## AT-08 — Migration preserves v1 (R5)
+
+- **Inputs:** a v1 data store; migrate to v2a (payments) and v2b (promised-pay).
+- **Expected outcomes:** migrated data reproduces pre-migration accepted rows, balances, buckets and
+  queue order exactly (equivalent to the oracle for the same CSV).
+- **Oracle refs:** full `rows[]` and `totals` from `data/oracle.json`.
+- **Pass criterion:** post-migration snapshot equals pre-migration snapshot; no row lost or altered.
+
+## AT-09 — No network / no secrets
+
+- **Inputs:** the repository and the running app during acceptance.
+- **Expected outcomes:** no outbound network calls, no external services, no credentials/tokens in
+  code, fixtures, or logs (see `NON_GOALS.md`).
+- **Oracle refs:** n/a (guardrail).
+- **Pass criterion:** acceptance passes with networking blocked; secret/PII scan is clean.
+
+## AT-10 — Fresh-checkout reproducibility
+
+- **Inputs:** a clean checkout with only the Python standard library.
+- **Expected outcomes:** `python3 data/generate_invoices.py` reproduces `data/invoices.csv`
+  byte-for-byte; `python3 data/compute_oracle.py` reproduces `data/oracle.json`; the test suite is green.
+- **Oracle refs:** `data/invoices.csv`, `data/oracle.json`.
+- **Pass criterion:** `python3 -m unittest discover -s tests -v` reports **OK** with 15 tests on a
+  fresh checkout, and regenerated artifacts are byte-identical to the committed ones.
+===NON_GOALS===
+# NON_GOALS — Invoice Exception Desk
+
+Explicit exclusions. If a proposed change touches one of these, it is out of scope for this effort
+and needs a separate decision (and, for anything touching data protection, separate review).
+
+1. **No real personal data (PII).** Only synthetic, fabricated fixtures. No customer, employee, or
+   contact records; no names, emails, phone numbers, addresses, or account numbers that map to people.
+2. **No credentials or secrets.** No API keys, tokens, passwords, connection strings, or `.env`
+   secrets in code, fixtures, or logs. The runtime is offline by design.
+3. **No reminders or outbound messages.** The tool never sends email/SMS/notifications and never
+   contacts anyone. Owner/notes are internal annotations only.
+4. **No payment processing.** It does not move money, charge cards, initiate ACH, or integrate with
+   payment gateways. Payment *events* (R2) are records for balance math, not transactions.
+5. **No tax advice or tax computation.** No tax rates, filing logic, or advice; amounts are the raw
+   invoice figures only.
+6. **No deployment or hosting.** No servers, containers, CI/CD to production, infra-as-code, or
+   release automation.
+7. **No authentication or multi-tenancy.** Single-operator, local, offline use. No logins, roles,
+   SSO, org accounts, or tenant isolation.
+8. **Not a QuickBooks/invoicing replacement.** It does not create invoices, define charts of
+   accounts, or reconcile ledgers. It is a decision queue over an imported CSV.
+9. **No external services / network calls.** Standard-library-only processing; no outbound requests
+   of any kind during import, aging, or queueing.
+10. **No collections workflow.** No dunning, promises-to-pay automation, escalation policies, or
+    legal/collections actions. A promised-pay date (R3) is a note, never a balance adjustment.
+
+See `ACCEPTANCE.md` AT-09 (no network/secrets) for the guardrail test intent, and `ROADMAP.md` for
+which stage owns each capability.
+===ROADMAP===
+# ROADMAP — Invoice Exception Desk
+
+Decision queue for a fictional B2B commercial-cleaning operator. Answers: *Which unpaid
+invoices need attention, what is truly outstanding, who does what next?* This is not
+invoicing, collections, payments, or a QuickBooks replacement (see `NON_GOALS.md`).
+
+- Product source: Notion child plan **"DRAFT v0.1 — Invoice Exception Desk"** (`<internal-plan-id>`).
+- This roadmap starts at **R0**, the only stage marked `[planned]` on the source plan.
+
+Legend — status: `done` | `planned` | `blocked`. Owner is the accountable party; the
+reviewer approves stage exit.
+
+| ID | Objective (one line) | Depends on | Owner | Status |
+|----|----------------------|------------|-------|--------|
+| R0 | Freeze discovery artifacts: data contract, oracle, acceptance suite, guardrails | — | Implementer (review: Founder) | done |
+| R1 | Build the read-only exception desk MVP: import, aging, follow-up queue | R0 | Implementer (review: Founder) | planned |
+| R2 | Add payment events: partial payments, idempotent event IDs, overpay/negative guards | R1 | Implementer (review: Founder) | planned |
+| R3 | Add promised-pay annotations (note-only; never mutates balance) | R2 | Implementer (review: Founder) | planned |
+| R4 | Prioritization, owners, notes persistence and queue workflow hardening | R1 | Implementer (review: Founder) | planned |
+| R5 | Schema/version migration (v1 → v2a → v2b) with no data loss | R2, R3 | Implementer (review: Founder) | planned |
+| R6 | Review, hardening, and hand-off readiness (no deployment) | R4, R5 | Implementer (review: Founder) | planned |
+
+---
+
+## R0 — Discovery & Spec Kit
+
+- **Objective:** Produce the frozen, verifiable discovery kit (data contract, deterministic
+  fixture, independently computed oracle, acceptance suite, guardrails) with no application build.
+- **In scope:** `SPEC.md`; `data/generate_invoices.py`; `data/invoices.csv`; `data/compute_oracle.py`;
+  `data/oracle.json`; `tests/test_oracle.py`; `ACCEPTANCE.md`; `NON_GOALS.md`; this roadmap; `R0_REPORT.md`.
+- **Out of scope:** Any application/runtime code, UI, persistence, network calls, deployment (**R1**).
+- **Dependencies:** None. Blocking dependency for every later stage.
+- **Owner:** Implementer; exit reviewed by Founder.
+- **Spec/test links:** `SPEC.md` (T1–T7); `tests/test_oracle.py`; `ACCEPTANCE.md` (AT-01..AT-10).
+- **Exit evidence:** Generator is byte-for-byte deterministic; `python3 -m unittest discover -s tests -v`
+  is green; `data/oracle.json` recomputes exactly; boundary cases match policy.
+
+## R1 — Exception Desk MVP
+
+- **Objective:** Import a CSV, classify accepted/rejected/duplicate rows with reasons, compute exact
+  remaining balance, days overdue and aging bucket as of an explicit as-of date, and present a
+  follow-up queue with owner and notes.
+- **In scope:** Import (AT-01, AT-02), integer-cent balances and sums (AT-03), aging (AT-04),
+  deterministic prioritization + owner/notes persistence (AT-05), no network/secrets (AT-09),
+  fresh-checkout reproducibility (AT-10).
+- **Out of scope:** Payments/partial payments (**R2**), promised-pay notes (**R3**), schema migration (**R5**),
+  deployment, auth/multi-tenancy (**R6 / NON_GOALS**).
+- **Dependencies:** R0.
+- **Owner:** Implementer; exit reviewed by Founder.
+- **Spec/test links:** `ACCEPTANCE.md` AT-01..AT-05, AT-09, AT-10; `data/oracle.json`.
+- **Exit evidence:** All R1 acceptance items pass against the frozen oracle on the generated CSV;
+  rejected rows never partially import; re-import is idempotent.
+
+## R2 — Payment Events (v2a)
+
+- **Objective:** Record (never overwrite) payment events so partial payments recalculate the
+  remaining balance without altering the original invoice amount.
+- **In scope:** Event-ID idempotency, no negative payments, no overpayment (AT-06); balance recalc.
+- **Out of scope:** Outbound payment collection/processing, bank feeds, promised pay (**R3**).
+- **Dependencies:** R1.
+- **Owner:** Implementer; exit reviewed by Founder.
+- **Spec/test links:** `ACCEPTANCE.md` AT-06; `data/oracle.json` (rows the partial-payment fixtures).
+- **Exit evidence:** Replaying the same payment event ID is a no-op; overpay/negative are rejected;
+  original `amount_cents` is immutable.
+
+## R3 — Promised-Pay Annotations (v2b)
+
+- **Objective:** Let an operator record a promised-pay date as a note for prioritization.
+- **In scope:** Store promised-pay date; it may influence ordering but **never** reduces balance (AT-07).
+- **Out of scope:** Automated reminders/messages, calendar sync, contracts.
+- **Dependencies:** R2.
+- **Owner:** Implementer; exit reviewed by Founder.
+- **Spec/test links:** `ACCEPTANCE.md` AT-07; `SPEC.md` user story BR-05.
+- **Exit evidence:** Setting/clearing a promised-pay date leaves all balances and aging buckets unchanged.
+
+## R4 — Prioritization, Owners & Notes
+
+- **Objective:** Harden the follow-up queue: deterministic priority ordering, owner assignment,
+  note history, and stable persistence across restarts.
+- **In scope:** AT-05 deterministic ordering + owner/notes persistence, queue filters.
+- **Out of scope:** Notifications, SLAs/automation, analytics beyond the queue.
+- **Dependencies:** R1 (R2/R3 fields become available during this stage).
+- **Owner:** Implementer; exit reviewed by Founder.
+- **Spec/test links:** `ACCEPTANCE.md` AT-05.
+- **Exit evidence:** Same input yields the same queue order; owner/notes survive restart; ties broken deterministically.
+
+## R5 — Schema & Version Migration
+
+- **Objective:** Migrate persisted data across v1 → v2a → v2b without data loss or balance drift.
+- **In scope:** Migration preserves v1 rows (AT-08); forward/backward compatibility checks.
+- **Out of scope:** Cross-tenant or cloud migration, deployment.
+- **Dependencies:** R2, R3.
+- **Owner:** Implementer; exit reviewed by Founder.
+- **Spec/test links:** `ACCEPTANCE.md` AT-08.
+- **Exit evidence:** Migrated store reproduces the pre-migration balances and queue exactly.
+
+## R6 — Review & Hand-off Readiness
+
+- **Objective:** Final review/hardening pass and a clean hand-off package; confirm guardrails hold.
+- **In scope:** Full acceptance run (AT-01..AT-10), secrecy/network checks (AT-09), reproducibility on a
+  fresh checkout (AT-10), documentation sync.
+- **Out of scope:** Deployment, hosting, auth/multi-tenancy, production operations.
+- **Dependencies:** R4, R5.
+- **Owner:** Implementer; approved by Founder.
+- **Spec/test links:** `ACCEPTANCE.md` AT-01..AT-10; `NON_GOALS.md`.
+- **Exit evidence:** Every acceptance item passes from a clean checkout with no network access.
+[0m
+[0m$ [0mcat .specify/init-options.json && echo "===TEMPLATES===" && ls -la .specify/templates && echo "===CONSTITUTION===" && cat .specify/memory/constitution.md
+{
+  "ai": "opencode",
+  "feature_numbering": "sequential",
+  "here": true,
+  "integration": "opencode",
+  "script": "sh",
+  "speckit_version": "1.1.3"
+}
+===TEMPLATES===
+total 40
+drwxr-xr-x 2 box box 4096 Oct 23 15:26 .
+drwxr-xr-x 7 box box 4096 Oct 23 15:26 ..
+-rw-r--r-- 1 box box 2033 Oct 23 15:26 checklist-template.md
+-rw-r--r-- 1 box box 2346 Oct 23 15:26 constitution-template.md
+-rw-r--r-- 1 box box 3682 Oct 23 15:26 plan-template.md
+-rw-r--r-- 1 box box 4556 Oct 23 15:26 spec-template.md
+-rw-r--r-- 1 box box 9171 Oct 23 15:26 tasks-template.md
+===CONSTITUTION===
+# bill-split + Invoice Exception Desk Constitution
+
+## Core Principles
+
+### I. Money is integer cents
+All amounts are integers in cents. No floats anywhere.
+
+### II. Deterministic and pure
+Functions have no I/O, randomness, or clock access. Same input, same output.
+
+### III. Standard library only
+Python 3.11+, no runtime dependencies. Tests use pytest.
+
+### IV. Small and tested
+Every public function has tests in `tests/`. Run with `python -m pytest -q`.
+
+### V. Spec and code together
+A behaviour change and its spec change land in the same commit.
+
+### VI. Synthetic data, offline only
+No real personal data, credentials, or network calls. Fixtures are synthetic (see `NON_GOALS.md`).
+
+### VII. Explicit as-of date
+Anything time-based takes an explicit `as_of` date argument. Never read the clock. Dates are ISO `YYYY-MM-DD` in America/New_York.
+
+### VIII. Sealed answer key per phase
+Each roadmap phase (R1 to R6) is graded against an answer key the builder never sees. The oracle is kept outside the repo during the build. Builder-written tests alone never mean "done".
+
+**Version**: 1.1.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-22
+[0m
+[0m$ [0mcat .specify/templates/spec-template.md && echo "===CHECKLIST TEMPLATE===" && cat .specify/templates/checklist-template.md
+# Feature Specification: [FEATURE NAME]
+
+**Feature Branch**: `[###-feature-name]`
+
+**Created**: [DATE]
+
+**Status**: Draft
+
+**Input**: User description: "$ARGUMENTS"
+
+## User Scenarios & Testing *(mandatory)*
+
+<!--
+  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
+  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
+  you should still have a viable MVP (Minimum Viable Product) that delivers value.
+
+  Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
+  Think of each story as a standalone slice of functionality that can be:
+  - Developed independently
+  - Tested independently
+  - Deployed independently
+  - Demonstrated to users independently
+-->
+
+### User Story 1 - [Brief Title] (Priority: P1)
+
+[Describe this user journey in plain language]
+
+**Why this priority**: [Explain the value and why it has this priority level]
+
+**Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
+
+**Acceptance Scenarios**:
+
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+2. **Given** [initial state], **When** [action], **Then** [expected outcome]
+
+---
+
+### User Story 2 - [Brief Title] (Priority: P2)
+
+[Describe this user journey in plain language]
+
+**Why this priority**: [Explain the value and why it has this priority level]
+
+**Independent Test**: [Describe how this can be tested independently]
+
+**Acceptance Scenarios**:
+
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+
+---
+
+### User Story 3 - [Brief Title] (Priority: P3)
+
+[Describe this user journey in plain language]
+
+**Why this priority**: [Explain the value and why it has this priority level]
+
+**Independent Test**: [Describe how this can be tested independently]
+
+**Acceptance Scenarios**:
+
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+
+---
+
+[Add more user stories as needed, each with an assigned priority]
+
+### Edge Cases
+
+<!--
+  ACTION REQUIRED: The content in this section represents placeholders.
+  Fill them out with the right edge cases.
+-->
+
+- What happens when [boundary condition]?
+- How does system handle [error scenario]?
+
+## Requirements *(mandatory)*
+
+<!--
+  ACTION REQUIRED: The content in this section represents placeholders.
+  Fill them out with the right functional requirements.
+-->
+
+### Functional Requirements
+
+- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
+- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]
+- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
+- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
+- **FR-005**: System MUST [behavior, e.g., "log all security events"]
+
+*Example of marking unclear requirements:*
+
+- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
+- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
+
+### Key Entities *(include if feature involves data)*
+
+- **[Entity 1]**: [What it represents, key attributes without implementation]
+- **[Entity 2]**: [What it represents, relationships to other entities]
+
+## Success Criteria *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Define measurable success criteria.
+  These must be technology-agnostic and measurable.
+-->
+
+### Measurable Outcomes
+
+- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in under 2 minutes"]
+- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
+- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
+- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+
+## Assumptions
+
+<!--
+  ACTION REQUIRED: The content in this section represents placeholders.
+  Fill them out with the right assumptions based on reasonable defaults
+  chosen when the feature description did not specify certain details.
+-->
+
+- [Assumption about target users, e.g., "Users have stable internet connectivity"]
+- [Assumption about scope boundaries, e.g., "Mobile support is out of scope for v1"]
+- [Assumption about data/environment, e.g., "Existing authentication system will be reused"]
+- [Dependency on existing system/service, e.g., "Requires access to the existing user profile API"]
+===CHECKLIST TEMPLATE===
+# [CHECKLIST TYPE] Checklist: [FEATURE NAME]
+
+**Purpose**: [Brief description of what this checklist covers]
+**Created**: [DATE]
+**Feature**: [Link to spec.md or relevant documentation]
+
+**Note**: This custom checklist is generated by the `/speckit.checklist` command based on feature context and requirements.
+**Review Ownership**: This checklist is a reviewer-owned requirements-quality review artifact. Mark an item `[x]` only when the reviewer determines the requirements-quality criterion is satisfied.
+**Marker Semantics**: `[x]` means the criterion has been reviewed and satisfied for requirements quality. It does not mean implementation work is complete.
+
+<!--
+  ============================================================================
+  IMPORTANT: The checklist items below are SAMPLE ITEMS for illustration only.
+
+  The /speckit.checklist command MUST replace these with actual items based on:
+  - User's specific checklist request
+  - Feature requirements from spec.md
+  - Technical context from plan.md
+  - Implementation details from tasks.md
+
+  DO NOT keep these sample items in the generated checklist file.
+  ============================================================================
+-->
+
+## [Category 1]
+
+- [ ] CHK001 First checklist item with clear action
+- [ ] CHK002 Second checklist item
+- [ ] CHK003 Third checklist item
+
+## [Category 2]
+
+- [ ] CHK004 Another category item
+- [ ] CHK005 Item with specific criteria
+- [ ] CHK006 Final item in this category
+
+## Notes
+
+- Mark items `[x]` only after review confirms the requirement-quality criterion is satisfied
+- Leave items unchecked when they still require clarification, correction, or reviewer evaluation
+- `/speckit.implement` reads checklist checkbox state as a gate and must not modify markers
+- `checklists/requirements.md` has a separate built-in lifecycle maintained by `/speckit.specify` and `/speckit.clarify`
+- Add comments or findings inline
+- Link to relevant resources or documentation
+- Items are numbered sequentially for easy reference
+[0m
+[0m$ [0mfind specs -maxdepth 3 -type f | sort && echo "===003 SPEC===" && cat specs/003-desk-import/spec.md 2>/dev/null && echo "===003 PLAN/TASKS===" && ls -la specs/003-desk-import
+specs/001-split-bill/plan.md
+specs/001-split-bill/spec.md
+specs/001-split-bill/tasks.md
+specs/002-weighted-split/analysis.md
+specs/002-weighted-split/checklists/requirements.md
+specs/002-weighted-split/plan.md
+specs/002-weighted-split/spec.md
+specs/002-weighted-split/tasks.md
+specs/003-desk-import/analysis.md
+specs/003-desk-import/checklists/requirements.md
+specs/003-desk-import/plan.md
+specs/003-desk-import/spec.md
+specs/003-desk-import/tasks.md
+===003 SPEC===
+# Feature Specification: Invoice CSV import and aging
+
+**Feature Branch**: `003-desk-import`
+
+**Created**: 2026-10-23
+
+**Status**: Draft
+
+**Input**: User description: "Build the first slice of roadmap phase R1 for the Invoice Exception Desk: a pure Python package invoice_desk that imports invoice CSV text, classifies every row as accepted, rejected (with a reason), duplicate_identical or duplicate_inconsistent, and for accepted rows computes the remaining balance in integer cents, days overdue and aging bucket as of an explicit as_of date, plus totals. It must satisfy ACCEPTANCE.md AT-01 to AT-04 on data/invoices.csv and follow the policies in ROADMAP.md and NON_GOALS.md. The follow-up queue, owners and notes (AT-05) are out of scope for this feature. Use the short name desk-import."
+
+## Clarifications
+
+### Session 2026-10-23
+
+- Q: When a later CSV differs from the original but contains invoice rows already accepted in the store, how should those overlapping rows be classified? → A: There is no store; import is a pure per-call function, so duplicate detection is scoped to the rows within that single call.
+- Q: Should surrounding whitespace in CSV cells be trimmed before validation, identity matching, and duplicate comparison, or treated as part of the value? → A: Trim leading/trailing whitespace on all seven fields before validation and duplicate comparison; case and internal characters remain significant.
+- Q: How should a data row be handled when its cell count does not match the seven header columns (for example, six or eight cells)? → A: Pad missing trailing cells with blanks and ignore cells beyond the seventh, then apply the normal validation precedence.
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 1 - Import and classify every invoice row (Priority: P1)
+
+An operator feeds the invoice CSV text into the desk and gets one clear outcome for every row: accepted, rejected with a reason, identical duplicate, or inconsistent duplicate. Invalid rows never leak into the desk, and importing the same file again does not double-count anything.
+
+**Why this priority**: Classification is the foundation of the desk. Without trustworthy import and duplicate handling, every balance and aging figure downstream is suspect.
+
+**Independent Test**: Import the frozen `data/invoices.csv` text as of `2026-10-15`, inspect every row outcome and the import counts, then call the import again with the same text and confirm the returned result is identical.
+
+**Acceptance Scenarios**:
+
+1. **Given** `data/invoices.csv` and `as_of = 2026-10-15`, **When** the file is imported, **Then** the result contains `total_rows = 30`, `accepted = 14`, `rejected = 12`, `duplicate_identical = 2`, and `duplicate_inconsistent = 2`.
+2. **Given** the same CSV text is imported again as a separate call, **When** the call completes, **Then** all import counts, row classifications, and balances are identical and no invoice is counted twice.
+3. **Given** rows 15-18, **When** they are classified against the earlier accepted rows in the same call, **Then** rows 15-16 are `duplicate_identical`, rows 17-18 are `duplicate_inconsistent`, and neither duplicate type creates or alters an accepted invoice.
+4. **Given** rejected rows 19-30, **When** they are classified, **Then** their reasons are exactly: `19 invalid_amount`, `20 invalid_amount`, `21 invalid_amount`, `22 invalid_date`, `23 invalid_date`, `24 invalid_date`, `25 missing_required_field`, `26 invalid_currency`, `27 invalid_payment`, `28 invalid_payment`, `29 empty_row`, `30 empty_row`.
+5. **Given** any rejected or duplicate row, **When** the import finishes, **Then** no field from that row contributes to the accepted invoices.
+
+---
+
+### User Story 2 - See the exact amount still outstanding (Priority: P2)
+
+An operator needs to know what is truly still owed. Accepted invoices report a remaining balance in whole cents, and the desk reports the total outstanding and total already paid without floating-point drift.
+
+**Why this priority**: Exact money is the reason the desk exists. A one-cent error or a paid invoice counted as outstanding destroys trust in the queue.
+
+**Independent Test**: Import the frozen CSV, inspect accepted balances, and verify the outstanding count and sums against the acceptance values, including the fully paid invoice.
+
+**Acceptance Scenarios**:
+
+1. **Given** an accepted invoice with amount `A` cents and recorded payment `P` cents, **When** its balance is calculated, **Then** the remaining balance is `A - P` integer cents and is never negative.
+2. **Given** the accepted rows from `data/invoices.csv`, **When** outstanding totals are calculated, **Then** `outstanding_invoice_count = 13` and `total_outstanding_cents = 2139435`.
+3. **Given** the accepted rows, **When** paid totals are calculated, **Then** `total_paid_cents = 289999`.
+4. **Given** `INV-1011` (row 11) with remaining balance `0`, **When** outstanding totals and the paid bucket are calculated, **Then** it contributes `0` to the outstanding sum, is excluded from the outstanding count, and the `paid` bucket reports `{count: 1, remaining_cents: 0}`.
+5. **Given** any reported amount, **When** it is inspected, **Then** it is an integer number of cents, never a floating-point value.
+
+---
+
+### User Story 3 - Age invoices against an explicit as-of date (Priority: P3)
+
+An operator reviews the desk for a specific reporting date and sees how overdue each unpaid invoice is, grouped into stable aging buckets. The result never depends on the machine clock.
+
+**Why this priority**: Aging turns raw balances into a work queue, but it is only useful if every operator and every rerun sees the same buckets for the same reporting date.
+
+**Independent Test**: Import the frozen CSV with `as_of = 2026-10-15`, then verify each accepted invoice's days overdue and bucket at the 0/1/30/31/60/61/90/91 boundaries plus the future and fully paid cases.
+
+**Acceptance Scenarios**:
+
+1. **Given** an accepted invoice with a positive remaining balance and `due_date < as_of`, **When** aging is calculated, **Then** it is marked overdue with days overdue equal to the calendar days from `due_date` to `as_of`.
+2. **Given** an accepted invoice due on `as_of` or later, **When** aging is calculated, **Then** days overdue is `0`, it is not overdue, and its bucket is `current`.
+3. **Given** the frozen accepted rows at `as_of = 2026-10-15`, **When** buckets are assigned, **Then** `INV-1001 current`, `INV-1002 current`, `INV-1003 1-30`, `INV-1004 1-30`, `INV-1005 31-60`, `INV-1006 31-60`, `INV-1007 61-90`, `INV-1008 61-90`, `INV-1009 91+`, `INV-1010 1-30`, `INV-1011 paid`, `INV-1012 91+`, `INV-1013 current`, and `INV-1014 31-60`.
+4. **Given** the frozen accepted rows, **When** aging totals are calculated, **Then** `current = {3, 597047}`, `1-30 = {3, 396862}`, `31-60 = {3, 259664}`, `61-90 = {2, 863731}`, `91+ = {2, 22131}`, and `paid = {1, 0}`.
+
+---
+
+### Edge Cases
+
+- A row with no cells, or with every cell blank after trimming surrounding whitespace, is `empty_row`; it is never reported as a different missing-field or validation error.
+- Surrounding whitespace is trimmed from all seven fields before validation and comparison, so ` USD ` is valid and matches `USD`, while `"Acme Cleaning Co "` and `"Acme Cleaning Co"` are the same value; case and internal spacing remain significant.
+- A row with fewer than seven cells is padded with blank values for the missing trailing fields, and cells beyond the seventh are ignored; the padded row then follows the normal precedence (so a missing required trailing field is `missing_required_field`, and an otherwise-all-blank row is `empty_row`).
+- A row with a blank required field is `missing_required_field`, even if another field would also fail validation.
+- Both `issue_date` and `due_date` must be real calendar dates in strict `YYYY-MM-DD` form; `2026-13-40`, `not-a-date`, and `10/15/2026` are invalid dates.
+- An amount of `abc`, `12.50`, or `-500` is invalid; a zero amount is valid as an integer number of cents.
+- A currency other than `USD`, including a case or spelling variant, is invalid.
+- A negative payment, an overpayment, or a non-integer payment is invalid; a payment exactly equal to the amount is valid and leaves zero remaining.
+- The same invoice identifier from a different issuer is not a duplicate; the duplicate key is issuer plus invoice identifier.
+- An inconsistent duplicate is flagged and never replaces or merges with the first accepted record.
+- A later row identical to an accepted record is `duplicate_identical` and is a no-op.
+- Processing the same CSV text again in a separate call produces an identical result; there is no stored state in which rows could accumulate.
+- An invoice due today is `current` with zero days overdue; an invoice due tomorrow is also `current` with zero days overdue.
+- An invoice with a positive balance of one cent is outstanding; only a zero balance is excluded from the outstanding count and sum.
+- A fully paid invoice whose due date is long past is placed in `paid`, never in an overdue bucket.
+- An empty CSV data set, or a file with only a header, yields zero rows and zero totals rather than an error.
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+- **FR-001**: The capability MUST accept invoice CSV text and an explicit `as_of` calendar date; it MUST NOT read the system clock.
+- **FR-002**: The CSV MUST be interpreted through its header row, which provides `issuer`, `invoice_id`, `issue_date`, `due_date`, `amount_cents`, `currency`, and `paid_cents`. Data rows MUST be evaluated in input order.
+- **FR-003**: Every data row MUST receive exactly one classification: `accepted`, `rejected` with exactly one reason, `duplicate_identical`, or `duplicate_inconsistent`. The four import counts MUST sum to the total number of data rows.
+- **FR-004**: Import MUST be a pure per-call function: no state persists between calls, duplicate detection is scoped to the rows of that single call, and the same CSV text and `as_of` date MUST return an identical result with no accumulated or double-counted records.
+- **FR-005**: The required fields are `issuer` and `invoice_id` (the identity). A row where either is missing or blank MUST be rejected as `missing_required_field`. A blank date, amount or currency is rejected with that field's own reason (`invalid_date`, `invalid_amount`, `invalid_currency`). A blank `paid_cents` means `0`. *(Analyze fix A1.)*
+- **FR-006**: A row with no cells or only blank cells MUST be rejected as `empty_row`. This reason takes precedence over every other validation reason.
+- **FR-007**: `issue_date` and `due_date` MUST each be a real Gregorian calendar date in strict `YYYY-MM-DD` form. Any other form or impossible date MUST be rejected as `invalid_date`.
+- **FR-008**: `amount_cents` MUST be one or more ASCII digits `[0-9]+` (no sign, no decimal point, no spaces inside). Anything else, including `+100`, `-500`, `12.50` and `abc`, MUST be rejected as `invalid_amount`. *(Analyze fix A3.)*
+- **FR-009**: `currency` MUST be exactly `USD`. Any other value MUST be rejected as `invalid_currency`.
+- **FR-010**: `paid_cents` MUST be a non-negative base-10 integer number of cents and MUST NOT exceed `amount_cents`. A negative payment, an overpayment, a non-integer payment, or a payment that cannot be parsed MUST be rejected as `invalid_payment`.
+- **FR-011**: When a row fails more than one validation, the reported reason MUST be deterministic, using this precedence: `empty_row`, `missing_required_field`, `invalid_date`, `invalid_amount`, `invalid_currency`, `invalid_payment`.
+- **FR-012**: Only rows that pass validation participate in duplicate detection. Duplicate identity MUST use the pair `(issuer, invoice_id)`.
+- **FR-013**: The first validated occurrence of an invoice identity within the call MUST be accepted and included as an accepted invoice.
+- **FR-014**: A subsequent validated row in the same call with the same identity MUST be `duplicate_identical` when all seven normalized field values match the first accepted record, and `duplicate_inconsistent` when any field value differs. Neither duplicate classification may alter, replace, merge with, or add to the accepted record.
+- **FR-015**: A rejected or duplicate row MUST NOT contribute any field to the accepted invoices, either wholly or partially.
+- **FR-016**: For every accepted invoice, `remaining_balance_cents` MUST equal `amount_cents - paid_cents` as an integer number of cents, and MUST be zero or positive.
+- **FR-017**: An invoice MUST be considered overdue only when its remaining balance is positive and its `due_date` is earlier than `as_of`.
+- **FR-018**: For an accepted invoice, `days_overdue` MUST be `0` when the invoice is not overdue under FR-017 (a zero remaining balance, or `due_date` on or after `as_of`), and otherwise the number of calendar days from `due_date` to `as_of`. *(Review fix R1: the earlier wording ignored the zero-balance case and contradicted FR-017.)*
+- **FR-019**: Every accepted invoice MUST receive exactly one aging bucket: `paid` when the remaining balance is `0`; otherwise `current` when it is not overdue; otherwise `1-30` for 1 through 30 days overdue, `31-60` for 31 through 60, `61-90` for 61 through 90, and `91+` for 91 or more.
+- **FR-020**: Aging bucket boundaries MUST be based on days overdue, not on calendar month names, and MUST place 0 days in `current`, 1 and 30 days in `1-30`, 31 and 60 days in `31-60`, 61 and 90 days in `61-90`, and 91 days in `91+`.
+- **FR-021**: Import totals MUST include `total_rows`, `accepted`, `rejected`, `duplicate_identical`, and `duplicate_inconsistent`, and MUST be identical whenever the same CSV text and `as_of` date are supplied again.
+- **FR-022**: Outstanding totals MUST include the count and cent sum of accepted invoices whose remaining balance is positive. Zero-balance invoices MUST be excluded from that count and sum.
+- **FR-023**: Paid totals MUST include the sum of recorded `paid_cents` for accepted invoices, expressed in integer cents.
+- **FR-024**: Aging totals MUST report, for every bucket, the number of accepted invoices in that bucket and the sum of its remaining balances in integer cents. The `paid` bucket MUST report its count and a remaining sum of `0`.
+- **FR-025**: Every monetary calculation and total MUST use integer cents. Floating-point arithmetic MUST NOT be used for money.
+- **FR-026**: The same CSV text and `as_of` date MUST always produce the same classifications, balances, buckets, and totals.
+- **FR-027**: The capability MUST be delivered as a pure, offline Python package named `invoice_desk`, using only the standard library, with no UI or command-line workflow required for this slice.
+- **FR-028**: The capability MUST make no network calls, use no external services, and contain no credentials, secrets, or real personal data.
+- **FR-029**: The follow-up queue, prioritization order, owner assignment, note persistence, payment events, promised-pay annotations, and schema migration are out of scope for this feature.
+- **FR-030**: Before any validation, empty-row detection, identity matching, or duplicate comparison, leading and trailing whitespace MUST be trimmed from all seven field values. Case and internal characters MUST remain significant, so trimming MUST NOT change case or collapse internal spacing.
+- **FR-031**: A data row with fewer than seven cells MUST be treated as having blank values for each missing trailing field, and cells beyond the seventh MUST be ignored. The padded row MUST then be evaluated using the same validation precedence and rejection reasons as a full-width row.
+
+### Key Entities *(include if feature involves data)*
+
+- **Source row**: One data row from the CSV, in input order, with its seven invoice fields and its outcome.
+- **Import outcome**: The classification of one source row: accepted, rejected with a reason, duplicate identical, or duplicate inconsistent.
+- **Accepted invoice**: A validated first occurrence of an invoice identity, with issuer, invoice identifier, dates, amount, currency, recorded payment, remaining balance, days overdue, and aging bucket.
+- **Import result**: The value returned by one pure import call, containing the classification of every source row plus the accepted invoices and totals. No store or state persists between calls.
+- **Import totals**: The counts of every classification plus outstanding, paid, and aging summary figures.
+- **Aging bucket**: One of `current`, `1-30`, `31-60`, `61-90`, `91+`, or `paid`.
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-001**: Importing the frozen `data/invoices.csv` at `as_of = 2026-10-15` yields exactly `total_rows = 30`, `accepted = 14`, `rejected = 12`, `duplicate_identical = 2`, and `duplicate_inconsistent = 2` in 100% of runs.
+- **SC-002**: Every row classification and every rejection reason matches the acceptance expectations for rows 1-30, with zero unknown or missing outcomes.
+- **SC-003**: Processing the same CSV text again in a separate call returns identical counts, balances, and classifications and adds no duplicate invoice records.
+- **SC-004**: Outstanding totals are exactly `13` invoices and `2139435` cents, and total paid is exactly `289999` cents.
+- **SC-005**: A zero-balance invoice contributes exactly `0` to outstanding totals, is excluded from the outstanding count, and appears in the `paid` bucket with a remaining sum of `0`.
+- **SC-006**: The 0/1/30/31/60/61/90/91-day boundaries map to the required buckets in 100% of cases, including due-today and future-due invoices.
+- **SC-007**: Aging totals equal `current {3, 597047}`, `1-30 {3, 396862}`, `31-60 {3, 259664}`, `61-90 {2, 863731}`, `91+ {2, 22131}`, and `paid {1, 0}`.
+- **SC-008**: Rejected and duplicate rows contribute zero accepted-invoice fields, so no partially imported record can be observed.
+- **SC-009**: Repeated runs with identical inputs produce identical results, and results are independent of the machine clock.
+- **SC-010**: The feature operates with networking blocked and uses no credentials, secrets, or real personal data.
+
+## Assumptions
+
+- The frozen fixture `data/invoices.csv` (30 rows, seed `20261015`) and the acceptance values in `ACCEPTANCE.md` are the source of truth for this slice; the reporting date is `2026-10-15` in `America/New_York`.
+- The CSV is synthetic, contains a header row, and uses the seven documented columns in the documented order; additional caveats about malformed headers are outside this slice.
+- Import is a pure per-call function with no store or persistence; re-running the same input reproduces the same result. Persistence across process restarts, owners, notes, and the follow-up queue belong to AT-05 and are out of scope.
+- "Duplicate identity" means the same `issuer` plus `invoice_id`. The field comparison for identical duplicates uses normalized accepted values rather than raw text formatting; normalization trims surrounding whitespace but preserves case and internal characters.
+- Dates are civil dates in `America/New_York`; no time-of-day arithmetic is needed, and an explicit `as_of` value is always supplied by the caller.
+- Amounts in the CSV are already integer cents. There is no currency conversion, tax computation, invoicing, payment processing, reminders, or collections workflow.
+- Payment events, partial-payment event identifiers, promised-pay annotations, and schema migrations belong to later roadmap phases R2, R3, and R5 and MUST NOT be introduced by this feature.
+- The package is delivered as a pure library for programmatic use in this slice; a graphical or command-line front end, hosting, authentication, and multi-tenancy are out of scope.
+- The acceptance document supplies the business policies for this slice; where it is silent, the deterministic defaults in this specification apply.
+===003 PLAN/TASKS===
+total 60
+drwxr-xr-x 3 box box  4096 Oct 23 15:26 .
+drwxr-xr-x 5 box box  4096 Oct 23 15:26 ..
+-rw-r--r-- 1 box box  6438 Oct 23 15:26 analysis.md
+drwxr-xr-x 2 box box  4096 Oct 23 15:26 checklists
+-rw-r--r-- 1 box box  3717 Oct 23 15:26 plan.md
+-rw-r--r-- 1 box box 19906 Oct 23 15:26 spec.md
+-rw-r--r-- 1 box box 15769 Oct 23 15:26 tasks.md
+[0m
+[0m$ [0mfind invoice_desk -type f | sort && echo "===GREP import_invoices===" && grep -rn "import_invoices\|def .*invoice\|bucket\|queue" invoice_desk tests | head -80
+invoice_desk/__init__.py
+invoice_desk/__pycache__/__init__.cpython-313.pyc
+===GREP import_invoices===
+grep: invoice_desk/__pycache__/__init__.cpython-313.pyc: binary file matches
+grep: tests/__pycache__/test_invoice_desk.cpython-313-pytest-9.1.1.pyc: binary file matches
+invoice_desk/__init__.py:3:The public entry point, :func:`import_invoices`, reads invoice CSV text and
+invoice_desk/__init__.py:6:remaining balance, days overdue, and an aging bucket as of an explicit date.
+invoice_desk/__init__.py:55:    """Return a fresh all-zero aging-bucket mapping."""
+invoice_desk/__init__.py:56:    return {bucket: {"count": 0, "remaining_cents": 0} for bucket in AGING_BUCKETS}
+invoice_desk/__init__.py:161:def import_invoices(csv_text: str, as_of: date) -> dict:
+invoice_desk/__init__.py:197:                    "aging_bucket": None,
+invoice_desk/__init__.py:230:                    "aging_bucket": None,
+invoice_desk/__init__.py:247:            bucket = "paid"
+invoice_desk/__init__.py:249:            bucket = "current"
+invoice_desk/__init__.py:251:            bucket = "1-30"
+invoice_desk/__init__.py:253:            bucket = "31-60"
+invoice_desk/__init__.py:255:            bucket = "61-90"
+invoice_desk/__init__.py:257:            bucket = "91+"
+invoice_desk/__init__.py:270:                "aging_bucket": bucket,
+invoice_desk/__init__.py:280:        bucket_totals = aging[bucket]
+invoice_desk/__init__.py:281:        bucket_totals["count"] += 1
+invoice_desk/__init__.py:282:        bucket_totals["remaining_cents"] += remaining_cents
+tests/test_invoice_desk.py:5:from invoice_desk import import_invoices
+tests/test_invoice_desk.py:40:        "aging": {bucket: {"count": 0, "remaining_cents": 0} for bucket in BUCKETS},
+tests/test_invoice_desk.py:45:    return import_invoices(frozen_csv_text(), AS_OF)
+tests/test_invoice_desk.py:154:        assert row["aging_bucket"] is None
+tests/test_invoice_desk.py:178:    result = import_invoices("", AS_OF)
+tests/test_invoice_desk.py:184:    result = import_invoices(",".join(HEADER), AS_OF)
+tests/test_invoice_desk.py:197:    result = import_invoices(text, AS_OF)
+tests/test_invoice_desk.py:207:    assert row["aging_bucket"] == "1-30"
+tests/test_invoice_desk.py:216:    rows = import_invoices(text, AS_OF)["rows"]
+tests/test_invoice_desk.py:233:    result = import_invoices(text, AS_OF)
+tests/test_invoice_desk.py:247:    result = import_invoices(
+tests/test_invoice_desk.py:266:    result = import_invoices(
+tests/test_invoice_desk.py:277:def test_same_invoice_id_from_a_different_issuer_is_not_a_duplicate():
+tests/test_invoice_desk.py:278:    result = import_invoices(
+tests/test_invoice_desk.py:292:    result = import_invoices(
+tests/test_invoice_desk.py:302:    assert row["aging_bucket"] == "paid"
+tests/test_invoice_desk.py:306:    result = import_invoices(
+tests/test_invoice_desk.py:349:    result = import_invoices(make_csv(row), AS_OF)
+tests/test_invoice_desk.py:357:    result = import_invoices(
+tests/test_invoice_desk.py:392:def test_fully_paid_invoice_is_excluded_from_outstanding():
+tests/test_invoice_desk.py:417:    for bucket in BUCKETS:
+tests/test_invoice_desk.py:418:        assert type(totals["aging"][bucket]["remaining_cents"]) is int
+tests/test_invoice_desk.py:429:def test_frozen_days_overdue_and_buckets():
+tests/test_invoice_desk.py:448:    for invoice_id, (days, bucket) in expected.items():
+tests/test_invoice_desk.py:450:        assert invoices[invoice_id]["aging_bucket"] == bucket
+tests/test_invoice_desk.py:453:def test_aging_bucket_boundaries():
+tests/test_invoice_desk.py:467:        for offset, _bucket in offsets
+tests/test_invoice_desk.py:470:    result = import_invoices(make_csv(*rows), AS_OF)
+tests/test_invoice_desk.py:473:    for offset, bucket in offsets:
+tests/test_invoice_desk.py:476:        assert invoice["aging_bucket"] == bucket
+tests/test_invoice_desk.py:485:    invoices = accepted_by_id(import_invoices(make_csv(*rows), AS_OF))
+tests/test_invoice_desk.py:488:    assert invoices["INV-TODAY"]["aging_bucket"] == "current"
+tests/test_invoice_desk.py:490:    assert invoices["INV-FUTURE"]["aging_bucket"] == "current"
+tests/test_invoice_desk.py:493:def test_fully_paid_overdue_invoice_is_paid_not_overdue():
+tests/test_invoice_desk.py:494:    result = import_invoices(
+tests/test_invoice_desk.py:503:    assert row["aging_bucket"] == "paid"
+tests/test_invoice_desk.py:519:def test_all_buckets_are_always_present():
+tests/test_invoice_desk.py:520:    aging = import_invoices("", AS_OF)["totals"]["aging"]
+tests/test_invoice_desk.py:523:    for bucket in BUCKETS:
+tests/test_invoice_desk.py:524:        assert aging[bucket] == {"count": 0, "remaining_cents": 0}
+tests/test_invoice_desk.py:531:            assert row["aging_bucket"] is None
+[0m
+[0m$ [0msed -n '1,340p' invoice_desk/__init__.py
+"""Pure CSV invoice import and aging for the Invoice Exception Desk.
+
+The public entry point, :func:`import_invoices`, reads invoice CSV text and
+classifies every data row as accepted, rejected with a reason, an identical
+duplicate, or an inconsistent duplicate. Accepted invoices report an integer-cent
+remaining balance, days overdue, and an aging bucket as of an explicit date.
+
+The function is pure and offline: it uses only the standard library, never reads
+the system clock, never touches the network, and keeps no state between calls.
+"""
+
+from __future__ import annotations
+
+import csv
+import io
+import re
+from datetime import date
+
+HEADER_FIELDS = (
+    "issuer",
+    "invoice_id",
+    "issue_date",
+    "due_date",
+    "amount_cents",
+    "currency",
+    "paid_cents",
+)
+
+STATUSES = (
+    "accepted",
+    "rejected",
+    "duplicate_identical",
+    "duplicate_inconsistent",
+)
+
+REJECTION_REASONS = (
+    "empty_row",
+    "missing_required_field",
+    "invalid_date",
+    "invalid_amount",
+    "invalid_currency",
+    "invalid_payment",
+)
+
+DUPLICATE_IDENTICAL_REASON = "identical_duplicate"
+DUPLICATE_INCONSISTENT_REASON = "inconsistent_duplicate"
+
+AGING_BUCKETS = ("current", "1-30", "31-60", "61-90", "91+", "paid")
+
+_DATE_PATTERN = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}\Z")
+_INTEGER_PATTERN = re.compile(r"[0-9]+\Z")
+
+
+def _zero_aging() -> dict[str, dict[str, int]]:
+    """Return a fresh all-zero aging-bucket mapping."""
+    return {bucket: {"count": 0, "remaining_cents": 0} for bucket in AGING_BUCKETS}
+
+
+def _parse_date(value: str) -> date | None:
+    """Parse a strict ``YYYY-MM-DD`` civil date, or return ``None``."""
+    if _DATE_PATTERN.fullmatch(value) is None:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def _parse_csv(csv_text: str) -> list[list[str]]:
+    """Parse CSV text into seven trimmed field values per data row.
+
+    The first row is the header and columns are mapped by name. Blank lines are
+    preserved as data rows, short rows are padded with blanks, extra cells are
+    ignored, and every field is stripped of surrounding whitespace.
+    """
+    reader = csv.reader(io.StringIO(csv_text))
+    try:
+        header = next(reader)
+    except StopIteration:
+        return []
+
+    positions: dict[str, int] = {}
+    for position, raw_name in enumerate(header):
+        name = raw_name.strip().lstrip("\ufeff")
+        if name in HEADER_FIELDS and name not in positions:
+            positions[name] = position
+
+    data_rows: list[list[str]] = []
+    for raw_cells in reader:
+        values = []
+        for name in HEADER_FIELDS:
+            position = positions.get(name)
+            if position is None or position >= len(raw_cells):
+                values.append("")
+            else:
+                values.append(raw_cells[position].strip())
+        data_rows.append(values)
+    return data_rows
+
+
+def _validate_row(
+    values: list[str],
+) -> tuple[dict[str, object] | None, str | None]:
+    """Validate one parsed row in precedence order.
+
+    Returns the normalized seven fields and ``None`` on success, or ``None`` and
+    exactly one rejection reason on failure.
+    """
+    if not values or all(value == "" for value in values):
+        return None, "empty_row"
+
+    (
+        issuer,
+        invoice_id,
+        issue_text,
+        due_text,
+        amount_text,
+        currency,
+        paid_text,
+    ) = values
+
+    if issuer == "" or invoice_id == "":
+        return None, "missing_required_field"
+
+    issue_date = _parse_date(issue_text)
+    due_date = _parse_date(due_text)
+    if issue_date is None or due_date is None:
+        return None, "invalid_date"
+
+    if _INTEGER_PATTERN.fullmatch(amount_text) is None:
+        return None, "invalid_amount"
+    amount_cents = int(amount_text)
+
+    if currency != "USD":
+        return None, "invalid_currency"
+
+    if paid_text == "":
+        paid_cents = 0
+    elif _INTEGER_PATTERN.fullmatch(paid_text) is None:
+        return None, "invalid_payment"
+    else:
+        paid_cents = int(paid_text)
+
+    if paid_cents > amount_cents:
+        return None, "invalid_payment"
+
+    return (
+        {
+            "issuer": issuer,
+            "invoice_id": invoice_id,
+            "issue_date": issue_date,
+            "due_date": due_date,
+            "amount_cents": amount_cents,
+            "currency": currency,
+            "paid_cents": paid_cents,
+        },
+        None,
+    )
+
+
+def import_invoices(csv_text: str, as_of: date) -> dict:
+    """Import invoice CSV text and compute balances, aging, and totals.
+
+    ``as_of`` is supplied explicitly; the function never reads the clock. Money is
+    handled strictly as integer cents. Duplicate detection is scoped to this call
+    and keyed by ``(issuer, invoice_id)``. The same text and date always produce
+    the same result.
+    """
+    rows: list[dict[str, object]] = []
+    totals: dict[str, object] = {
+        "total_rows": 0,
+        "accepted": 0,
+        "rejected": 0,
+        "duplicate_identical": 0,
+        "duplicate_inconsistent": 0,
+        "outstanding_invoice_count": 0,
+        "total_outstanding_cents": 0,
+        "total_paid_cents": 0,
+        "aging": _zero_aging(),
+    }
+    aging: dict[str, dict[str, int]] = totals["aging"]  # type: ignore[assignment]
+    first_accepted: dict[tuple[str, str], dict[str, object]] = {}
+
+    for row_number, values in enumerate(_parse_csv(csv_text), start=1):
+        totals["total_rows"] += 1  # type: ignore[operator]
+        normalized, reason = _validate_row(values)
+
+        if reason is not None:
+            totals["rejected"] += 1  # type: ignore[operator]
+            rows.append(
+                {
+                    "row": row_number,
+                    "status": "rejected",
+                    "reason": reason,
+                    "remaining_balance_cents": None,
+                    "days_overdue": None,
+                    "aging_bucket": None,
+                }
+            )
+            continue
+
+        assert normalized is not None
+        identity = (
+            normalized["issuer"],
+            normalized["invoice_id"],
+        )
+        original = first_accepted.get(identity)
+
+        if original is not None:
+            is_identical = all(
+                normalized[field] == original[field] for field in HEADER_FIELDS
+            )
+            status = (
+                "duplicate_identical"
+                if is_identical
+                else "duplicate_inconsistent"
+            )
+            totals[status] += 1  # type: ignore[operator]
+            rows.append(
+                {
+                    "row": row_number,
+                    "status": status,
+                    "reason": (
+                        DUPLICATE_IDENTICAL_REASON
+                        if is_identical
+                        else DUPLICATE_INCONSISTENT_REASON
+                    ),
+                    "remaining_balance_cents": None,
+                    "days_overdue": None,
+                    "aging_bucket": None,
+                }
+            )
+            continue
+
+        first_accepted[identity] = normalized
+        amount_cents = int(normalized["amount_cents"])
+        paid_cents = int(normalized["paid_cents"])
+        remaining_cents = amount_cents - paid_cents
+        # FR-017/FR-018: a fully paid invoice is never overdue.
+        days_overdue = (
+            max(0, (as_of - normalized["due_date"]).days)  # type: ignore[operator]
+            if remaining_cents > 0
+            else 0
+        )
+
+        if remaining_cents == 0:
+            bucket = "paid"
+        elif days_overdue == 0:
+            bucket = "current"
+        elif days_overdue <= 30:
+            bucket = "1-30"
+        elif days_overdue <= 60:
+            bucket = "31-60"
+        elif days_overdue <= 90:
+            bucket = "61-90"
+        else:
+            bucket = "91+"
+
+        rows.append(
+            {
+                "row": row_number,
+                "status": "accepted",
+                "reason": None,
+                "issuer": normalized["issuer"],
+                "invoice_id": normalized["invoice_id"],
+                "amount_cents": amount_cents,
+                "paid_cents": paid_cents,
+                "remaining_balance_cents": remaining_cents,
+                "days_overdue": days_overdue,
+                "aging_bucket": bucket,
+            }
+        )
+
+        totals["accepted"] += 1  # type: ignore[operator]
+        totals["total_paid_cents"] += paid_cents  # type: ignore[operator]
+        if remaining_cents > 0:
+            totals["outstanding_invoice_count"] += 1  # type: ignore[operator]
+            totals["total_outstanding_cents"] += remaining_cents  # type: ignore[operator]
+
+        bucket_totals = aging[bucket]
+        bucket_totals["count"] += 1
+        bucket_totals["remaining_cents"] += remaining_cents
+
+    return {"rows": rows, "totals": totals}
+[0m
+[0m$ [0mcat specs/003-desk-import/checklists/requirements.md && echo "===PLAN===" && cat specs/003-desk-import/plan.md
+# Specification Quality Checklist: Invoice CSV import and aging
+
+**Purpose**: Validate specification completeness and quality before proceeding to planning
+**Created**: 2026-10-23
+**Feature**: [spec.md](../spec.md)
+
+## Content Quality
+
+- [x] No implementation details (languages, frameworks, APIs)
+- [x] Focused on user value and business needs
+- [x] Written for non-technical stakeholders
+- [x] All mandatory sections completed
+
+## Requirement Completeness
+
+- [x] No [NEEDS CLARIFICATION] markers remain
+- [x] Requirements are testable and unambiguous
+- [x] Success criteria are measurable
+- [x] Success criteria are technology-agnostic (no implementation details)
+- [x] All acceptance scenarios are defined
+- [x] Edge cases are identified
+- [x] Scope is clearly bounded
+- [x] Dependencies and assumptions identified
+
+## Feature Readiness
+
+- [x] All functional requirements have clear acceptance criteria
+- [x] User scenarios cover primary flows
+- [x] Feature meets measurable outcomes defined in Success Criteria
+- [x] No implementation details leak into specification
+
+## Notes
+
+- Validation iteration 1 passed all items.
+- The requested package name `invoice_desk` and the offline, standard-library-only constraint are treated as explicit delivery contract and project constitution requirements, not internal design choices.
+- Exact counts, rejection reasons, balances, bucket boundaries, and aging totals are taken from ACCEPTANCE.md and the frozen fixture, so every requirement can be verified against a known expected outcome.
+- AT-05 follow-up queue, owners, and notes; R2 payments; R3 promised-pay; and R5 migration are explicitly excluded.
+===PLAN===
+# Implementation Plan: Invoice Exception Desk import (R1 slice)
+
+**Branch**: `003-desk-import` | **Date**: 2026-10-23 | **Spec**: [spec.md](./spec.md)
+
+## Summary
+One pure function, `import_invoices`, that reads CSV text, classifies each data row, and computes balances, aging and totals as of an explicit date. Written by the human/strong role, from the spec and the public `ACCEPTANCE.md` only.
+
+## Technical Context
+**Language/Version**: Python 3.11+ | **Primary Dependencies**: none (stdlib `csv`, `io`, `re`, `datetime`) | **Testing**: pytest (`python -m pytest -q`)
+**Project Type**: library | **Scope**: create `invoice_desk/__init__.py` and `tests/test_invoice_desk.py`. Do not change `bill_split`, its tests, `data/`, `pyproject.toml`, `ROADMAP.md`, `ACCEPTANCE.md` or `NON_GOALS.md`. Nothing else.
+
+## Constitution Check (v1.1.0)
+I integer cents PASS · II pure PASS · III stdlib only PASS · IV tests PASS · V spec/plan/tasks/code land together on the branch (squash on merge) · VI synthetic, offline PASS · VII explicit `as_of` PASS · VIII sealed answer key held by the reviewer PASS
+
+## Interface (exact)
+```python
+from datetime import date
+def import_invoices(csv_text: str, as_of: date) -> dict: ...
+```
+Returns `{"rows": [...], "totals": {...}}`.
+
+- `rows`: one dict per data row, in input order. Keys: `row` (1-based data-row number; the header is not counted), `status` (`accepted`, `rejected`, `duplicate_identical`, `duplicate_inconsistent`), `reason` (the rejection reason for rejected rows, `None` for accepted, `"identical_duplicate"` / `"inconsistent_duplicate"` for duplicates), `remaining_balance_cents`, `days_overdue`, `aging_bucket` (integers/strings for accepted rows, `None` otherwise). Accepted rows also carry the normalized `issuer`, `invoice_id`, `amount_cents` and `paid_cents` *(analyze fix C1)*.
+- Empty `csv_text` (no header) returns zero rows and zero totals, with all six aging buckets present as `{"count": 0, "remaining_cents": 0}` *(analyze fix A2)*.
+- `totals`: `total_rows`, `accepted`, `rejected`, `duplicate_identical`, `duplicate_inconsistent`, `outstanding_invoice_count`, `total_outstanding_cents`, `total_paid_cents`, and `aging`: a dict with all six buckets `current`, `1-30`, `31-60`, `61-90`, `91+`, `paid`, each `{"count": int, "remaining_cents": int}`.
+
+## Design
+1. Parse with `csv.reader(io.StringIO(csv_text))`. **Not** `DictReader`: it silently skips blank lines, and blank lines are data rows that must be reported as `empty_row` (ACCEPTANCE rows 29 and 30).
+2. The first row is the header; map columns by name. Pad short rows with `""`; ignore extra cells (clarification 3). Strip whitespace on every field (clarification 2).
+3. Validate in the spec's precedence order (FR-011). Integers: the stripped text must match the ASCII pattern `[0-9]+` (use `re.fullmatch`, not `str.isdigit()`, which accepts characters like `²`), so `12.50`, `-500`, `+100` and `abc` fail. A blank `paid_cents` is `0`. Dates: `date.fromisoformat` on a string matching `YYYY-MM-DD` exactly.
+4. Duplicates: keep a dict of the first accepted row per `(issuer, invoice_id)` and its seven normalized values; compare later valid rows against it (FR-012 to FR-014).
+5. Balance and aging per FR-016 to FR-020, using `(as_of - due_date).days`.
+6. Totals per FR-021 to FR-024. All six aging buckets are always present.
+7. `tests/test_invoice_desk.py`: read `data/invoices.csv` and check every AT-01 to AT-04 number in `ACCEPTANCE.md`, plus unit tests for each rejection reason, the bucket boundaries, whitespace, short rows, and calling the function twice.
+
+## Out of scope
+Follow-up queue, owners, notes (AT-05), payments (R2), promised pay (R3), migration (R5), CLI, persistence.
+[0m
+[0m$ [0mpython3 - <<'PY'
+import json
+d=json.load(open('data/oracle.json'))
+print(json.dumps({k:v for k,v in d.items() if k!='rows'},indent=2))
+print('ROW KEYS', list(d['rows'][0].keys()))
+for r in d['rows'][:16]:
+    print({k:r.get(k) for k in ('row','issuer','invoice_id','status','remaining_balance_cents','remaining_cents','days_overdue','aging_bucket')})
+PY
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: 'data/oracle.json'
+[0m
+[0m$ [0mls -la data && head -3 data/invoices.csv && python3 - <<'PY'
+import csv
+with open('data/invoices.csv') as f:
+    rows=list(csv.DictReader(f))
+print(len(rows))
+for r in rows[:15]:
+    print(r)
+PY
+total 20
+drwxr-xr-x  2 box box 4096 Oct 23 15:26 .
+drwxr-xr-x 12 box box 4096 Oct 23 15:27 ..
+-rw-r--r--  1 box box 5799 Oct 23 15:26 generate_invoices.py
+-rw-r--r--  1 box box 1787 Oct 23 15:26 invoices.csv
+issuer,invoice_id,issue_date,due_date,amount_cents,currency,paid_cents
+Acme Cleaning Co,INV-1001,2026-09-01,2026-10-25,480378,USD,0
+Acme Cleaning Co,INV-1002,2026-09-15,2026-10-15,111753,USD,0
+28
+{'issuer': 'Acme Cleaning Co', 'invoice_id': 'INV-1001', 'issue_date': '2026-09-01', 'due_date': '2026-10-25', 'amount_cents': '480378', 'currency': 'USD', 'paid_cents': '0'}
+{'issuer': 'Acme Cleaning Co', 'invoice_id': 'INV-1002', 'issue_date': '2026-09-15', 'due_date': '2026-10-15', 'amount_cents': '111753', 'currency': 'USD', 'paid_cents': '0'}
+{'issuer': 'Acme Cleaning Co', 'invoice_id': 'INV-1003', 'issue_date': '2026-09-14', 'due_date': '2026-10-14', 'amount_cents': '105038', 'currency': 'USD', 'paid_cents': '0'}
+{'issuer': 'Acme Cleaning Co', 'invoice_id': 'INV-1004', 'issue_date': '2026-08-16', 'due_date': '2026-09-15', 'amount_cents': '231824', 'currency': 'USD', 'paid_cents': '0'}
+{'issuer': 'Acme Cleaning Co', 'invoice_id': 'INV-1005', 'issue_date': '2026-08-15', 'due_date': '2026-09-14', 'amount_cents': '253172', 'currency': 'USD', 'paid_cents': '0'}
+{'issuer': 'Acme Cleaning Co', 'invoice_id': 'INV-1006', 'issue_date': '2026-07-17', 'due_date': '2026-08-16', 'amount_cents': '6491', 'currency': 'USD', 'paid_cents': '0'}
+{'issuer': 'Acme Cleaning Co', 'invoice_id': 'INV-1007', 'issue_date': '2026-07-16', 'due_date': '2026-08-15', 'amount_cents': '430895', 'currency': 'USD', 'paid_cents': '0'}
+{'issuer': 'Acme Cleaning Co', 'invoice_id': 'INV-1008', 'issue_date': '2026-06-17', 'due_date': '2026-07-17', 'amount_cents': '432836', 'currency': 'USD', 'paid_cents': '0'}
+{'issuer': 'Acme Cleaning Co', 'invoice_id': 'INV-1009', 'issue_date': '2026-06-16', 'due_date': '2026-07-16', 'amount_cents': '22130', 'currency': 'USD', 'paid_cents': '0'}
+{'issuer': 'Acme Cleaning Co', 'invoice_id': 'INV-1010', 'issue_date': '2026-09-15', 'due_date': '2026-09-15', 'amount_cents': '100000', 'currency': 'USD', 'paid_cents': '40000'}
+{'issuer': 'Acme Cleaning Co', 'invoice_id': 'INV-1011', 'issue_date': '2026-08-15', 'due_date': '2026-08-15', 'amount_cents': '50000', 'currency': 'USD', 'paid_cents': '50000'}
+{'issuer': 'Bright Path Facilities', 'invoice_id': 'INV-1012', 'issue_date': '2026-07-16', 'due_date': '2026-07-16', 'amount_cents': '200000', 'currency': 'USD', 'paid_cents': '199999'}
+{'issuer': 'Bright Path Facilities', 'invoice_id': 'INV-1013', 'issue_date': '2026-09-20', 'due_date': '2026-11-01', 'amount_cents': '4916', 'currency': 'USD', 'paid_cents': '0'}
+{'issuer': 'Bright Path Facilities', 'invoice_id': 'INV-1014', 'issue_date': '2026-09-14', 'due_date': '2026-09-14', 'amount_cents': '1', 'currency': 'USD', 'paid_cents': '0'}
+{'issuer': 'Acme Cleaning Co', 'invoice_id': 'INV-1004', 'issue_date': '2026-08-16', 'due_date': '2026-09-15', 'amount_cents': '231824', 'currency': 'USD', 'paid_cents': '0'}
+[0m
+[0m$ [0mcat specs/002-weighted-split/spec.md | head -120 && echo "===FEATURE JSON===" && cat .specify/feature.json 2>/dev/null || echo "none"
+# Feature Specification: Weighted bill split
+
+**Feature Branch**: `002-weighted-split`
+
+**Created**: 2026-10-22
+
+**Status**: Implemented
+
+**Input**: User description: "Add split_weighted(total_cents, weights) to bill_split: split a bill in proportion to integer weights (for example one person ordered twice as much), so the shares add up exactly to the total. Keep the existing split_bill unchanged. Use the short name weighted-split."
+
+## Clarifications
+
+### Session 2026-10-22
+
+- Q: Which input container types should `split_weighted` accept for the `weights` argument? → A: Accept a list or tuple only; generators, strings, and `None` raise `TypeError`.
+- Q: When an argument is invalid in more than one way, which error type takes precedence? → A: `TypeError` wins; validate all types before any value checks.
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 1 - Split in proportion to what each person ordered (Priority: P1)
+
+A user shares a bill where people consumed different amounts. Each person provides a positive integer weight representing how much they ordered, and receives a share proportional to that weight. Every cent of the bill is assigned.
+
+**Why this priority**: Proportional splitting is the entire purpose of the feature; without it there is no feature.
+
+**Independent Test**: Split a total using two or more different weights and verify each share is proportional to its weight and the shares sum exactly to the total.
+
+**Acceptance Scenarios**:
+
+1. **Given** a total of 1000 cents and weights `[2, 1]`, **When** the bill is split, **Then** the shares are `[667, 333]` and sum to 1000.
+2. **Given** a total of 1000 cents and weights `[1, 1]`, **When** the bill is split, **Then** the shares are `[500, 500]`.
+3. **Given** a total of 100 cents and weights `[3, 1]`, **When** the bill is split, **Then** the shares are `[75, 25]`.
+4. **Given** a total of 0 cents and weights `[1, 2]`, **When** the bill is split, **Then** the shares are `[0, 0]`.
+
+---
+
+### User Story 2 - Fair rounding when proportions are not whole cents (Priority: P1)
+
+When the exact proportional share is not a whole number of cents, the system rounds every share while still assigning the full total. No cent is created or lost.
+
+**Why this priority**: Most real totals and weights do not divide evenly; incorrect rounding would break the core guarantee that shares add up exactly.
+
+**Independent Test**: Use totals and weights that produce fractional shares, verify each share is within one cent of its exact proportional value, and verify the sum equals the total.
+
+**Acceptance Scenarios**:
+
+1. **Given** a total of 1000 cents and weights `[1, 1, 1]`, **When** the bill is split, **Then** the shares are `[334, 333, 333]`.
+2. **Given** a total of 100 cents and weights `[1, 1, 1]`, **When** the bill is split, **Then** the shares are `[34, 33, 33]`.
+3. **Given** any valid total and weights, **When** the bill is split, **Then** every share differs by less than one cent from its exact proportional amount and the shares sum exactly to the total.
+
+---
+
+### User Story 3 - Invalid input is rejected (Priority: P1)
+
+A user or caller makes a mistake in the total or weights. The system rejects the input with a clear error instead of returning misleading shares.
+
+**Why this priority**: Money calculations must fail loudly rather than silently produce an impossible split.
+
+**Independent Test**: Call the split with each invalid input category and verify the documented error type is raised.
+
+**Acceptance Scenarios**:
+
+1. **Given** a negative total, **When** the bill is split, **Then** a `ValueError` is raised.
+2. **Given** an empty weight list, **When** the bill is split, **Then** a `ValueError` is raised.
+3. **Given** weights that are all zero, **When** the bill is split, **Then** a `ValueError` is raised.
+4. **Given** any negative weight, **When** the bill is split, **Then** a `ValueError` is raised.
+5. **Given** a non-integer total, weight, or `bool` value, **When** the bill is split, **Then** a `TypeError` is raised.
+
+---
+
+### Edge Cases
+
+- A weight of zero is valid and yields a zero-cent share for that person, as long as at least one other weight is positive.
+- A total of zero returns zero for every person, regardless of valid positive weights.
+- A single person with any positive weight receives the entire total.
+- Very large totals and weights are handled exactly, with no floating-point rounding.
+- Equal weights produce the same shares as the existing even split for the same total and number of people.
+- A weights argument that is not a sequence of integers (for example a generator, string, or `None`) raises a `TypeError`; lists and tuples are accepted.
+- When an argument is both the wrong type and out of range (for example `-1.5`), `TypeError` is raised because type validation runs first.
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+- **FR-001**: The library MUST provide `split_weighted(total_cents: int, weights: list[int] | tuple[int, ...]) -> list[int]` in `bill_split/__init__.py`.
+- **FR-002**: The result MUST contain exactly one share per weight, in the same order as the weights.
+- **FR-003**: Every returned share MUST be a non-negative integer number of cents.
+- **FR-004**: The returned shares MUST sum exactly to `total_cents`.
+- **FR-005**: Each share MUST be within one cent of the exact proportional amount `total_cents * weight / sum(weights)`.
+- **FR-006**: When proportional shares are not whole cents, leftover cents MUST be assigned deterministically, one cent per share, to the shares with the largest fractional remainders; ties are resolved in favour of the earlier weight. This makes equal weights match the existing even split.
+- **FR-007**: A weight of zero MUST produce a zero-cent share.
+- **FR-008**: `total_cents` MUST be a non-negative integer and every weight MUST be a non-negative integer. `bool` values MUST NOT be accepted as integers.
+- **FR-009**: `total_cents < 0`, an empty weights sequence, a negative weight, or a sum of weights of zero MUST raise `ValueError`.
+- **FR-010**: Non-integer arguments, including `bool` and `float`, MUST raise `TypeError`. The `weights` argument MUST be a `list` or `tuple` of integers; any other type (generators, strings, `None`, `range`, and other sequences) MUST raise `TypeError`. Type validation MUST run before value validation, so an argument that is both non-integer and out of range raises `TypeError`.
+- **FR-011**: The function MUST be deterministic and pure: identical inputs always produce identical outputs with no I/O, randomness, or clock access.
+- **FR-012**: The existing `split_bill` function and its behaviour MUST remain unchanged.
+
+### Key Entities *(include if feature involves data)*
+
+- **Bill total**: The amount to split, expressed as an integer number of cents.
+- **Weight**: A non-negative integer describing each person's relative share of the bill.
+- **Share**: The non-negative integer number of cents assigned to one person; shares sum to the bill total.
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-001**: For every valid total and weights sequence tested, the returned shares sum exactly to the total in 100% of cases.
+- **SC-002**: For every valid input tested, each share is within one cent of its exact proportional amount.
+- **SC-003**: Every acceptance scenario in this specification is covered by at least one automated test.
+- **SC-004**: Equal weights produce exactly the same shares as `split_bill` for the same total and number of people in 100% of tested cases.
+- **SC-005**: Every invalid input category in this specification raises the documented error type in automated tests, with no invalid input silently producing shares.
+- **SC-006**: All existing `split_bill` tests continue to pass unchanged.
+
+## Assumptions
+
+- Weights are non-negative integers, and at least one weight is positive; a zero weight means that person ordered nothing.
+- The number of shares equals the length of the weights sequence, and the weights order defines the output order.
+- Leftover cents are allocated by largest fractional remainder, with ties going to the earliest weight, matching the existing even split for equal weights.
+- Negative totals and zero-sum weight lists have no meaningful proportional interpretation and are rejected.
+===FEATURE JSON===
+none
+[0m
+[0m$ [0mpython3 - <<'PY'
+from datetime import date
+from invoice_desk import import_invoices
+from pathlib import Path
+r=import_invoices(Path('data/invoices.csv').read_text(), date(2026,10,15))
+acc=[x for x in r['rows'] if x['status']=='accepted']
+order={'91+':0,'61-90':1,'31-60':2,'1-30':3,'current':4,'paid':5}
+acc.sort(key=lambda x:(order[x['aging_bucket']], -x['remaining_balance_cents'], x['issuer'], x['invoice_id']))
+for x in acc:
+    print(x['aging_bucket'], x['days_overdue'], x['remaining_balance_cents'], x['issuer'], x['invoice_id'])
+print('count',len(acc), 'outstanding', sum(1 for x in acc if x['remaining_balance_cents']>0))
+PY
+91+ 91 22130 Acme Cleaning Co INV-1009
+91+ 91 1 Bright Path Facilities INV-1012
+61-90 90 432836 Acme Cleaning Co INV-1008
+61-90 61 430895 Acme Cleaning Co INV-1007
+31-60 31 253172 Acme Cleaning Co INV-1005
+31-60 60 6491 Acme Cleaning Co INV-1006
+31-60 31 1 Bright Path Facilities INV-1014
+1-30 30 231824 Acme Cleaning Co INV-1004
+1-30 1 105038 Acme Cleaning Co INV-1003
+1-30 30 60000 Acme Cleaning Co INV-1010
+current 0 480378 Acme Cleaning Co INV-1001
+current 0 111753 Acme Cleaning Co INV-1002
+current 0 4916 Bright Path Facilities INV-1013
+paid 0 0 Acme Cleaning Co INV-1011
+count 14 outstanding 13
+[0m
+[0m$ [0mgrep -n "AT-05\|follow\|owner\|notes\|queue\|priority\|determin" -i tests/test_oracle.py | head -60 && echo "===all test names===" && grep -n "^def test" tests/test_oracle.py
+grep: tests/test_oracle.py: No such file or directory
+===all test names===
+grep: tests/test_oracle.py: No such file or directory
+[0m
+[0m$ [0mfind .specify -maxdepth 3 -type f | sort && echo "===EXT===" && [ -f .specify/extensions.yml ] && cat .specify/extensions.yml || echo "no extensions.yml"
+.specify/.gitignore
+.specify/init-options.json
+.specify/integration.json
+.specify/integrations/opencode.manifest.json
+.specify/integrations/speckit.manifest.json
+.specify/memory/.constitution-template.json
+.specify/memory/constitution.md
+.specify/scripts/bash/check-prerequisites.sh
+.specify/scripts/bash/common.sh
+.specify/scripts/bash/create-new-feature.sh
+.specify/scripts/bash/resolve-template.sh
+.specify/scripts/bash/setup-plan.sh
+.specify/scripts/bash/setup-tasks.sh
+.specify/templates/checklist-template.md
+.specify/templates/constitution-template.md
+.specify/templates/plan-template.md
+.specify/templates/spec-template.md
+.specify/templates/tasks-template.md
+.specify/workflows/speckit/workflow.yml
+.specify/workflows/workflow-registry.json
+===EXT===
+no extensions.yml
+[0m
+[0m$ [0mcat .specify/scripts/bash/resolve-template.sh && echo "===CREATE===" && cat .specify/scripts/bash/create-new-feature.sh
+#!/usr/bin/env bash
+
+set -e
+
+SCRIPT_DIR="$(CDPATH="" cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
+
+JSON_MODE=false
+TEMPLATE_NAME=""
+
+for arg in "$@"; do
+    case "$arg" in
+        --json) JSON_MODE=true ;;
+        --help|-h)
+            echo "Usage: $0 <template-name> [--json]"
+            exit 0
+            ;;
+        -*)
+            echo "ERROR: Unknown option '$arg'" >&2
+            exit 1
+            ;;
+        *)
+            if [[ -n "$TEMPLATE_NAME" ]]; then
+                echo "ERROR: Unexpected argument '$arg'" >&2
+                exit 1
+            fi
+            TEMPLATE_NAME="$arg"
+            ;;
+    esac
+done
+
+if [[ -z "$TEMPLATE_NAME" ]]; then
+    echo "ERROR: Template name is required" >&2
+    exit 1
+fi
+
+REPO_ROOT=$(get_repo_root)
+if TEMPLATE_CONTENT=$(resolve_template_content "$TEMPLATE_NAME" "$REPO_ROOT"; status=$?; printf x; exit "$status"); then
+    TEMPLATE_CONTENT="${TEMPLATE_CONTENT%x}"
+else
+    echo "ERROR: Could not resolve required $TEMPLATE_NAME from the template override stack for $REPO_ROOT" >&2
+    exit 1
+fi
+
+if $JSON_MODE; then
+    if has_jq; then
+        jq -cn \
+            --arg template_name "$TEMPLATE_NAME" \
+            --arg template_content "$TEMPLATE_CONTENT" \
+            '{TEMPLATE_NAME:$template_name,TEMPLATE_CONTENT:$template_content}'
+    else
+        printf '{"TEMPLATE_NAME":"%s","TEMPLATE_CONTENT":"%s"}\n' \
+            "$(json_escape "$TEMPLATE_NAME")" "$(json_escape "$TEMPLATE_CONTENT")"
+    fi
+else
+    printf '%s' "$TEMPLATE_CONTENT"
+fi
+===CREATE===
+#!/usr/bin/env bash
+
+set -e
+
+JSON_MODE=false
+DRY_RUN=false
+ALLOW_EXISTING=false
+SHORT_NAME=""
+BRANCH_NUMBER=""
+USE_TIMESTAMP=false
+NUMBER_EXPLICIT=false
+ARGS=()
+i=1
+while [ $i -le $# ]; do
+    arg="${!i}"
+    case "$arg" in
+        --json)
+            JSON_MODE=true
+            ;;
+        --dry-run)
+            DRY_RUN=true
+            ;;
+        --allow-existing-branch)
+            ALLOW_EXISTING=true
+            ;;
+        --short-name)
+            if [ $((i + 1)) -gt $# ]; then
+                echo 'Error: --short-name requires a value' >&2
+                exit 1
+            fi
+            i=$((i + 1))
+            next_arg="${!i}"
+            # Check if the next argument is another option (starts with --)
+            if [[ "$next_arg" == --* ]]; then
+                echo 'Error: --short-name requires a value' >&2
+                exit 1
+            fi
+            SHORT_NAME="$next_arg"
+            ;;
+        --number)
+            if [ $((i + 1)) -gt $# ]; then
+                echo 'Error: --number requires a value' >&2
+                exit 1
+            fi
+            i=$((i + 1))
+            next_arg="${!i}"
+            if [[ "$next_arg" == --* ]]; then
+                echo 'Error: --number requires a value' >&2
+                exit 1
+            fi
+            BRANCH_NUMBER="$next_arg"
+            if [ -n "$BRANCH_NUMBER" ]; then
+                NUMBER_EXPLICIT=true
+            fi
+            ;;
+        --timestamp)
+            USE_TIMESTAMP=true
+            ;;
+        --help|-h)
+            echo "Usage: $0 [--json] [--dry-run] [--allow-existing-branch] [--short-name <name>] [--number N] [--timestamp] <feature_description>"
+            echo ""
+            echo "Options:"
+            echo "  --json              Output in JSON format"
+            echo "  --dry-run           Compute feature name and paths without creating directories or files"
+            echo "  --allow-existing-branch  Reuse an existing feature directory if it already exists"
+            echo "  --short-name <name> Provide a custom short name (2-4 words) for the feature"
+            echo "  --number N          Prefer a feature number (auto-corrected if its specs prefix exists)"
+            echo "  --timestamp         Use timestamp prefix (YYYYMMDD-HHMMSS) instead of sequential numbering"
+            echo "  --help, -h          Show this help message"
+            echo ""
+            echo "Examples:"
+            echo "  $0 'Add user authentication system' --short-name 'user-auth'"
+            echo "  $0 'Implement OAuth2 integration for API' --number 5"
+            echo "  $0 --timestamp --short-name 'user-auth' 'Add user authentication'"
+            exit 0
+            ;;
+        *)
+            ARGS+=("$arg")
+            ;;
+    esac
+    i=$((i + 1))
+done
+
+FEATURE_DESCRIPTION="${ARGS[*]}"
+if [ -z "$FEATURE_DESCRIPTION" ]; then
+    echo "Usage: $0 [--json] [--dry-run] [--allow-existing-branch] [--short-name <name>] [--number N] [--timestamp] <feature_description>" >&2
+    exit 1
+fi
+
+# Trim whitespace and validate description is not empty (e.g., user passed only whitespace)
+FEATURE_DESCRIPTION=$(echo "$FEATURE_DESCRIPTION" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
+if [ -z "$FEATURE_DESCRIPTION" ]; then
+    echo "Error: Feature description cannot be empty or contain only whitespace" >&2
+    exit 1
+fi
+
+MAX_FEATURE_NUMBER=9223372036854775807
+MAX_BRANCH_LENGTH=244
+
+is_feature_number_in_range() {
+    local value="$1"
+    local normalized="${value#"${value%%[!0]*}"}"
+    [ -n "$normalized" ] || normalized=0
+    [ ${#normalized} -lt ${#MAX_FEATURE_NUMBER} ] && return 0
+    [ ${#normalized} -gt ${#MAX_FEATURE_NUMBER} ] && return 1
+    # Equal-length digit strings must be compared without arithmetic overflow.
+    # shellcheck disable=SC2071
+    [[ "$normalized" < "$MAX_FEATURE_NUMBER" || "$normalized" == "$MAX_FEATURE_NUMBER" ]]
+}
+
+# Function to get highest number from specs directory
+get_highest_from_specs() {
+    local specs_dir="$1"
+    local highest=0
+
+    if [ -d "$specs_dir" ]; then
+        for dir in "$specs_dir"/*; do
+            [ -d "$dir" ] || continue
+            dirname=$(basename "$dir")
+            # Match sequential prefixes (>=3 digits), but skip timestamp dirs.
+            if echo "$dirname" | grep -Eq '^[0-9]{3,}-' && ! echo "$dirname" | grep -Eq '^[0-9]{8}-[0-9]{6}-'; then
+                number=$(echo "$dirname" | grep -Eo '^[0-9]+')
+                if is_feature_number_in_range "$number"; then
+                    number=$((10#$number))
+                    if [ "$number" -gt "$highest" ]; then
+                        highest=$number
+                    fi
+                fi
+            fi
+        done
+    fi
+
+    echo "$highest"
+}
+
+# Return success when a spec directory owns the given numeric prefix.
+spec_prefix_exists() {
+    local specs_dir="$1"
+    local feature_num="$2"
+
+    for spec_path in "$specs_dir/${feature_num}-"*; do
+        [ -d "$spec_path" ] && return 0
+    done
+    return 1
+}
+
+# Function to clean and format a branch name
+#
+# Three details keep this consistent with the Python and PowerShell twins:
+#   * Unicode classification uses Python: POSIX [:alnum:] differs by platform.
+#   * `--*` instead of the GNU-only `\+`, which POSIX/BSD sed reads as a literal
+#     '+', leaving repeated separators uncollapsed on macOS.
+#   * printf instead of echo, so a name of "-n"/"-e"/"-E" is text, not options.
+contains_non_ascii() {
+    LC_ALL=C grep -q '[^[:print:][:cntrl:]]'
+}
+
+UNICODE_LOCALE=""
+locale_candidates=(C.UTF-8 C.utf8 en_US.UTF-8 en_US.utf8 "${LC_CTYPE:-${LANG:-}}")
+if [ -n "${LC_ALL:-}" ]; then
+    locale_candidates=("$LC_ALL")
+fi
+for candidate in "${locale_candidates[@]}"; do
+    if [ -n "$candidate" ] && [ "$(printf 'é。' | LC_ALL="$candidate" sed 's/[^[:alnum:]]/-/g' 2>/dev/null)" = 'é-' ]; then
+        UNICODE_LOCALE="$candidate"
+        break
+    fi
+done
+
+if [ -z "$UNICODE_LOCALE" ]; then
+    UNICODE_LOCALE=C
+    if printf '%s' "${SHORT_NAME:-$FEATURE_DESCRIPTION}" | contains_non_ascii; then
+        if [ -n "${LC_ALL:-}" ]; then
+            echo "Error: A UTF-8 locale is required to create a Unicode feature name; LC_ALL=$LC_ALL is not usable" >&2
+        else
+            echo "Error: A UTF-8 locale is required to create a Unicode feature name" >&2
+        fi
+        exit 1
+    fi
+fi
+
+unicode_words() {
+    local name="${1//$'\n'/ }"
+    local separator="$2"
+    if printf '%s' "$name" | contains_non_ascii; then
+        local -a python_cmd=()
+        local override="${SPECKIT_PYTHON_EXECUTABLE:-${SPECKIT_PYTHON:-}}"
+        if [ -n "$override" ] && command -v "$override" >/dev/null 2>&1 &&
+            "$override" -c 'import sys; raise SystemExit(sys.version_info.major != 3)' >/dev/null 2>&1; then
+            python_cmd=("$override")
+        else
+            local python_line
+            while IFS= read -r python_line; do
+                python_cmd+=("$python_line")
+            done < <(_python3_command)
+        fi
+        if [ "${#python_cmd[@]}" -eq 0 ]; then
+            echo "Error: Python 3 is required to create a Unicode feature name" >&2
+            return 1
+        fi
+        printf '%s' "$name" | "${python_cmd[@]}" -c '
+import sys
+value = sys.stdin.buffer.read().decode("utf-8")
+lower = str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")
+result = "".join(
+    char if char.isalpha() or char.isdecimal() else sys.argv[1]
+    for char in value.translate(lower)
+)
+sys.stdout.buffer.write(result.encode("utf-8"))
+' "$separator"
+    else
+        printf '%s' "$name" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C sed "s/[^a-z0-9]/$separator/g"
+    fi
+}
+
+clean_branch_name() {
+    local name="$1"
+    local cleaned
+    cleaned=$(unicode_words "$name" '-') || return 1
+    printf '%s\n' "$cleaned" | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//'
+}
+
+branch_byte_count() {
+    printf '%s' "$1" | wc -c | tr -d '[:space:]'
+}
+
+# Fit a feature prefix and suffix within GitHub's branch-name limit.
+fit_branch_name() {
+    local feature_num="$1"
+    local branch_suffix="$2"
+    local branch_name="${feature_num}-${branch_suffix}"
+
+    if [ "$(branch_byte_count "$branch_name")" -gt "$MAX_BRANCH_LENGTH" ]; then
+        local prefix_length=$(( ${#feature_num} + 1 ))
+        local max_suffix_length=$((MAX_BRANCH_LENGTH - prefix_length))
+        local truncated_suffix
+        local -x LC_ALL="$UNICODE_LOCALE"
+        local low=0 high=${#branch_suffix} mid
+        if (( high > max_suffix_length )); then
+            high=$max_suffix_length
+        fi
+        while (( low < high )); do
+            mid=$(((low + high + 1) / 2))
+            if [ "$(branch_byte_count "${branch_suffix:0:$mid}")" -le "$max_suffix_length" ]; then
+                low=$mid
+            else
+                high=$((mid - 1))
+            fi
+        done
+        truncated_suffix="${branch_suffix:0:$low}"
+        truncated_suffix="${truncated_suffix%-}"
+        branch_name="${feature_num}-${truncated_suffix}"
+    fi
+
+    printf '%s' "$branch_name"
+}
+
+# Quote a value for POSIX shell reuse, byte-identical to Python's shlex.quote
+# so the persistence hints match the Python variant exactly (printf %q output
+# differs between bash versions and from shlex.quote for spaces/metachars).
+shell_quote() {
+    local value="$1" LC_ALL=C
+    if [[ "$value" =~ ^[A-Za-z0-9_@%+=:,./-]+$ ]]; then
+        printf '%s' "$value"
+    else
+        local q="'\"'\"'"
+        printf "'%s'" "${value//\'/$q}"
+    fi
+}
+
+# Resolve repository root using common.sh functions which prioritize .specify
+SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
+
+REPO_ROOT=$(get_repo_root) || exit 1
+
+cd "$REPO_ROOT"
+
+SPECS_DIR="$REPO_ROOT/specs"
+if [ "$DRY_RUN" != true ]; then
+    mkdir -p "$SPECS_DIR"
+fi
+
+# Function to generate branch name with stop word filtering and length filtering
+generate_branch_name() {
+    local description="$1"
+
+    # Common stop words to filter out
+    local stop_words="^(i|a|an|the|to|for|of|in|on|at|by|with|from|is|are|was|were|be|been|being|have|has|had|do|does|did|will|would|should|could|can|may|might|must|shall|this|that|these|those|my|your|our|their|want|need|add|get|set)$"
+
+    # Use a UTF-8 locale for character-safe length checks and split words.
+    local -x LC_ALL="$UNICODE_LOCALE"
+    local clean_name
+    clean_name=$(unicode_words "$description" ' ') || return 1
+
+    # Filter words: remove stop words and words shorter than 3 chars (unless they're uppercase acronyms in original)
+    local meaningful_words=()
+    for word in $clean_name; do
+        # Skip empty words
+        [ -z "$word" ] && continue
+
+        # Retain non-ASCII words even when shorter than three characters.
+        if ! printf '%s\n' "$word" | LC_ALL=C grep -qE "$stop_words"; then
+            if [ ${#word} -ge 3 ] || printf '%s' "$word" | contains_non_ascii; then
+                meaningful_words+=("$word")
+            # Keep short words that appear as an uppercase acronym in the original.
+            # Uppercase via tr and match with grep -w (both portable) rather than
+            # bash's 4+ "^^" case expansion (breaks on macOS bash 3.2) and \b (non-POSIX).
+            elif printf '%s' "$description" | LC_ALL=C grep -qw -- "$(printf '%s' "$word" | LC_ALL=C tr '[:lower:]' '[:upper:]')"; then
+                meaningful_words+=("$word")
+            fi
+        fi
+    done
+
+    # If we have meaningful words, use first 3-4 of them
+    if [ ${#meaningful_words[@]} -gt 0 ]; then
+        local max_words=3
+        if [ ${#meaningful_words[@]} -eq 4 ]; then max_words=4; fi
+
+        local result=""
+        local count=0
+        for word in "${meaningful_words[@]}"; do
+            if [ $count -ge $max_words ]; then break; fi
+            if [ -n "$result" ]; then result="$result-"; fi
+            result="$result$word"
+            count=$((count + 1))
+        done
+        echo "$result"
+    else
+        # Fallback to original logic if no meaningful words found
+        local cleaned=$(clean_branch_name "$description")
+        echo "$cleaned" | tr '-' '\n' | grep -v '^$' | head -3 | tr '\n' '-' | sed 's/-$//'
+    fi
+}
+
+# Generate branch name
+if [ -n "$SHORT_NAME" ]; then
+    # Use provided short name, just clean it up
+    BRANCH_SUFFIX=$(clean_branch_name "$SHORT_NAME")
+else
+    # Generate from description with smart filtering
+    BRANCH_SUFFIX=$(generate_branch_name "$FEATURE_DESCRIPTION")
+fi
+
+if [ -z "$BRANCH_SUFFIX" ]; then
+    echo "[specify] Warning: Feature name is empty after removing unsupported characters. Use --short-name with letters or digits (for example, user-auth)." >&2
+fi
+
+# Warn if --number and --timestamp are both specified
+if [ "$USE_TIMESTAMP" = true ] && [ -n "$BRANCH_NUMBER" ]; then
+    >&2 echo "[specify] Warning: --number is ignored when --timestamp is used"
+    BRANCH_NUMBER=""
+fi
+
+# Determine branch prefix
+if [ "$USE_TIMESTAMP" = true ]; then
+    FEATURE_NUM=$(date +%Y%m%d-%H%M%S)
+    BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+else
+    if [ -n "$BRANCH_NUMBER" ] && [[ ! "$BRANCH_NUMBER" =~ ^[0-9]+$ ]]; then
+        echo "Error: --number must be an unsigned integer, got '$BRANCH_NUMBER'" >&2
+        exit 1
+    fi
+
+    # Bash arithmetic is signed 64-bit; reject digit strings that would wrap.
+    if [ -n "$BRANCH_NUMBER" ] && ! is_feature_number_in_range "$BRANCH_NUMBER"; then
+        echo "Error: --number must be between 0 and $MAX_FEATURE_NUMBER, got '$BRANCH_NUMBER'" >&2
+        exit 1
+    fi
+
+    # Determine branch number from existing feature directories
+    if [ -z "$BRANCH_NUMBER" ]; then
+        HIGHEST=$(get_highest_from_specs "$SPECS_DIR")
+        if [ "$HIGHEST" -eq "$MAX_FEATURE_NUMBER" ]; then
+            echo "Error: feature number must be between 0 and $MAX_FEATURE_NUMBER, got '9223372036854775808'" >&2
+            exit 1
+        fi
+        BRANCH_NUMBER=$((HIGHEST + 1))
+    fi
+
+    # Force base-10 interpretation to prevent octal conversion (e.g., 010 → 8 in octal, but should be 10 in decimal)
+    FEATURE_NUM=$(printf "%03d" "$((10#$BRANCH_NUMBER))")
+
+    # Treat an explicit number as a preference when its prefix is already used
+    # by a feature directory. Auto-detected numbers are already conflict-free.
+    if [ "$NUMBER_EXPLICIT" = true ]; then
+        SPEC_CONFLICT=false
+        REQUESTED_BRANCH_NAME=$(fit_branch_name "$FEATURE_NUM" "$BRANCH_SUFFIX")
+        REQUESTED_DIR="$SPECS_DIR/$REQUESTED_BRANCH_NAME"
+        if [ "$ALLOW_EXISTING" != true ] || [ ! -d "$REQUESTED_DIR" ]; then
+            spec_prefix_exists "$SPECS_DIR" "$FEATURE_NUM" && SPEC_CONFLICT=true
+        fi
+
+        if [ "$SPEC_CONFLICT" = true ]; then
+            REQUESTED_NUM="$FEATURE_NUM"
+            HIGHEST=$(get_highest_from_specs "$SPECS_DIR")
+            BRANCH_NUMBER=$HIGHEST
+            while true; do
+                if [ "$BRANCH_NUMBER" -eq "$MAX_FEATURE_NUMBER" ]; then
+                    echo "Error: feature number must be between 0 and $MAX_FEATURE_NUMBER, got '9223372036854775808'" >&2
+                    exit 1
+                fi
+                BRANCH_NUMBER=$((BRANCH_NUMBER + 1))
+                FEATURE_NUM=$(printf "%03d" "$((10#$BRANCH_NUMBER))")
+                spec_prefix_exists "$SPECS_DIR" "$FEATURE_NUM" || break
+            done
+            >&2 echo "[specify] Warning: --number $REQUESTED_NUM conflicts with an existing spec directory; using $FEATURE_NUM instead"
+        fi
+    fi
+
+fi
+
+# GitHub enforces a 244-byte limit on branch names
+# Validate and truncate if necessary
+ORIGINAL_BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+BRANCH_NAME=$(fit_branch_name "$FEATURE_NUM" "$BRANCH_SUFFIX")
+if [ "$BRANCH_NAME" != "$ORIGINAL_BRANCH_NAME" ]; then
+    >&2 echo "[specify] Warning: Branch name exceeded GitHub's 244-byte limit"
+    >&2 echo "[specify] Original: $ORIGINAL_BRANCH_NAME ($(branch_byte_count "$ORIGINAL_BRANCH_NAME") bytes)"
+    >&2 echo "[specify] Truncated to: $BRANCH_NAME ($(branch_byte_count "$BRANCH_NAME") bytes)"
+fi
+
+FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
+SPEC_FILE="$FEATURE_DIR/spec.md"
+
+if [ "$DRY_RUN" != true ]; then
+    if [ -d "$FEATURE_DIR" ] && [ "$ALLOW_EXISTING" != true ]; then
+        if [ "$USE_TIMESTAMP" = true ]; then
+            >&2 echo "Error: Feature directory '$FEATURE_DIR' already exists. Rerun to get a new timestamp or use a different --short-name."
+        else
+            >&2 echo "Error: Feature directory '$FEATURE_DIR' already exists. Please use a different feature name or specify a different number with --number."
+        fi
+        exit 1
+    fi
+
+    NEEDS_SPEC=false
+    SPEC_TEMPLATE_FOUND=false
+    SPEC_TEMPLATE_CONTENT=""
+    if [ ! -f "$SPEC_FILE" ]; then
+        NEEDS_SPEC=true
+        if SPEC_TEMPLATE_CONTENT=$(resolve_template_content "spec-template" "$REPO_ROOT"; status=$?; printf x; exit "$status"); then
+            SPEC_TEMPLATE_CONTENT="${SPEC_TEMPLATE_CONTENT%x}"
+            SPEC_TEMPLATE_FOUND=true
+        else
+            resolve_status=$?
+            if [ "$resolve_status" -ne 1 ]; then
+                exit "$resolve_status"
+            fi
+        fi
+    fi
+
+    mkdir -p "$FEATURE_DIR"
+
+    if [ "$NEEDS_SPEC" = true ]; then
+        if [ "$SPEC_TEMPLATE_FOUND" = true ]; then
+            printf '%s' "$SPEC_TEMPLATE_CONTENT" > "$SPEC_FILE"
+        else
+            echo "Warning: Spec template not found; created empty spec file" >&2
+            touch "$SPEC_FILE"
+        fi
+    fi
+
+    # Persist to .specify/feature.json so downstream commands can find the
+    # feature, unless the orchestrator opted out via SPECIFY_FEATURE_NO_PERSIST (#4129).
+    if [[ "${SPECIFY_FEATURE_NO_PERSIST:-}" != "1" && "${SPECIFY_FEATURE_NO_PERSIST:-}" != "true" ]]; then
+        _persist_feature_json "$REPO_ROOT" "$FEATURE_DIR"
+    fi
+
+    # Inform the user how to set feature state in their own shell
+    printf '# To persist: export SPECIFY_FEATURE=%s\n' "$(shell_quote "$BRANCH_NAME")" >&2
+    printf '#              export SPECIFY_FEATURE_DIRECTORY=%s\n' "$(shell_quote "$FEATURE_DIR")" >&2
+fi
+
+if $JSON_MODE; then
+    if command -v jq >/dev/null 2>&1; then
+        if [ "$DRY_RUN" = true ]; then
+            jq -cn \
+                --arg branch_name "$BRANCH_NAME" \
+                --arg spec_file "$SPEC_FILE" \
+                --arg feature_num "$FEATURE_NUM" \
+                '{BRANCH_NAME:$branch_name,SPEC_FILE:$spec_file,FEATURE_NUM:$feature_num,DRY_RUN:true}'
+        else
+            jq -cn \
+                --arg branch_name "$BRANCH_NAME" \
+                --arg spec_file "$SPEC_FILE" \
+                --arg feature_num "$FEATURE_NUM" \
+                '{BRANCH_NAME:$branch_name,SPEC_FILE:$spec_file,FEATURE_NUM:$feature_num}'
+        fi
+    else
+        if [ "$DRY_RUN" = true ]; then
+            printf '{"BRANCH_NAME":"%s","SPEC_FILE":"%s","FEATURE_NUM":"%s","DRY_RUN":true}\n' "$(json_escape "$BRANCH_NAME")" "$(json_escape "$SPEC_FILE")" "$(json_escape "$FEATURE_NUM")"
+        else
+            printf '{"BRANCH_NAME":"%s","SPEC_FILE":"%s","FEATURE_NUM":"%s"}\n' "$(json_escape "$BRANCH_NAME")" "$(json_escape "$SPEC_FILE")" "$(json_escape "$FEATURE_NUM")"
+        fi
+    fi
+else
+    echo "BRANCH_NAME: $BRANCH_NAME"
+    echo "SPEC_FILE: $SPEC_FILE"
+    echo "FEATURE_NUM: $FEATURE_NUM"
+    if [ "$DRY_RUN" != true ]; then
+        printf '# To persist in your shell: export SPECIFY_FEATURE=%s\n' "$(shell_quote "$BRANCH_NAME")"
+        printf '#                           export SPECIFY_FEATURE_DIRECTORY=%s\n' "$(shell_quote "$FEATURE_DIR")"
+    fi
+fi
+[0m
+[0m$ [0mmkdir -p specs/004-deterministic-followup-queue/checklists && ls -d specs/004-deterministic-followup-queue
+specs/004-deterministic-followup-queue
+[0m
+[0m← [0mWrite specs/004-deterministic-followup-queue/spec.md
+Wrote file successfully.
+[0m
+[0m← [0mWrite specs/004-deterministic-followup-queue/checklists/requirements.md
+Wrote file successfully.
+[0m
+[0m← [0mWrite .specify/feature.json
+Wrote file successfully.
+[0m
+[0m$ [0mgrep -n "NEEDS CLARIFICATION\|TODO\|TBD" specs/004-deterministic-followup-queue/spec.md || echo "no markers"; grep -n "^## " specs/004-deterministic-followup-queue/spec.md; wc -l specs/004-deterministic-followup-queue/spec.md specs/004-deterministic-followup-queue/checklists/requirements.md
+no markers
+11:## Clarifications
+18:## User Scenarios & Testing *(mandatory)*
+74:## Requirements *(mandatory)*
+113:## Success Criteria *(mandatory)*
+128:## Assumptions
+  139 specs/004-deterministic-followup-queue/spec.md
+   39 specs/004-deterministic-followup-queue/checklists/requirements.md
+  178 total
+[0m
+[0m$ [0mgit status --short && git diff --stat
+M run.log
+?? specs/004-deterministic-followup-queue/
+ run.log | 1976 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 1976 insertions(+)
+[0m
+[0m$ [0mpython3 - <<'PY'
+import re
+from pathlib import Path
+p=Path('specs/004-deterministic-followup-queue/spec.md')
+t=p.read_text()
+required=['User Scenarios & Testing','Requirements','Success Criteria','Assumptions']
+for s in required:
+    assert f'## {s}' in t, s
+fr=re.findall(r'\*\*FR-\d{3}\*\*',t)
+sc=re.findall(r'\*\*SC-\d{3}\*\*',t)
+print('FRs',len(fr),'unique',len(set(fr)))
+print('SCs',len(sc),'unique',len(set(sc)))
+print('US count',len(re.findall(r'### User Story',t)))
+print('markers',t.count('[NEEDS CLARIFICATION'))
+PY
+FRs 21 unique 21
+SCs 10 unique 10
+US count 2
+markers 0
+[0m
+- **SPECIFY_FEATURE_DIRECTORY**: `specs/004-deterministic-followup-queue`
+- **SPEC_FILE**: `specs/004-deterministic-followup-queue/spec.md`
+- **Checklist**: `specs/004-deterministic-followup-queue/checklists/requirements.md` — all 16 items pass; no `[NEEDS CLARIFICATION]` markers.
+- **AT-05 reconciliation**: bucket severity (`91+` → `paid`), then balance desc, then issuer asc, then invoice ID asc. Issuer is added before invoice ID so the order is total. The queue covers the full accepted set, with `paid` last.
+
+No implementation performed. Ready for `/speckit.clarify` or `/speckit.plan`.
+exit=0
