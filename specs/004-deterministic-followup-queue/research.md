@@ -14,10 +14,10 @@ assignment API. This document records the resulting technical decisions.
 - **Decision**: Build the queue only from rows in the `import_invoices` result whose
   `status == "accepted"`, keyed by the exact `(issuer, invoice_id)` pair. Sort by bucket
   priority `91+`, `61-90`, `31-60`, `1-30`, `current`, `paid`; then
-  `remaining_balance_cents` descending; then `issuer` ascending; then `invoice_id`
-  ascending. Assign 1-based contiguous positions after sorting.
-- **Rationale**: This is a total order for accepted invoices. The issuer tie-break before
-  invoice ID is required because invoice identifiers are only unique within an issuer
+  `remaining_balance_cents` descending; then `invoice_id` ascending; then `issuer`
+  ascending (last key; corrected by Tosin, Oct 23). Assign 1-based contiguous positions after sorting.
+- **Rationale**: This is a total order for accepted invoices. Issuer as the final key, after
+  invoice ID, is required because invoice identifiers are only unique within an issuer
   (FR-005/FR-006). It matches the requested bucket-first ordering while preserving AT-05's
   binding requirement that ordering be a repeatable pure function of row data. The computed
   order for the frozen fixture at `as_of = 2026-10-15` is exactly the SC-002 sequence.
@@ -27,7 +27,9 @@ assignment API. This document records the resulting technical decisions.
     same relative order as bucket boundaries.
   - Sort by row number or insertion order: rejected because it is not a function of row
     data and would change with CSV order.
-  - Use invoice ID before issuer: rejected because two issuers may reuse `INV-*` IDs,
+  - Issuer as the third key (the first draft): replaced by Tosin's decision (Oct 23) to keep the
+    requested bucket, balance, invoice ID order, with issuer last to break remaining ties.
+  - Invoice ID with no issuer key: rejected because two issuers may reuse `INV-*` IDs,
     leaving ties unresolved.
 
 ## 2. Separating ordering from annotations
@@ -147,7 +149,7 @@ assignment API. This document records the resulting technical decisions.
 
 | Unknown | Resolution |
 |---------|------------|
-| Ordering keys and total order | Bucket priority, descending balance, ascending issuer, ascending invoice ID |
+| Ordering keys and total order | Bucket priority, descending balance, ascending invoice ID, ascending issuer |
 | Whether paid invoices appear | Yes; every accepted invoice appears, `paid` last |
 | Store format and version | Versioned UTF-8 JSON, `version: 1`, record list keyed by `(issuer, invoice_id)` |
 | Store path | Caller-supplied, default project-root `state/followup_annotations.json` |

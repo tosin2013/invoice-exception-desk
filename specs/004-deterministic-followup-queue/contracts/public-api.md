@@ -29,8 +29,8 @@ Returns a new list with one new dict per accepted import row, sorted by:
 
 1. `BUCKET_PRIORITY[aging_bucket]` ascending;
 2. `remaining_balance_cents` descending;
-3. `issuer` ascending (case-sensitive, locale-independent);
-4. `invoice_id` ascending (case-sensitive, locale-independent).
+3. `invoice_id` ascending (case-sensitive, locale-independent);
+4. `issuer` ascending (case-sensitive, locale-independent), the last key.
 
 Each queue item has exactly these keys:
 

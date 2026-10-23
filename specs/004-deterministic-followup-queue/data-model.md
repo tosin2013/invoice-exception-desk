@@ -69,8 +69,8 @@ Rules:
 | `current` | 4 |
 | `paid` | 5 |
 
-Sort key, in order: `(rank, -remaining_balance_cents, issuer, invoice_id)`.
-`issuer` and `invoice_id` use ascending, case-sensitive, locale-independent text order.
+Sort key, in order: `(rank, -remaining_balance_cents, invoice_id, issuer)`.
+`invoice_id` and `issuer` use ascending, case-sensitive, locale-independent text order.
 
 ### Annotation record
 

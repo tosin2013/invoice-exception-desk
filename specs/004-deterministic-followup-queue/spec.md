@@ -12,7 +12,9 @@
 
 ### Session 2026-10-23
 
-- Q: AT-05 gives an illustrative ordering (`days_overdue` descending, then balance, then issuer, then invoice ID), while the request says bucket, then balance, then invoice ID. Which is binding? → A: AT-05's binding pass criterion is that ordering is a pure function of row data and is identical on repeated runs. The request's keys are used, with `issuer` inserted before `invoice_id` so the order is total even when two issuers reuse the same invoice identifier.
+*Answers 2–5 approved by Tosin on Oct 23, 2026; answer 1 corrected by Tosin on Oct 23, 2026 (option B: issuer is the last key).*
+
+- Q: AT-05 gives an illustrative ordering (`days_overdue` descending, then balance, then issuer, then invoice ID), while the request says bucket, then balance, then invoice ID. Which is binding? → A: AT-05's binding pass criterion is that ordering is a pure function of row data and is identical on repeated runs. The request's keys are used in that order (bucket, balance descending, invoice ID), with `issuer` added as the last key so the order stays total when two issuers reuse the same invoice identifier. *(Corrected by Tosin, Oct 23.)*
 - Q: Does the follow-up queue contain every accepted invoice or only invoices with a positive balance? → A: AT-05 names the accepted set as the input, so the queue contains every accepted invoice; a fully paid invoice remains in the queue in the `paid` bucket at the lowest priority.
 - Q: Where should owners and notes be stored, in what format, and how should each annotation be keyed so it survives a restart? → A: In a single versioned UTF-8 JSON file at a caller-supplied path, defaulting to `state/followup_annotations.json` under the project root; each record stores `issuer`, `invoice_id`, `owner`, and `notes`, keyed by the exact `(issuer, invoice_id)` pair, and each successful change is written through immediately with atomic whole-file replacement.
 - Q: What should happen when the annotation store is missing, unreadable, corrupt, or has an unsupported version? → A: A missing file means an empty annotation set; an unreadable, malformed, duplicate-identity, or unsupported-version file raises a clear error and is never overwritten or silently reset.
@@ -34,7 +36,7 @@ An operator imports the invoice CSV and receives a follow-up queue in a predicta
 2. **Given** the same accepted invoices, **When** the queue is built a second time, **Then** the sequence is byte-for-byte identical in invoice identity and order.
 3. **Given** invoices in the `91+`, `61-90`, `31-60`, `1-30`, `current`, and `paid` buckets, **When** the queue is ordered, **Then** the bucket priority is `91+` first, then `61-90`, `31-60`, `1-30`, `current`, and `paid` last.
 4. **Given** two invoices in the same bucket, **When** their remaining balances differ, **Then** the larger remaining balance comes first.
-5. **Given** two invoices with the same bucket and the same remaining balance, **When** their issuers differ, **Then** the issuer name in ascending order is the next tie-breaker, and only then the invoice identifier in ascending order.
+5. **Given** two invoices with the same bucket and the same remaining balance, **When** their invoice identifiers or issuers differ, **Then** the invoice identifier in ascending order is the next tie-breaker, and only if that also ties, the issuer name in ascending order.
 6. **Given** the fully paid invoice `INV-1011`, **When** the queue is built, **Then** it appears in the `paid` bucket after every other accepted invoice, with a remaining balance of `0`.
 7. **Given** an empty accepted set, **When** the queue is built, **Then** the queue is empty rather than an error.
 
@@ -65,8 +67,8 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 
 ### Edge Cases
 
-- Two accepted invoices from different issuers have the same `invoice_id`; they remain separate queue items with independent owners and notes, and the issuer tie-breaker prevents an ambiguous order.
-- Two invoices share a bucket and a remaining balance; issuer then invoice identifier resolve the order completely.
+- Two accepted invoices from different issuers have the same `invoice_id`; they remain separate queue items with independent owners and notes, and the final issuer tie-breaker prevents an ambiguous order.
+- Two invoices share a bucket and a remaining balance; invoice identifier then issuer resolve the order completely.
 - A pending invoice due today or in the future is in `current`; it appears after all overdue buckets and before `paid`.
 - A fully paid invoice remains in the queue in `paid` with a zero balance and the lowest priority.
 - A rejected or duplicate row can never receive an owner or notes and never appears in the queue.
@@ -93,9 +95,9 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 - **FR-005**: The queue MUST be sorted by a single total order:
   1. aging bucket priority: `91+`, then `61-90`, then `31-60`, then `1-30`, then `current`, then `paid`;
   2. remaining balance in descending order, so the larger balance comes first;
-  3. issuer in ascending, case-sensitive, locale-independent text order;
-  4. invoice identifier in ascending, case-sensitive, locale-independent text order.
-- **FR-006**: The final tie-break sequence MUST be total for accepted invoices. The issuer tie-breaker MUST precede the invoice identifier because invoice identifiers are only unique within an issuer.
+  3. invoice identifier in ascending, case-sensitive, locale-independent text order;
+  4. issuer in ascending, case-sensitive, locale-independent text order.
+- **FR-006**: The final tie-break sequence MUST be total for accepted invoices. Issuer MUST be the last key, after the invoice identifier, because invoice identifiers are only unique within an issuer; it resolves any remaining tie.
 - **FR-007**: Queue ordering MUST be a pure function of invoice row data and the as-of date. It MUST NOT depend on the clock, randomness, insertion order beyond the documented keys, owner, notes, or storage order.
 - **FR-008**: Building the queue twice from the same accepted set and as-of date MUST produce the same sequence of invoice identities.
 - **FR-009**: Each queue item MUST support an optional owner, recorded as free text and attached to the invoice identity. No owner means unassigned.
@@ -133,7 +135,7 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 
 - **SC-001**: Building the queue repeatedly from the same accepted set and as-of date yields an identical sequence of invoice identities in 100% of runs.
 - **SC-002**: For the frozen accepted set at `as_of = 2026-10-15`, the queue order is exactly `INV-1009, INV-1012, INV-1008, INV-1007, INV-1005, INV-1006, INV-1014, INV-1004, INV-1003, INV-1010, INV-1001, INV-1002, INV-1013, INV-1011`.
-- **SC-003**: For every accepted invoice, the queue position is fully explained by bucket priority, then descending remaining balance, then ascending issuer, then ascending invoice identifier, with zero unresolved ties.
+- **SC-003**: For every accepted invoice, the queue position is fully explained by bucket priority, then descending remaining balance, then ascending invoice identifier, then ascending issuer, with zero unresolved ties.
 - **SC-004**: Owner and notes assigned to queue items are still present, on the same invoice identities and with unchanged content, after a restart in 100% of tested assignments.
 - **SC-005**: Changing owner or notes leaves the queue order, balances, days overdue, and aging buckets unchanged in 100% of tested cases.
 - **SC-006**: Rebuilding the queue from the same input produces no duplicated queue items and no duplicated or detached annotation records.
@@ -147,10 +149,10 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 
 ## Assumptions
 
-- `ACCEPTANCE.md` AT-05 is the source of truth. Its ordering example uses "e.g.", so the binding requirement is a repeatable, pure ordering; this specification makes the requested keys explicit and adds the issuer tie-breaker needed for a total order.
+- `ACCEPTANCE.md` AT-05 is the source of truth. Its ordering example uses "e.g.", so the binding requirement is a repeatable, pure ordering; this specification makes the requested keys explicit and adds issuer as the last key, needed for a total order.
 - The follow-up queue is built over the full accepted set, including the zero-balance `paid` item, because AT-05 explicitly names the accepted set as the input. Paid invoices are always last.
 - Bucket priority is severity-descending (`91+` before `61-90` before `31-60` before `1-30` before `current` before `paid`), matching the intent of AT-05's `days_overdue` descending example while honoring the requested bucket-first ordering.
-- "Balance" means `remaining_balance_cents` from the import result, ordered descending; "invoice ID" means the invoice identifier, ordered ascending after the issuer.
+- "Balance" means `remaining_balance_cents` from the import result, ordered descending; "invoice ID" means the invoice identifier, ordered ascending after balance; issuer, ascending, is the final key.
 - Text comparisons are case-sensitive and locale-independent so the order cannot vary by machine configuration.
 - Each invoice identity carries one owner value and one free-text notes value. Notes may be a multi-line block; a separate append-only note history is not required by AT-05 and is out of scope.
 - Annotations are durable local state for a single operator and are held in one versioned JSON annotation store at a caller-supplied path, defaulting to `state/followup_annotations.json`; "restart" means the same local installation starts again with the same store path and its state intact.

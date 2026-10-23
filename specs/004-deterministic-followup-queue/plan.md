@@ -194,8 +194,8 @@ Rejected and duplicate rows are excluded. Non-accepted rows never become queue i
    1. `BUCKET_PRIORITY[aging_bucket]` — `91+`=0, `61-90`=1, `31-60`=2, `1-30`=3,
       `current`=4, `paid`=5;
    2. `-remaining_balance_cents` — descending integer cents;
-   3. `issuer` — ascending, case-sensitive, locale-independent Unicode text order;
-   4. `invoice_id` — ascending, case-sensitive, locale-independent Unicode text order.
+   3. `invoice_id` — ascending, case-sensitive, locale-independent Unicode text order;
+   4. `issuer` — ascending, case-sensitive, locale-independent Unicode text order (last key; corrected by Tosin, Oct 23).
 3. Assign `position` only after sorting, starting at `1`.
 4. Return a fresh list of fresh dicts with the queue item fields above. Do not read files,
    import `annotations`, accept an annotation argument, or consult the clock.
@@ -322,9 +322,9 @@ All errors are explicit and fixable by the operator; none is silently swallowed.
 **Stage 1 — `tests/test_followup_queue.py`**
 - Exact SC-002/acceptance sequence for the frozen CSV at `2026-10-15`.
 - Two calls produce equal sequences; repeated runs are byte-identical in identity order.
-- Each bucket priority, descending balance within a bucket, ascending issuer, then ascending
-  invoice ID; no unresolved ties.
-- Same invoice ID from two issuers remains two items with correct issuer tie-break.
+- Each bucket priority, descending balance within a bucket, ascending invoice ID, then ascending
+  issuer as the last key; no unresolved ties.
+- Same invoice ID from two issuers remains two items with the final issuer tie-break.
 - Zero-balance `INV-1011` is present exactly once in `paid` with balance `0`.
 - Empty accepted set returns `[]`; rejected and duplicate rows are excluded.
 - Item fields, integer types, contiguous 1-based positions, and non-mutation of the import
