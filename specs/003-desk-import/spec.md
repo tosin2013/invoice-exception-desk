@@ -8,6 +8,14 @@
 
 **Input**: User description: "Build the first slice of roadmap phase R1 for the Invoice Exception Desk: a pure Python package invoice_desk that imports invoice CSV text, classifies every row as accepted, rejected (with a reason), duplicate_identical or duplicate_inconsistent, and for accepted rows computes the remaining balance in integer cents, days overdue and aging bucket as of an explicit as_of date, plus totals. It must satisfy ACCEPTANCE.md AT-01 to AT-04 on data/invoices.csv and follow the policies in ROADMAP.md and NON_GOALS.md. The follow-up queue, owners and notes (AT-05) are out of scope for this feature. Use the short name desk-import."
 
+## Clarifications
+
+### Session 2026-10-23
+
+- Q: When a later CSV differs from the original but contains invoice rows already accepted in the store, how should those overlapping rows be classified? → A: There is no store; import is a pure per-call function, so duplicate detection is scoped to the rows within that single call.
+- Q: Should surrounding whitespace in CSV cells be trimmed before validation, identity matching, and duplicate comparison, or treated as part of the value? → A: Trim leading/trailing whitespace on all seven fields before validation and duplicate comparison; case and internal characters remain significant.
+- Q: How should a data row be handled when its cell count does not match the seven header columns (for example, six or eight cells)? → A: Pad missing trailing cells with blanks and ignore cells beyond the seventh, then apply the normal validation precedence.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Import and classify every invoice row (Priority: P1)
@@ -16,15 +24,15 @@ An operator feeds the invoice CSV text into the desk and gets one clear outcome 
 
 **Why this priority**: Classification is the foundation of the desk. Without trustworthy import and duplicate handling, every balance and aging figure downstream is suspect.
 
-**Independent Test**: Import the frozen `data/invoices.csv` text as of `2026-10-15`, inspect every row outcome and the import counts, then import the same text again into the same store and confirm nothing changed.
+**Independent Test**: Import the frozen `data/invoices.csv` text as of `2026-10-15`, inspect every row outcome and the import counts, then call the import again with the same text and confirm the returned result is identical.
 
 **Acceptance Scenarios**:
 
 1. **Given** `data/invoices.csv` and `as_of = 2026-10-15`, **When** the file is imported, **Then** the result contains `total_rows = 30`, `accepted = 14`, `rejected = 12`, `duplicate_identical = 2`, and `duplicate_inconsistent = 2`.
-2. **Given** the same CSV is imported a second time into the same store, **When** the second import completes, **Then** all import counts, row classifications, and balances are unchanged and no row is added twice.
-3. **Given** rows 15-18, **When** they are classified against the earlier accepted rows, **Then** rows 15-16 are `duplicate_identical`, rows 17-18 are `duplicate_inconsistent`, and neither duplicate type creates or alters a stored invoice.
+2. **Given** the same CSV text is imported again as a separate call, **When** the call completes, **Then** all import counts, row classifications, and balances are identical and no invoice is counted twice.
+3. **Given** rows 15-18, **When** they are classified against the earlier accepted rows in the same call, **Then** rows 15-16 are `duplicate_identical`, rows 17-18 are `duplicate_inconsistent`, and neither duplicate type creates or alters an accepted invoice.
 4. **Given** rejected rows 19-30, **When** they are classified, **Then** their reasons are exactly: `19 invalid_amount`, `20 invalid_amount`, `21 invalid_amount`, `22 invalid_date`, `23 invalid_date`, `24 invalid_date`, `25 missing_required_field`, `26 invalid_currency`, `27 invalid_payment`, `28 invalid_payment`, `29 empty_row`, `30 empty_row`.
-5. **Given** any rejected or duplicate row, **When** the import finishes, **Then** no field from that row is written to the store.
+5. **Given** any rejected or duplicate row, **When** the import finishes, **Then** no field from that row contributes to the accepted invoices.
 
 ---
 
@@ -65,7 +73,9 @@ An operator reviews the desk for a specific reporting date and sees how overdue 
 
 ### Edge Cases
 
-- A row with no cells, or with every cell blank, is `empty_row`; it is never reported as a different missing-field or validation error.
+- A row with no cells, or with every cell blank after trimming surrounding whitespace, is `empty_row`; it is never reported as a different missing-field or validation error.
+- Surrounding whitespace is trimmed from all seven fields before validation and comparison, so ` USD ` is valid and matches `USD`, while `"Acme Cleaning Co "` and `"Acme Cleaning Co"` are the same value; case and internal spacing remain significant.
+- A row with fewer than seven cells is padded with blank values for the missing trailing fields, and cells beyond the seventh are ignored; the padded row then follows the normal precedence (so a missing required trailing field is `missing_required_field`, and an otherwise-all-blank row is `empty_row`).
 - A row with a blank required field is `missing_required_field`, even if another field would also fail validation.
 - Both `issue_date` and `due_date` must be real calendar dates in strict `YYYY-MM-DD` form; `2026-13-40`, `not-a-date`, and `10/15/2026` are invalid dates.
 - An amount of `abc`, `12.50`, or `-500` is invalid; a zero amount is valid as an integer number of cents.
@@ -74,7 +84,7 @@ An operator reviews the desk for a specific reporting date and sees how overdue 
 - The same invoice identifier from a different issuer is not a duplicate; the duplicate key is issuer plus invoice identifier.
 - An inconsistent duplicate is flagged and never replaces or merges with the first accepted record.
 - A later row identical to an accepted record is `duplicate_identical` and is a no-op.
-- Re-importing the same CSV text into the same store produces no new classifications, no new outstanding amounts, and no change to existing rows.
+- Processing the same CSV text again in a separate call produces an identical result; there is no stored state in which rows could accumulate.
 - An invoice due today is `current` with zero days overdue; an invoice due tomorrow is also `current` with zero days overdue.
 - An invoice with a positive balance of one cent is outstanding; only a zero balance is excluded from the outstanding count and sum.
 - A fully paid invoice whose due date is long past is placed in `paid`, never in an overdue bucket.
@@ -87,7 +97,7 @@ An operator reviews the desk for a specific reporting date and sees how overdue 
 - **FR-001**: The capability MUST accept invoice CSV text and an explicit `as_of` calendar date; it MUST NOT read the system clock.
 - **FR-002**: The CSV MUST be interpreted through its header row, which provides `issuer`, `invoice_id`, `issue_date`, `due_date`, `amount_cents`, `currency`, and `paid_cents`. Data rows MUST be evaluated in input order.
 - **FR-003**: Every data row MUST receive exactly one classification: `accepted`, `rejected` with exactly one reason, `duplicate_identical`, or `duplicate_inconsistent`. The four import counts MUST sum to the total number of data rows.
-- **FR-004**: An import target/store MUST retain accepted invoices and row outcomes so that re-importing the same CSV text is idempotent: counts, classifications, balances, and totals remain unchanged and no record is duplicated.
+- **FR-004**: Import MUST be a pure per-call function: no state persists between calls, duplicate detection is scoped to the rows of that single call, and the same CSV text and `as_of` date MUST return an identical result with no accumulated or double-counted records.
 - **FR-005**: Required fields MUST be present and non-blank. A row with a missing or blank required field MUST be rejected as `missing_required_field`.
 - **FR-006**: A row with no cells or only blank cells MUST be rejected as `empty_row`. This reason takes precedence over every other validation reason.
 - **FR-007**: `issue_date` and `due_date` MUST each be a real Gregorian calendar date in strict `YYYY-MM-DD` form. Any other form or impossible date MUST be rejected as `invalid_date`.
@@ -96,30 +106,32 @@ An operator reviews the desk for a specific reporting date and sees how overdue 
 - **FR-010**: `paid_cents` MUST be a non-negative base-10 integer number of cents and MUST NOT exceed `amount_cents`. A negative payment, an overpayment, a non-integer payment, or a payment that cannot be parsed MUST be rejected as `invalid_payment`.
 - **FR-011**: When a row fails more than one validation, the reported reason MUST be deterministic, using this precedence: `empty_row`, `missing_required_field`, `invalid_date`, `invalid_amount`, `invalid_currency`, `invalid_payment`.
 - **FR-012**: Only rows that pass validation participate in duplicate detection. Duplicate identity MUST use the pair `(issuer, invoice_id)`.
-- **FR-013**: The first validated occurrence of an invoice identity MUST be accepted and stored.
-- **FR-014**: A subsequent validated row with the same identity MUST be `duplicate_identical` when all seven normalized field values match the first accepted record, and `duplicate_inconsistent` when any field value differs. Neither duplicate classification may alter, replace, merge with, or add to the stored record.
-- **FR-015**: A rejected or duplicate row MUST NOT write any field to the store, either wholly or partially.
+- **FR-013**: The first validated occurrence of an invoice identity within the call MUST be accepted and included as an accepted invoice.
+- **FR-014**: A subsequent validated row in the same call with the same identity MUST be `duplicate_identical` when all seven normalized field values match the first accepted record, and `duplicate_inconsistent` when any field value differs. Neither duplicate classification may alter, replace, merge with, or add to the accepted record.
+- **FR-015**: A rejected or duplicate row MUST NOT contribute any field to the accepted invoices, either wholly or partially.
 - **FR-016**: For every accepted invoice, `remaining_balance_cents` MUST equal `amount_cents - paid_cents` as an integer number of cents, and MUST be zero or positive.
 - **FR-017**: An invoice MUST be considered overdue only when its remaining balance is positive and its `due_date` is earlier than `as_of`.
 - **FR-018**: For an accepted invoice, `days_overdue` MUST be `0` when `due_date` is on or after `as_of`, and otherwise the number of calendar days from `due_date` to `as_of`.
 - **FR-019**: Every accepted invoice MUST receive exactly one aging bucket: `paid` when the remaining balance is `0`; otherwise `current` when it is not overdue; otherwise `1-30` for 1 through 30 days overdue, `31-60` for 31 through 60, `61-90` for 61 through 90, and `91+` for 91 or more.
 - **FR-020**: Aging bucket boundaries MUST be based on days overdue, not on calendar month names, and MUST place 0 days in `current`, 1 and 30 days in `1-30`, 31 and 60 days in `31-60`, 61 and 90 days in `61-90`, and 91 days in `91+`.
-- **FR-021**: Import totals MUST include `total_rows`, `accepted`, `rejected`, `duplicate_identical`, and `duplicate_inconsistent`, and MUST be stable across replay imports.
+- **FR-021**: Import totals MUST include `total_rows`, `accepted`, `rejected`, `duplicate_identical`, and `duplicate_inconsistent`, and MUST be identical whenever the same CSV text and `as_of` date are supplied again.
 - **FR-022**: Outstanding totals MUST include the count and cent sum of accepted invoices whose remaining balance is positive. Zero-balance invoices MUST be excluded from that count and sum.
 - **FR-023**: Paid totals MUST include the sum of recorded `paid_cents` for accepted invoices, expressed in integer cents.
 - **FR-024**: Aging totals MUST report, for every bucket, the number of accepted invoices in that bucket and the sum of its remaining balances in integer cents. The `paid` bucket MUST report its count and a remaining sum of `0`.
 - **FR-025**: Every monetary calculation and total MUST use integer cents. Floating-point arithmetic MUST NOT be used for money.
-- **FR-026**: The same CSV text, `as_of` date, and store state MUST always produce the same classifications, balances, buckets, and totals.
+- **FR-026**: The same CSV text and `as_of` date MUST always produce the same classifications, balances, buckets, and totals.
 - **FR-027**: The capability MUST be delivered as a pure, offline Python package named `invoice_desk`, using only the standard library, with no UI or command-line workflow required for this slice.
 - **FR-028**: The capability MUST make no network calls, use no external services, and contain no credentials, secrets, or real personal data.
 - **FR-029**: The follow-up queue, prioritization order, owner assignment, note persistence, payment events, promised-pay annotations, and schema migration are out of scope for this feature.
+- **FR-030**: Before any validation, empty-row detection, identity matching, or duplicate comparison, leading and trailing whitespace MUST be trimmed from all seven field values. Case and internal characters MUST remain significant, so trimming MUST NOT change case or collapse internal spacing.
+- **FR-031**: A data row with fewer than seven cells MUST be treated as having blank values for each missing trailing field, and cells beyond the seventh MUST be ignored. The padded row MUST then be evaluated using the same validation precedence and rejection reasons as a full-width row.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Source row**: One data row from the CSV, in input order, with its seven invoice fields and its outcome.
 - **Import outcome**: The classification of one source row: accepted, rejected with a reason, duplicate identical, or duplicate inconsistent.
 - **Accepted invoice**: A validated first occurrence of an invoice identity, with issuer, invoice identifier, dates, amount, currency, recorded payment, remaining balance, days overdue, and aging bucket.
-- **Import store**: The in-memory import target that retains accepted invoices and row outcomes so replay imports are no-ops. Restart persistence is out of scope for this slice.
+- **Import result**: The value returned by one pure import call, containing the classification of every source row plus the accepted invoices and totals. No store or state persists between calls.
 - **Import totals**: The counts of every classification plus outstanding, paid, and aging summary figures.
 - **Aging bucket**: One of `current`, `1-30`, `31-60`, `61-90`, `91+`, or `paid`.
 
@@ -129,12 +141,12 @@ An operator reviews the desk for a specific reporting date and sees how overdue 
 
 - **SC-001**: Importing the frozen `data/invoices.csv` at `as_of = 2026-10-15` yields exactly `total_rows = 30`, `accepted = 14`, `rejected = 12`, `duplicate_identical = 2`, and `duplicate_inconsistent = 2` in 100% of runs.
 - **SC-002**: Every row classification and every rejection reason matches the acceptance expectations for rows 1-30, with zero unknown or missing outcomes.
-- **SC-003**: Re-importing the same CSV text into the same store changes zero counts, zero balances, and zero classifications; a second import adds no new invoice records.
+- **SC-003**: Processing the same CSV text again in a separate call returns identical counts, balances, and classifications and adds no duplicate invoice records.
 - **SC-004**: Outstanding totals are exactly `13` invoices and `2139435` cents, and total paid is exactly `289999` cents.
 - **SC-005**: A zero-balance invoice contributes exactly `0` to outstanding totals, is excluded from the outstanding count, and appears in the `paid` bucket with a remaining sum of `0`.
 - **SC-006**: The 0/1/30/31/60/61/90/91-day boundaries map to the required buckets in 100% of cases, including due-today and future-due invoices.
 - **SC-007**: Aging totals equal `current {3, 597047}`, `1-30 {3, 396862}`, `31-60 {3, 259664}`, `61-90 {2, 863731}`, `91+ {2, 22131}`, and `paid {1, 0}`.
-- **SC-008**: Rejected and duplicate rows produce zero stored invoice fields, so no partially imported record can be observed.
+- **SC-008**: Rejected and duplicate rows contribute zero accepted-invoice fields, so no partially imported record can be observed.
 - **SC-009**: Repeated runs with identical inputs produce identical results, and results are independent of the machine clock.
 - **SC-010**: The feature operates with networking blocked and uses no credentials, secrets, or real personal data.
 
@@ -142,8 +154,8 @@ An operator reviews the desk for a specific reporting date and sees how overdue 
 
 - The frozen fixture `data/invoices.csv` (30 rows, seed `20261015`) and the acceptance values in `ACCEPTANCE.md` are the source of truth for this slice; the reporting date is `2026-10-15` in `America/New_York`.
 - The CSV is synthetic, contains a header row, and uses the seven documented columns in the documented order; additional caveats about malformed headers are outside this slice.
-- The import store for this slice is an in-memory target used to make replay imports idempotent. Persistence across process restarts, owners, notes, and the follow-up queue belong to AT-05 and are out of scope.
-- "Duplicate identity" means the same `issuer` plus `invoice_id`. The field comparison for identical duplicates uses normalized accepted values rather than raw text formatting.
+- Import is a pure per-call function with no store or persistence; re-running the same input reproduces the same result. Persistence across process restarts, owners, notes, and the follow-up queue belong to AT-05 and are out of scope.
+- "Duplicate identity" means the same `issuer` plus `invoice_id`. The field comparison for identical duplicates uses normalized accepted values rather than raw text formatting; normalization trims surrounding whitespace but preserves case and internal characters.
 - Dates are civil dates in `America/New_York`; no time-of-day arithmetic is needed, and an explicit `as_of` value is always supplied by the caller.
 - Amounts in the CSV are already integer cents. There is no currency conversion, tax computation, invoicing, payment processing, reminders, or collections workflow.
 - Payment events, partial-payment event identifiers, promised-pay annotations, and schema migrations belong to later roadmap phases R2, R3, and R5 and MUST NOT be introduced by this feature.
