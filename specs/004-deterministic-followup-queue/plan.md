@@ -370,3 +370,7 @@ deployment. No import behaviour is re-implemented or changed.
   network, clock use, or changes to import output.
 - II: PASS for all domain/ordering functions; the single stateful boundary is the explicitly
   required annotation store, justified above and confined to `annotations.py`.
+
+## Decisions (receiver log)
+
+Agent B appends one bullet per decision made while implementing T001–T007 (date, task ID, decision, reason). Empty at handoff.
