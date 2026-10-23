@@ -111,7 +111,7 @@ An operator reviews the desk for a specific reporting date and sees how overdue 
 - **FR-015**: A rejected or duplicate row MUST NOT contribute any field to the accepted invoices, either wholly or partially.
 - **FR-016**: For every accepted invoice, `remaining_balance_cents` MUST equal `amount_cents - paid_cents` as an integer number of cents, and MUST be zero or positive.
 - **FR-017**: An invoice MUST be considered overdue only when its remaining balance is positive and its `due_date` is earlier than `as_of`.
-- **FR-018**: For an accepted invoice, `days_overdue` MUST be `0` when `due_date` is on or after `as_of`, and otherwise the number of calendar days from `due_date` to `as_of`.
+- **FR-018**: For an accepted invoice, `days_overdue` MUST be `0` when the invoice is not overdue under FR-017 (a zero remaining balance, or `due_date` on or after `as_of`), and otherwise the number of calendar days from `due_date` to `as_of`. *(Review fix R1: the earlier wording ignored the zero-balance case and contradicted FR-017.)*
 - **FR-019**: Every accepted invoice MUST receive exactly one aging bucket: `paid` when the remaining balance is `0`; otherwise `current` when it is not overdue; otherwise `1-30` for 1 through 30 days overdue, `31-60` for 31 through 60, `61-90` for 61 through 90, and `91+` for 91 or more.
 - **FR-020**: Aging bucket boundaries MUST be based on days overdue, not on calendar month names, and MUST place 0 days in `current`, 1 and 30 days in `1-30`, 31 and 60 days in `31-60`, 61 and 90 days in `61-90`, and 91 days in `91+`.
 - **FR-021**: Import totals MUST include `total_rows`, `accepted`, `rejected`, `duplicate_identical`, and `duplicate_inconsistent`, and MUST be identical whenever the same CSV text and `as_of` date are supplied again.

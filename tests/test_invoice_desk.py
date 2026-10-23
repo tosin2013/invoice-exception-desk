@@ -439,7 +439,7 @@ def test_frozen_days_overdue_and_buckets():
         "INV-1008": (90, "61-90"),
         "INV-1009": (91, "91+"),
         "INV-1010": (30, "1-30"),
-        "INV-1011": (61, "paid"),
+        "INV-1011": (0, "paid"),  # review fix R1: zero balance is never overdue
         "INV-1012": (91, "91+"),
         "INV-1013": (0, "current"),
         "INV-1014": (31, "31-60"),
@@ -499,7 +499,7 @@ def test_fully_paid_overdue_invoice_is_paid_not_overdue():
 
     assert row["status"] == "accepted"
     assert row["remaining_balance_cents"] == 0
-    assert row["days_overdue"] == 61
+    assert row["days_overdue"] == 0  # review fix R1
     assert row["aging_bucket"] == "paid"
     assert result["totals"]["outstanding_invoice_count"] == 0
     assert result["totals"]["total_outstanding_cents"] == 0

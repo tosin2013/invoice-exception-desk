@@ -236,7 +236,12 @@ def import_invoices(csv_text: str, as_of: date) -> dict:
         amount_cents = int(normalized["amount_cents"])
         paid_cents = int(normalized["paid_cents"])
         remaining_cents = amount_cents - paid_cents
-        days_overdue = max(0, (as_of - normalized["due_date"]).days)  # type: ignore[operator]
+        # FR-017/FR-018: a fully paid invoice is never overdue.
+        days_overdue = (
+            max(0, (as_of - normalized["due_date"]).days)  # type: ignore[operator]
+            if remaining_cents > 0
+            else 0
+        )
 
         if remaining_cents == 0:
             bucket = "paid"
