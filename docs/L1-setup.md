@@ -49,7 +49,7 @@ flowchart LR
   lpG -->|next change| lpB
 ```
 
-> **Status:** the setup steps and the split-bill exercise on this page are written. [L2](L2-first-feature.md) continues from here. L3 and L4 are paused pending review.
+> **Status:** the setup steps and the split-bill exercise on this page are written. [L2](L2-first-feature.md) continues from here, then [L3](L3-invoice-desk.md). L4 is paused pending review.
 
 **Key terms**
 - **Spec Kit**: GitHub's toolkit for Spec-Driven Development (SDD).
@@ -263,7 +263,7 @@ In the agent chat, for example (OpenCode syntax shown):
 /speckit.constitution Create principles focused on code quality, testing, and maintainability.
 ```
 
-The Invoice Exception Desk constitution (integer cents, deterministic data, no PII, and an independent answer key per phase) belongs to the L3 walkthrough, which is paused pending review.
+The Invoice Exception Desk constitution (integer cents, deterministic data, no PII, and an independent answer key per phase) belongs to the [L3 walkthrough](L3-invoice-desk.md).
 
 ## 5. Your first tiny feature
 
@@ -333,4 +333,4 @@ Run the answer key and the tests, and look at the commit (`git show --stat HEAD`
 
 **Stuck?** Check `specify version` and `specify check`, then the [Installation docs](https://github.github.io/spec-kit/installation.html).
 
-L3 and L4 are paused pending review. Compare the start branch with the finished steps: [`l1-start...l1-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l1-start...l1-solution). Next: [L2: First feature, end to end](L2-first-feature.md). Back to [Home](index.md).
+L4 is paused pending review. Compare the start branch with the finished steps: [`l1-start...l1-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l1-start...l1-solution). Next: [L2: First feature, end to end](L2-first-feature.md). Back to [Home](index.md).
