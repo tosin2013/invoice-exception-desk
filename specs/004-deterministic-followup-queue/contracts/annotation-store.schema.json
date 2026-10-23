@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://invoice-desk.invalid/schemas/followup-annotations-v1.json",
+  "title": "Invoice Desk follow-up annotation store",
+  "description": "Version 1 annotation store keyed by the exact (issuer, invoice_id) pair. Duplicate pairs are invalid and are also rejected by the loader.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "annotations"],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "annotations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["issuer", "invoice_id", "owner", "notes"],
+        "properties": {
+          "issuer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "invoice_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner": {
+            "type": "string",
+            "description": "Empty string means unassigned; non-empty text is preserved exactly."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Empty string means no notes; non-empty text is preserved exactly, including newlines and non-ASCII characters."
+          }
+        }
+      }
+    }
+  }
+}
