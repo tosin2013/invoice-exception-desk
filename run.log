@@ -13327,3 +13327,16 @@ Only queue module, new tests, re-exports and packet-allowed bookkeeping changed.
 No T008–T024 work. Independent Grok review remains pending; builder tests are
 not independent acceptance. No merge or main-branch write authorized/performed.
 Usage/cost: not reported by harness.
+
+=== L3.5 Agent A (OpenCode) session: T008–T024 ===
+2026-10-23 22:00–22:02 EDT | branch l35-agent-b-openai | start HEAD d4f22c73793167767bd0d29de78b41e3d3bc24a0 (parent 413f493)
+Tool: OpenCode 1.19.3, model opencode/deepseek-v4.1-flash-free, `opencode run --auto --command speckit.implement`
+Env: SPECIFY_FEATURE_DIRECTORY=specs/004-deterministic-followup-queue SPECIFY_FEATURE_NO_PERSIST=1 (no .specify/feature.json written)
+Baseline: python -m pytest -q => 135 passed
+OpenCode run 1 (single run, exit 0): wrote tests/test_followup_annotations.py first (collection error before
+implementation, as expected), implemented invoice_desk/annotations.py, re-exports in invoice_desk/__init__.py,
+state/ in .gitignore. First targeted run 2 failed / 99 passed (test-fixture identity mistakes in the new test file);
+OpenCode fixed the tests, then 101 passed targeted, 168 passed full suite. Quickstart sections 2–7 checked with temp stores.
+Final (operator re-run): python -m pytest -q => 168 passed. No state/ directory created. No re-invocations needed.
+Full OpenCode transcript: specs/004-deterministic-followup-queue/agent-a-implement.log
+No push, no PR, no merge, no converge. Usage/cost: not reported by harness (free model).

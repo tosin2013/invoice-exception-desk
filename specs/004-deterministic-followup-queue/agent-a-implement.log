@@ -1,0 +1,674 @@
+=== Agent A OpenCode run 1 | start 2026-10-23 22:00 EDT | HEAD d4f22c73793167767bd0d29de78b41e3d3bc24a0 | opencode 1.19.3 | model opencode/deepseek-v4.1-flash-free ===
+[0m
+> build · deepseek-v4.1-flash-free
+[0m
+[0m$ [0mls -la && git status --short && echo "---extensions---" && cat .specify/extensions.yml 2>/dev/null || echo "no extensions"
+total 872
+drwxr-xr-x   12 box box   4096 Oct 23 21:59 .
+drwxr-xr-x. 129 box box  12288 Oct 23 21:44 ..
+drwxr-xr-x    8 box box   4096 Oct 23 21:59 .git
+-rw-r--r--    1 box box     66 Oct 23 15:26 .gitignore
+drwxr-xr-x    4 box box   4096 Oct 23 15:27 .opencode
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 .pytest_cache
+drwxr-xr-x    7 box box   4096 Oct 23 15:28 .specify
+drwxr-xr-x    5 box box   4096 Oct 23 15:26 .venv
+-rw-r--r--    1 box box   6918 Oct 23 15:26 ACCEPTANCE.md
+-rw-r--r--    1 box box   1989 Oct 23 15:26 NON_GOALS.md
+-rw-r--r--    1 box box   1171 Oct 23 15:26 README.md
+-rw-r--r--    1 box box   6621 Oct 23 15:26 ROADMAP.md
+drwxr-xr-x    3 box box   4096 Oct 23 15:26 bill_split
+drwxr-xr-x    2 box box   4096 Oct 23 15:26 data
+drwxr-xr-x    3 box box   4096 Oct 23 21:59 invoice_desk
+-rw-r--r--    1 box box    124 Oct 23 15:26 pyproject.toml
+-rw-r--r--    1 box box 799441 Oct 23 21:59 run.log
+drwxr-xr-x    6 box box   4096 Oct 23 15:28 specs
+drwxr-xr-x    3 box box   4096 Oct 23 21:59 tests
+?? specs/004-deterministic-followup-queue/agent-a-implement.log
+---extensions---
+no extensions
+[0m
+[0m$ [0mbash .specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks 2>&1
+{"FEATURE_DIR":"/workspace/l35-run/specs/004-deterministic-followup-queue","AVAILABLE_DOCS":["research.md","data-model.md","contracts/","quickstart.md","tasks.md"]}
+[0m
+[0m→ [0mRead specs/004-deterministic-followup-queue/tasks.md
+[0m→ [0mRead specs/004-deterministic-followup-queue/plan.md
+[0m
+[0m$ [0mls -la specs/004-deterministic-followup-queue/checklists 2>/dev/null || echo "no checklists"; echo "---"; cat .gitignore; echo "---tree---"; find invoice_desk tests -type f | sort
+total 12
+drwxr-xr-x 2 box box 4096 Oct 23 15:28 .
+drwxr-xr-x 4 box box 4096 Oct 23 22:00 ..
+-rw-r--r-- 1 box box 2070 Oct 23 16:07 requirements.md
+---
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+---tree---
+invoice_desk/__init__.py
+invoice_desk/__pycache__/__init__.cpython-313.pyc
+invoice_desk/__pycache__/queue.cpython-313.pyc
+invoice_desk/queue.py
+tests/__pycache__/test_followup_queue.cpython-313-pytest-9.1.1.pyc
+tests/__pycache__/test_invoice_desk.cpython-313-pytest-9.1.1.pyc
+tests/__pycache__/test_split_bill.cpython-313-pytest-9.1.1.pyc
+tests/__pycache__/test_split_weighted.cpython-313-pytest-9.1.1.pyc
+tests/test_followup_queue.py
+tests/test_invoice_desk.py
+tests/test_split_bill.py
+tests/test_split_weighted.py
+[0m
+[0m→ [0mRead specs/004-deterministic-followup-queue/data-model.md
+[0m→ [0mRead specs/004-deterministic-followup-queue/research.md
+[0m→ [0mRead specs/004-deterministic-followup-queue/checklists/requirements.md
+[0m→ [0mRead specs/004-deterministic-followup-queue/contracts/public-api.md
+[0m→ [0mRead specs/004-deterministic-followup-queue/contracts/annotation-store.schema.json
+[0m→ [0mRead specs/004-deterministic-followup-queue/quickstart.md
+[0m→ [0mRead invoice_desk/queue.py
+[0m→ [0mRead invoice_desk/__init__.py
+[0m
+[0m$ [0mcat data/invoices.csv; echo "---pyproject---"; cat pyproject.toml; echo "---test queue head---"; sed -n '1,80p' tests/test_followup_queue.py
+issuer,invoice_id,issue_date,due_date,amount_cents,currency,paid_cents
+Acme Cleaning Co,INV-1001,2026-09-01,2026-10-25,480378,USD,0
+Acme Cleaning Co,INV-1002,2026-09-15,2026-10-15,111753,USD,0
+Acme Cleaning Co,INV-1003,2026-09-14,2026-10-14,105038,USD,0
+Acme Cleaning Co,INV-1004,2026-08-16,2026-09-15,231824,USD,0
+Acme Cleaning Co,INV-1005,2026-08-15,2026-09-14,253172,USD,0
+Acme Cleaning Co,INV-1006,2026-07-17,2026-08-16,6491,USD,0
+Acme Cleaning Co,INV-1007,2026-07-16,2026-08-15,430895,USD,0
+Acme Cleaning Co,INV-1008,2026-06-17,2026-07-17,432836,USD,0
+Acme Cleaning Co,INV-1009,2026-06-16,2026-07-16,22130,USD,0
+Acme Cleaning Co,INV-1010,2026-09-15,2026-09-15,100000,USD,40000
+Acme Cleaning Co,INV-1011,2026-08-15,2026-08-15,50000,USD,50000
+Bright Path Facilities,INV-1012,2026-07-16,2026-07-16,200000,USD,199999
+Bright Path Facilities,INV-1013,2026-09-20,2026-11-01,4916,USD,0
+Bright Path Facilities,INV-1014,2026-09-14,2026-09-14,1,USD,0
+Acme Cleaning Co,INV-1004,2026-08-16,2026-09-15,231824,USD,0
+Acme Cleaning Co,INV-1002,2026-09-15,2026-10-15,111753,USD,0
+Acme Cleaning Co,INV-1003,2026-09-14,2026-10-14,105039,USD,0
+Acme Cleaning Co,INV-1005,2026-08-15,2026-09-13,253172,USD,0
+Acme Cleaning Co,INV-9001,2026-09-01,2026-10-01,abc,USD,0
+Acme Cleaning Co,INV-9002,2026-09-01,2026-10-01,-500,USD,0
+Acme Cleaning Co,INV-9003,2026-09-01,2026-10-01,12.50,USD,0
+Acme Cleaning Co,INV-9004,2026-13-40,2026-10-01,10000,USD,0
+Acme Cleaning Co,INV-9005,not-a-date,2026-10-01,10000,USD,0
+Acme Cleaning Co,INV-9006,10/15/2026,2026-10-01,10000,USD,0
+Acme Cleaning Co,,2026-09-01,2026-10-01,10000,USD,0
+Acme Cleaning Co,INV-9007,2026-09-01,2026-10-01,10000,EUR,0
+Acme Cleaning Co,INV-9008,2026-09-01,2026-10-01,10000,USD,15000
+Acme Cleaning Co,INV-9009,2026-09-01,2026-10-01,10000,USD,-100
+
+
+---pyproject---
+[project]
+name = "bill-split"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+---test queue head---
+"""Stage 1 queue contract; independent of annotation persistence."""
+
+from copy import deepcopy
+from datetime import date, timedelta
+from itertools import permutations
+from pathlib import Path
+
+import pytest
+
+from invoice_desk import (
+    BUCKET_PRIORITY,
+    accepted_invoice_identities,
+    build_followup_queue,
+    import_invoices,
+)
+
+AS_OF = date(2026, 10, 15)
+ROOT = Path(__file__).resolve().parents[1]
+HEADER = "issuer,invoice_id,issue_date,due_date,amount_cents,currency,paid_cents"
+
+
+def frozen_result():
+    return import_invoices((ROOT / "data/invoices.csv").read_text(encoding="utf-8"), AS_OF)
+
+
+def imported(*rows):
+    return import_invoices("\n".join([HEADER, *rows]), AS_OF)
+
+
+def invoice(issuer, invoice_id, balance=100, overdue=1, paid=0):
+    due = AS_OF - timedelta(days=overdue)
+    return f"{issuer},{invoice_id},2026-01-01,{due},{balance + paid},USD,{paid}"
+
+
+def identities(queue):
+    return [(item["issuer"], item["invoice_id"]) for item in queue]
+
+
+def test_frozen_sc002_order():
+    assert [item["invoice_id"] for item in build_followup_queue(frozen_result())] == [
+        "INV-1009", "INV-1012", "INV-1008", "INV-1007", "INV-1005",
+        "INV-1006", "INV-1014", "INV-1004", "INV-1003", "INV-1010",
+        "INV-1001", "INV-1002", "INV-1013", "INV-1011",
+    ]
+
+
+def test_repeated_calls_and_reversed_input_are_identical():
+    result = frozen_result()
+    first = build_followup_queue(result)
+    assert first == build_followup_queue(result)
+    assert identities(first) == identities(build_followup_queue(result))
+    result["rows"].reverse()
+    assert build_followup_queue(result) == first
+
+
+def test_bucket_priority_and_precedence():
+    assert BUCKET_PRIORITY == {
+        "91+": 0, "61-90": 1, "31-60": 2, "1-30": 3, "current": 4, "paid": 5,
+    }
+    result = imported(
+        invoice("A", "paid", 0, 120, 900),
+        invoice("A", "current", 900, 0),
+        invoice("A", "recent", 800, 1),
+        invoice("A", "middle", 700, 31),
+        invoice("A", "old", 600, 61),
+        invoice("A", "oldest", 500, 91),
+    )
+    assert [item["aging_bucket"] for item in build_followup_queue(result)] == [
+        "91+", "61-90", "31-60", "1-30", "current", "paid",
+    ]
+
+
+@pytest.mark.parametrize("overdue", [0, 1, 31, 61, 91])
+def test_balance_descends_before_identifier_or_days(overdue):
+    result = imported(
+        invoice("A", "A", 1, overdue),
+        invoice("A", "Z", 10**20 + 1, overdue),
+        invoice("A", "Y", 10**20, overdue),
+    )
+    assert [item["invoice_id"] for item in build_followup_queue(result)] == ["Z", "Y", "A"]
+[0m
+[0m$ [0mpython -m pytest -q 2>&1 | tail -5; python --version
+........................................................................ [ 53%]
+...............................................................          [100%]
+135 passed in 0.07s
+Python 3.13.5
+[0m
+[0m# [0mTodos
+[•] T008 add state/ to .gitignore
+[ ] T009-T011 write tests/test_followup_annotations.py
+[ ] T012-T018 implement invoice_desk/annotations.py
+[ ] T019 re-export annotation API from invoice_desk/__init__.py
+[ ] T020 run annotation+queue+import tests
+[ ] T021-T024 run full suite, quickstart, review, git status
+[ ] Mark T008-T024 [X] in tasks.md
+[0m
+[0m← [0mEdit .gitignore
+Index: /workspace/l35-run/.gitignore
+===================================================================
+--- /workspace/l35-run/.gitignore
++++ /workspace/l35-run/.gitignore
+@@ -4,4 +4,5 @@
+ .pytest_cache/
+ dist/
+ build/
+ *.egg-info/
++state/
+
+[0m
+[0m← [0mWrite tests/test_followup_annotations.py
+Wrote file successfully.
+[0m
+[0m$ [0mpython -m pytest -q tests/test_followup_annotations.py 2>&1 | tail -20
+==================================== ERRORS ====================================
+_____________ ERROR collecting tests/test_followup_annotations.py ______________
+ImportError while importing test module '/workspace/l35-run/tests/test_followup_annotations.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_followup_annotations.py:9: in <module>
+    from invoice_desk import (
+E   ImportError: cannot import name 'ANNOTATION_STORE_VERSION' from 'invoice_desk' (/workspace/l35-run/invoice_desk/__init__.py)
+=========================== short test summary info ============================
+ERROR tests/test_followup_annotations.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.09s
+[0m
+[0m← [0mWrite invoice_desk/annotations.py
+Wrote file successfully.
+[0m
+[0m← [0mEdit invoice_desk/__init__.py
+Index: /workspace/l35-run/invoice_desk/__init__.py
+===================================================================
+--- /workspace/l35-run/invoice_desk/__init__.py
++++ /workspace/l35-run/invoice_desk/__init__.py
+@@ -15,8 +15,24 @@
+ import io
+ import re
+ from datetime import date
+ 
++from .annotations import (
++    ANNOTATION_STORE_VERSION,
++    DEFAULT_ANNOTATION_STORE_PATH,
++    AnnotationError,
++    AnnotationStoreDuplicateIdentityError,
++    AnnotationStoreMalformedError,
++    AnnotationStoreUnreadableError,
++    AnnotationStoreVersionError,
++    AnnotationStoreWriteError,
++    InvoiceNotAcceptedError,
++    attach_annotations,
++    followup_queue,
++    load_annotations,
++    set_notes,
++    set_owner,
++)
+ from .queue import BUCKET_PRIORITY, accepted_invoice_identities, build_followup_queue
+ 
+ HEADER_FIELDS = (
+     "issuer",
+
+[0m
+[0m$ [0mpython -m pytest -q tests/test_followup_annotations.py tests/test_followup_queue.py tests/test_invoice_desk.py 2>&1 | tail -30
+item["position"] for item in source
+        ]
+        by_id = {item["invoice_id"]: item for item in attached}
+        assert by_id["INV-1001"]["owner"] is None
+        assert by_id["INV-1001"]["notes"] is None
+>       assert by_id["INV-1012"]["owner"] == "Dana"
+E       AssertionError: assert None == 'Dana'
+
+tests/test_followup_annotations.py:155: AssertionError
+_________ test_non_accepted_identity_is_refused_without_touching_store _________
+
+tmp_path = PosixPath('/tmp/pytest-of-box/pytest-0/test_non_accepted_identity_is_0')
+
+    def test_non_accepted_identity_is_refused_without_touching_store(tmp_path):
+        path = store_path(tmp_path)
+        identities = accepted_invoice_identities(frozen_result())
+        set_owner(identities, "Acme Cleaning Co", "INV-1001", "Dana", store_path=path)
+        before = path.read_bytes()
+    
+        with pytest.raises(InvoiceNotAcceptedError):
+            set_owner(identities, "Acme Cleaning Co", "INV-9001", "Dana", store_path=path)
+>       with pytest.raises(InvoiceNotAcceptedError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE InvoiceNotAcceptedError
+
+tests/test_followup_annotations.py:231: Failed
+=========================== short test summary info ============================
+FAILED tests/test_followup_annotations.py::test_attach_preserves_order_and_maps_empty_strings_to_none
+FAILED tests/test_followup_annotations.py::test_non_accepted_identity_is_refused_without_touching_store
+2 failed, 99 passed in 0.11s
+[0m
+[0m← [0mEdit tests/test_followup_annotations.py
+Index: /workspace/l35-run/tests/test_followup_annotations.py
+===================================================================
+--- /workspace/l35-run/tests/test_followup_annotations.py
++++ /workspace/l35-run/tests/test_followup_annotations.py
+@@ -135,9 +135,14 @@
+ document = {
+     "version": 1,
+     "annotations": [
+         record(owner="", notes=""),
+-        record(invoice_id="INV-1012", owner="Dana", notes=""),
++        record(
++            issuer="Bright Path Facilities",
++            invoice_id="INV-1012",
++            owner="Dana",
++            notes="",
++        ),
+         record(invoice_id="INV-1003", owner="", notes="Follow up."),
+     ],
+ }
+ write_document(path, document)
+
+[0m
+[0m← [0mEdit tests/test_followup_annotations.py
+Index: /workspace/l35-run/tests/test_followup_annotations.py
+===================================================================
+--- /workspace/l35-run/tests/test_followup_annotations.py
++++ /workspace/l35-run/tests/test_followup_annotations.py
+@@ -236,9 +236,9 @@
+ with pytest.raises(InvoiceNotAcceptedError):
+     set_notes(
+         identities,
+         "Acme Cleaning Co",
+-        "INV-1002",
++        "INV-9001",
+         "notes",
+         store_path=path,
+     )
+ assert path.read_bytes() == before
+
+[0m
+[0m$ [0mpython -m pytest -q tests/test_followup_annotations.py tests/test_followup_queue.py tests/test_invoice_desk.py 2>&1 | tail -15
+........................................................................ [ 71%]
+.............................                                            [100%]
+101 passed in 0.12s
+[0m
+[0m$ [0mpython -m pytest -q 2>&1 | tail -5; test -e state && echo "STATE EXISTS" || echo "no state dir"
+........................................................................ [ 42%]
+........................................................................ [ 85%]
+........................                                                 [100%]
+168 passed in 0.11s
+no state dir
+[0m
+[0m$ [0mpython - <<'PY'
+import json
+import tempfile
+from datetime import date
+from pathlib import Path
+from invoice_desk import (
+    accepted_invoice_identities, attach_annotations, build_followup_queue,
+    followup_queue, import_invoices, load_annotations, set_notes, set_owner,
+    AnnotationStoreMalformedError, AnnotationStoreVersionError,
+    AnnotationStoreDuplicateIdentityError, InvoiceNotAcceptedError,
+)
+
+csv_text = Path("data/invoices.csv").read_text(encoding="utf-8")
+result = import_invoices(csv_text, date(2026, 10, 15))
+expected = ['INV-1009', 'INV-1012', 'INV-1008', 'INV-1007', 'INV-1005', 'INV-1006',
+            'INV-1014', 'INV-1004', 'INV-1003', 'INV-1010', 'INV-1001', 'INV-1002',
+            'INV-1013', 'INV-1011']
+queue = build_followup_queue(result)
+assert [i["invoice_id"] for i in queue] == expected, "section 2 order"
+assert [i["position"] for i in queue] == list(range(1, 15))
+assert queue[-1]["aging_bucket"] == "paid" and queue[-1]["remaining_balance_cents"] == 0
+assert all(i["owner"] is None and i["notes"] is None for i in queue)
+print("section 2 ok")
+
+assert build_followup_queue(result) == build_followup_queue(result)
+assert build_followup_queue(result) == build_followup_queue(import_invoices(csv_text, date(2026, 10, 15)))
+print("section 3 ok")
+
+ids = accepted_invoice_identities(result)
+with tempfile.TemporaryDirectory() as tmp:
+    store = Path(tmp) / "followup_annotations.json"
+    set_owner(ids, "Acme Cleaning Co", "INV-1001", "Dana", store_path=store)
+    set_notes(ids, "Acme Cleaning Co", "INV-1002", "Call Tuesday.\nAsk for AP.", store_path=store)
+    first = followup_queue(result, store)
+    second = followup_queue(result, store)
+    by_id = {i["invoice_id"]: i for i in first}
+    assert by_id["INV-1001"]["owner"] == "Dana" and by_id["INV-1001"]["notes"] is None
+    assert by_id["INV-1002"]["owner"] is None
+    assert by_id["INV-1002"]["notes"] == "Call Tuesday.\nAsk for AP."
+    assert [i["invoice_id"] for i in first] == [i["invoice_id"] for i in second] == expected
+    assert store.exists()
+    print("section 4 ok")
+
+    # restart simulation
+    assert load_annotations(store)[("Acme Cleaning Co", "INV-1002")]["notes"] == "Call Tuesday.\nAsk for AP."
+    # clearing independence
+    set_owner(ids, "Acme Cleaning Co", "INV-1002", None, store_path=store)
+    assert load_annotations(store)[("Acme Cleaning Co", "INV-1002")]["notes"] == "Call Tuesday.\nAsk for AP."
+    set_notes(ids, "Acme Cleaning Co", "INV-1001", "n", store_path=store)
+    set_owner(ids, "Acme Cleaning Co", "INV-1001", None, store_path=store)
+    assert load_annotations(store)[("Acme Cleaning Co", "INV-1001")]["notes"] == "n"
+
+    # missing store
+    missing = Path(tmp) / "missing.json"
+    missing_queue = followup_queue(result, missing)
+    assert all(i["owner"] is None and i["notes"] is None for i in missing_queue)
+    assert not missing.exists()
+
+    # malformed
+    bad = Path(tmp) / "bad.json"
+    bad.write_text("{not json", encoding="utf-8")
+    before = bad.read_bytes()
+    try:
+        set_owner(ids, "Acme Cleaning Co", "INV-1001", "Dana", store_path=bad)
+        raise AssertionError("expected malformed")
+    except AnnotationStoreMalformedError:
+        pass
+    assert bad.read_bytes() == before
+
+    # unsupported version
+    v2 = Path(tmp) / "v2.json"
+    v2.write_text(json.dumps({"version": 2, "annotations": []}), encoding="utf-8")
+    before = v2.read_bytes()
+    try:
+        load_annotations(v2); raise AssertionError("expected version error")
+    except AnnotationStoreVersionError:
+        pass
+    assert v2.read_bytes() == before
+
+    # duplicate identity
+    dup = Path(tmp) / "dup.json"
+    rec = {"issuer": "A", "invoice_id": "I", "owner": "", "notes": ""}
+    dup.write_text(json.dumps({"version": 1, "annotations": [rec, rec]}), encoding="utf-8")
+    before = dup.read_bytes()
+    try:
+        load_annotations(dup); raise AssertionError("expected duplicate error")
+    except AnnotationStoreDuplicateIdentityError:
+        pass
+    assert dup.read_bytes() == before
+
+    # not accepted
+    try:
+        set_owner(ids, "Acme Cleaning Co", "INV-9001", "Dana", store_path=store)
+        raise AssertionError("expected not accepted")
+    except InvoiceNotAcceptedError:
+        pass
+    print("section 5 ok")
+
+    # annotation changes do not reorder
+    before_q = followup_queue(result, missing)
+    set_owner(ids, "Acme Cleaning Co", "INV-1003", "Dana", store_path=store)
+    after_q = followup_queue(result, store)
+    assert [(i["invoice_id"], i["position"], i["remaining_balance_cents"], i["days_overdue"], i["aging_bucket"]) for i in before_q] == \
+           [(i["invoice_id"], i["position"], i["remaining_balance_cents"], i["days_overdue"], i["aging_bucket"]) for i in after_q]
+    print("section 6 ok")
+
+    # retained annotation for absent identity
+    set_owner(ids, "Bright Path Facilities", "INV-1013", "Eve", store_path=store)
+    other = import_invoices("\n".join([
+        "issuer,invoice_id,issue_date,due_date,amount_cents,currency,paid_cents",
+        "Bright Path Facilities,INV-1014,2026-09-14,2026-09-14,1,USD,0",
+    ]), date(2026, 10, 15))
+    other_q = followup_queue(other, store)
+    assert [i["invoice_id"] for i in other_q] == ["INV-1014"]
+    assert ("Bright Path Facilities", "INV-1013") in load_annotations(store)
+    again = followup_queue(result, store)
+    assert {i["invoice_id"]: i for i in again}["INV-1013"]["owner"] == "Eve"
+    print("section 7 ok")
+print("quickstart sections 2-7 passed")
+PY
+section 2 ok
+section 3 ok
+section 4 ok
+section 5 ok
+section 6 ok
+section 7 ok
+quickstart sections 2-7 passed
+[0m
+[0m$ [0mgit status --short; echo "---diff stat---"; git diff --stat; echo "---tracked state---"; git ls-files state/ || true; echo "---annotation code stdlib/no clock---"; grep -nE "^(import|from) " invoice_desk/annotations.py; grep -nE "datetime|time\.|random|socket|requests|urllib" invoice_desk/annotations.py || echo "no clock/random/network references"
+M .gitignore
+ M invoice_desk/__init__.py
+?? invoice_desk/annotations.py
+?? specs/004-deterministic-followup-queue/agent-a-implement.log
+?? tests/test_followup_annotations.py
+---diff stat---
+ .gitignore               |  1 +
+ invoice_desk/__init__.py | 16 ++++++++++++++++
+ 2 files changed, 17 insertions(+)
+---tracked state---
+---annotation code stdlib/no clock---
+8:from __future__ import annotations
+10:import json
+11:import os
+12:import tempfile
+13:from pathlib import Path
+15:from .queue import build_followup_queue
+no clock/random/network references
+[0m
+[0m$ [0mgit diff -- .gitignore invoice_desk/__init__.py | sed -n '1,120p'; echo "---untracked---"; git ls-files --others --exclude-standard
+diff --git a/.gitignore b/.gitignore
+index 55c50e2..9711939 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -5,3 +5,4 @@ __pycache__/
+ dist/
+ build/
+ *.egg-info/
++state/
+diff --git a/invoice_desk/__init__.py b/invoice_desk/__init__.py
+index c36e1c3..5bf7e28 100644
+--- a/invoice_desk/__init__.py
++++ b/invoice_desk/__init__.py
+@@ -16,6 +16,22 @@ import io
+ import re
+ from datetime import date
+ 
++from .annotations import (
++    ANNOTATION_STORE_VERSION,
++    DEFAULT_ANNOTATION_STORE_PATH,
++    AnnotationError,
++    AnnotationStoreDuplicateIdentityError,
++    AnnotationStoreMalformedError,
++    AnnotationStoreUnreadableError,
++    AnnotationStoreVersionError,
++    AnnotationStoreWriteError,
++    InvoiceNotAcceptedError,
++    attach_annotations,
++    followup_queue,
++    load_annotations,
++    set_notes,
++    set_owner,
++)
+ from .queue import BUCKET_PRIORITY, accepted_invoice_identities, build_followup_queue
+ 
+ HEADER_FIELDS = (
+---untracked---
+invoice_desk/annotations.py
+specs/004-deterministic-followup-queue/agent-a-implement.log
+tests/test_followup_annotations.py
+[0m
+[0m$ [0mgrep -n "^- \[ \]" specs/004-deterministic-followup-queue/tasks.md
+66:- [ ] T008 [P] Add `state/` to `.gitignore` so the default annotation store at `<project root>/state/followup_annotations.json` remains local runtime state and is not committed; do not create `state/` or any annotation file in this task
+78:- [ ] T009 [US2] Create `tests/test_followup_annotations.py` with shared helpers using `tmp_path` and tests for the basic contract: a missing store means an empty annotation mapping and an all-`None` owner/notes queue with no file creation; `load_annotations` returns `{}` for a missing file and for a valid empty store `{"version": 1, "annotations": []}`; `set_owner` and `set_notes` change only the targeted identity; `attach_annotations` preserves queue order and positions and maps stored empty strings to `None`
+79:- [ ] T010 [US2] Extend `tests/test_followup_annotations.py` with persistence and independence tests: annotate two different identities and confirm no cross-contamination; reload from the same path and observe identical values; multi-line and non-ASCII notes round-trip exactly; clearing the owner leaves notes intact and clearing notes leaves the owner intact; clearing both drops the record; a non-accepted identity raises `InvoiceNotAcceptedError` and leaves store bytes unchanged; an annotation for an identity absent from the current accepted set is retained in `load_annotations` but absent from the queue, then reappears when that identity is accepted again; changing annotations never changes queue sequence, positions, balances, days overdue, or aging buckets
+80:- [ ] T011 [US2] Extend `tests/test_followup_annotations.py` with validation and atomicity tests: malformed JSON, non-object documents, missing/non-integer `version`, non-list `annotations`, non-object records, missing/extra/non-string fields, unsupported version, duplicate `(issuer, invoice_id)` pairs, and unreadable paths each raise the documented error and leave the original bytes untouched; a simulated `os.replace` failure raises `AnnotationStoreWriteError`, leaves the previous store readable, and leaves no temporary file behind; a successful write uses UTF-8 with `ensure_ascii=False`, records sorted by ascending `(issuer, invoice_id)`, and a trailing newline
+84:- [ ] T012 [P] [US2] Create `invoice_desk/annotations.py` with `DEFAULT_ANNOTATION_STORE_PATH` computed from the package location as `<project root>/state/followup_annotations.json`, `ANNOTATION_STORE_VERSION = 1`, and the error hierarchy `AnnotationError` with `AnnotationStoreUnreadableError`, `AnnotationStoreMalformedError`, `AnnotationStoreVersionError`, `AnnotationStoreDuplicateIdentityError`, `AnnotationStoreWriteError`, and `InvoiceNotAcceptedError`; use standard library only
+85:- [ ] T013 [US2] Implement `load_annotations(store_path=None) -> dict[tuple[str, str], dict[str, str]]` in `invoice_desk/annotations.py`: a missing file returns `{}` without creating anything; read UTF-8 JSON and validate that `version` is the integer `1`, `annotations` is a list, each record is an object with exactly the four string fields `issuer`, `invoice_id`, `owner`, `notes`, with `issuer` and `invoice_id` non-empty, and no duplicate `(issuer, invoice_id)` pairs; raise `AnnotationStoreUnreadableError`, `AnnotationStoreMalformedError`, `AnnotationStoreVersionError`, or `AnnotationStoreDuplicateIdentityError` as specified and never write during a read
+86:- [ ] T014 [US2] Implement the private atomic store writer in `invoice_desk/annotations.py`: serialize the complete next document in memory as UTF-8 JSON with non-ASCII preserved, records sorted by ascending `(issuer, invoice_id)`, and a trailing newline; omit records whose `owner` and `notes` are both empty; create the parent directory if needed; write to a uniquely named temporary file in the same directory using `tempfile.mkstemp` and `os.fdopen(..., "w", encoding="utf-8", newline="\n")`; flush, `os.fsync`, close, then `os.replace` onto the target; best-effort `os.fsync` the parent directory on POSIX; on failure remove the temporary file, leave the previous store intact, and raise `AnnotationStoreWriteError`
+87:- [ ] T015 [US2] Implement `set_owner(accepted_identities, issuer, invoice_id, owner, *, store_path=None) -> None` in `invoice_desk/annotations.py`: first raise `InvoiceNotAcceptedError` if `(issuer, invoice_id)` is not in `accepted_identities` without touching the store; otherwise load the existing store, set only `owner` (`None` or whitespace-only clears it), preserve `notes`, drop the record only when both fields are empty, persist atomically, and return only after `os.replace` completes
+88:- [ ] T016 [US2] Implement `set_notes(accepted_identities, issuer, invoice_id, notes, *, store_path=None) -> None` in `invoice_desk/annotations.py`: first raise `InvoiceNotAcceptedError` if `(issuer, invoice_id)` is not in `accepted_identities` without touching the store; otherwise load the existing store, set only `notes` (`None` or `""` clears it), preserve non-empty notes exactly including newlines, punctuation, and non-ASCII text, preserve `owner`, drop the record only when both fields are empty, persist atomically, and return only after `os.replace` completes
+89:- [ ] T017 [US2] Implement `attach_annotations(queue, store_path=None) -> list[dict]` in `invoice_desk/annotations.py`: load and validate the store once, return a new queue list with the same order and `position` values, fill `owner`/`notes` only on exact `(issuer, invoice_id)` matches, expose stored empty strings as `None`, leave unmatched items at `owner=None`/`notes=None`, ignore stored records absent from the queue without deleting them, do not mutate the input queue, and do not write during attachment
+90:- [ ] T018 [US2] Implement `followup_queue(import_result, store_path=None) -> list[dict]` in `invoice_desk/annotations.py` as `attach_annotations(build_followup_queue(import_result), store_path)`, importing `build_followup_queue` from `invoice_desk/queue.py`; do not re-implement ordering or change any queue field other than `owner`/`notes`
+91:- [ ] T019 [US2] Re-export `DEFAULT_ANNOTATION_STORE_PATH`, `ANNOTATION_STORE_VERSION`, `load_annotations`, `set_owner`, `set_notes`, `attach_annotations`, `followup_queue`, and all `AnnotationError` subclasses from `invoice_desk/__init__.py` without changing `import_invoices` or the Stage 1 exports
+92:- [ ] T020 [US2] Run `python -m pytest -q tests/test_followup_annotations.py tests/test_followup_queue.py tests/test_invoice_desk.py`, confirm all annotation persistence, validation, atomicity, ordering, and existing import tests pass, and confirm `state/` is never created by reads or by the temporary-path tests
+102:- [ ] T021 [P] Run the full suite with `python -m pytest -q`, confirm every test passes, and confirm `tests/test_invoice_desk.py` remains unchanged and green
+103:- [ ] T022 [P] Run the `quickstart.md` validation checks in sections 2 through 7, including the frozen queue order, determinism, annotation persistence, missing/invalid stores, order preservation after annotation changes, and retained annotations for absent invoices, using temporary store paths only
+104:- [ ] T023 [P] Review `invoice_desk/queue.py` and `invoice_desk/annotations.py` for integer-cents-only money handling, standard-library-only imports, no clock/randomness/network access, no annotation influence on ordering, and no changes to import classifications, balances, aging buckets, or totals
+105:- [ ] T024 [P] Inspect `git status` and the diff to confirm only `invoice_desk/queue.py`, `invoice_desk/annotations.py`, `invoice_desk/__init__.py`, `tests/test_followup_queue.py`, `tests/test_followup_annotations.py`, and `.gitignore` changed, and that no `state/` file is committed or tracked
+[0m
+[0m← [0mEdit specs/004-deterministic-followup-queue/tasks.md
+Index: /workspace/l35-run/specs/004-deterministic-followup-queue/tasks.md
+===================================================================
+--- /workspace/l35-run/specs/004-deterministic-followup-queue/tasks.md
++++ /workspace/l35-run/specs/004-deterministic-followup-queue/tasks.md
+@@ -62,9 +62,9 @@
+ ## Phase 2: Setup (Annotation Runtime - Agent A)
+ 
+ **Purpose**: Prepare the runtime-state location for the versioned annotation store without creating annotation data.
+ 
+-- [ ] T008 [P] Add `state/` to `.gitignore` so the default annotation store at `<project root>/state/followup_annotations.json` remains local runtime state and is not committed; do not create `state/` or any annotation file in this task
++- [X] T008 [P] Add `state/` to `.gitignore` so the default annotation store at `<project root>/state/followup_annotations.json` remains local runtime state and is not committed; do not create `state/` or any annotation file in this task
+ 
+ ---
+ 
+ ## Phase 3: User Story 2 - Persist owners and notes (Priority: P2)
+@@ -74,23 +74,23 @@
+ **Independent Test**: Using a temporary store path, assign an owner to one accepted identity and notes to another, rebuild the queue, reload from the same path in a fresh call, and verify each annotation is still on the same identity with unchanged content, all other items have no owner/notes, and the queue order and positions are unchanged.
+ 
+ ### Tests for User Story 2 (write first, ensure they FAIL before implementation)
+ 
+-- [ ] T009 [US2] Create `tests/test_followup_annotations.py` with shared helpers using `tmp_path` and tests for the basic contract: a missing store means an empty annotation mapping and an all-`None` owner/notes queue with no file creation; `load_annotations` returns `{}` for a missing file and for a valid empty store `{"version": 1, "annotations": []}`; `set_owner` and `set_notes` change only the targeted identity; `attach_annotations` preserves queue order and positions and maps stored empty strings to `None`
+-- [ ] T010 [US2] Extend `tests/test_followup_annotations.py` with persistence and independence tests: annotate two different identities and confirm no cross-contamination; reload from the same path and observe identical values; multi-line and non-ASCII notes round-trip exactly; clearing the owner leaves notes intact and clearing notes leaves the owner intact; clearing both drops the record; a non-accepted identity raises `InvoiceNotAcceptedError` and leaves store bytes unchanged; an annotation for an identity absent from the current accepted set is retained in `load_annotations` but absent from the queue, then reappears when that identity is accepted again; changing annotations never changes queue sequence, positions, balances, days overdue, or aging buckets
+-- [ ] T011 [US2] Extend `tests/test_followup_annotations.py` with validation and atomicity tests: malformed JSON, non-object documents, missing/non-integer `version`, non-list `annotations`, non-object records, missing/extra/non-string fields, unsupported version, duplicate `(issuer, invoice_id)` pairs, and unreadable paths each raise the documented error and leave the original bytes untouched; a simulated `os.replace` failure raises `AnnotationStoreWriteError`, leaves the previous store readable, and leaves no temporary file behind; a successful write uses UTF-8 with `ensure_ascii=False`, records sorted by ascending `(issuer, invoice_id)`, and a trailing newline
++- [X] T009 [US2] Create `tests/test_followup_annotations.py` with shared helpers using `tmp_path` and tests for the basic contract: a missing store means an empty annotation mapping and an all-`None` owner/notes queue with no file creation; `load_annotations` returns `{}` for a missing file and for a valid empty store `{"version": 1, "annotations": []}`; `set_owner` and `set_notes` change only the targeted identity; `attach_annotations` preserves queue order and positions and maps stored empty strings to `None`
++- [X] T010 [US2] Extend `tests/test_followup_annotations.py` with persistence and independence tests: annotate two different identities and confirm no cross-contamination; reload from the same path and observe identical values; multi-line and non-ASCII notes round-trip exactly; clearing the owner leaves notes intact and clearing notes leaves the owner intact; clearing both drops the record; a non-accepted identity raises `InvoiceNotAcceptedError` and leaves store bytes unchanged; an annotation for an identity absent from the current accepted set is retained in `load_annotations` but absent from the queue, then reappears when that identity is accepted again; changing annotations never changes queue sequence, positions, balances, days overdue, or aging buckets
++- [X] T011 [US2] Extend `tests/test_followup_annotations.py` with validation and atomicity tests: malformed JSON, non-object documents, missing/non-integer `version`, non-list `annotations`, non-object records, missing/extra/non-string fields, unsupported version, duplicate `(issuer, invoice_id)` pairs, and unreadable paths each raise the documented error and leave the original bytes untouched; a simulated `os.replace` failure raises `AnnotationStoreWriteError`, leaves the previous store readable, and leaves no temporary file behind; a successful write uses UTF-8 with `ensure_ascii=False`, records sorted by ascending `(issuer, invoice_id)`, and a trailing newline
+ 
+ ### Implementation for User Story 2
+ 
+-- [ ] T012 [P] [US2] Create `invoice_desk/annotations.py` with `DEFAULT_ANNOTATION_STORE_PATH` computed from the package location as `<project root>/state/followup_annotations.json`, `ANNOTATION_STORE_VERSION = 1`, and the error hierarchy `AnnotationError` with `AnnotationStoreUnreadableError`, `AnnotationStoreMalformedError`, `AnnotationStoreVersionError`, `AnnotationStoreDuplicateIdentityError`, `AnnotationStoreWriteError`, and `InvoiceNotAcceptedError`; use standard library only
+-- [ ] T013 [US2] Implement `load_annotations(store_path=None) -> dict[tuple[str, str], dict[str, str]]` in `invoice_desk/annotations.py`: a missing file returns `{}` without creating anything; read UTF-8 JSON and validate that `version` is the integer `1`, `annotations` is a list, each record is an object with exactly the four string fields `issuer`, `invoice_id`, `owner`, `notes`, with `issuer` and `invoice_id` non-empty, and no duplicate `(issuer, invoice_id)` pairs; raise `AnnotationStoreUnreadableError`, `AnnotationStoreMalformedError`, `AnnotationStoreVersionError`, or `AnnotationStoreDuplicateIdentityError` as specified and never write during a read
+-- [ ] T014 [US2] Implement the private atomic store writer in `invoice_desk/annotations.py`: serialize the complete next document in memory as UTF-8 JSON with non-ASCII preserved, records sorted by ascending `(issuer, invoice_id)`, and a trailing newline; omit records whose `owner` and `notes` are both empty; create the parent directory if needed; write to a uniquely named temporary file in the same directory using `tempfile.mkstemp` and `os.fdopen(..., "w", encoding="utf-8", newline="\n")`; flush, `os.fsync`, close, then `os.replace` onto the target; best-effort `os.fsync` the parent directory on POSIX; on failure remove the temporary file, leave the previous store intact, and raise `AnnotationStoreWriteError`
+-- [ ] T015 [US2] Implement `set_owner(accepted_identities, issuer, invoice_id, owner, *, store_path=None) -> None` in `invoice_desk/annotations.py`: first raise `InvoiceNotAcceptedError` if `(issuer, invoice_id)` is not in `accepted_identities` without touching the store; otherwise load the existing store, set only `owner` (`None` or whitespace-only clears it), preserve `notes`, drop the record only when both fields are empty, persist atomically, and return only after `os.replace` completes
+-- [ ] T016 [US2] Implement `set_notes(accepted_identities, issuer, invoice_id, notes, *, store_path=None) -> None` in `invoice_desk/annotations.py`: first raise `InvoiceNotAcceptedError` if `(issuer, invoice_id)` is not in `accepted_identities` without touching the store; otherwise load the existing store, set only `notes` (`None` or `""` clears it), preserve non-empty notes exactly including newlines, punctuation, and non-ASCII text, preserve `owner`, drop the record only when both fields are empty, persist atomically, and return only after `os.replace` completes
+-- [ ] T017 [US2] Implement `attach_annotations(queue, store_path=None) -> list[dict]` in `invoice_desk/annotations.py`: load and validate the store once, return a new queue list with the same order and `position` values, fill `owner`/`notes` only on exact `(issuer, invoice_id)` matches, expose stored empty strings as `None`, leave unmatched items at `owner=None`/`notes=None`, ignore stored records absent from the queue without deleting them, do not mutate the input queue, and do not write during attachment
+-- [ ] T018 [US2] Implement `followup_queue(import_result, store_path=None) -> list[dict]` in `invoice_desk/annotations.py` as `attach_annotations(build_followup_queue(import_result), store_path)`, importing `build_followup_queue` from `invoice_desk/queue.py`; do not re-implement ordering or change any queue field other than `owner`/`notes`
+-- [ ] T019 [US2] Re-export `DEFAULT_ANNOTATION_STORE_PATH`, `ANNOTATION_STORE_VERSION`, `load_annotations`, `set_owner`, `set_notes`, `attach_annotations`, `followup_queue`, and all `AnnotationError` subclasses from `invoice_desk/__init__.py` without changing `import_invoices` or the Stage 1 exports
+-- [ ] T020 [US2] Run `python -m pytest -q tests/test_followup_annotations.py tests/test_followup_queue.py tests/test_invoice_desk.py`, confirm all annotation persistence, validation, atomicity, ordering, and existing import tests pass, and confirm `state/` is never created by reads or by the temporary-path tests
++- [X] T012 [P] [US2] Create `invoice_desk/annotations.py` with `DEFAULT_ANNOTATION_STORE_PATH` computed from the package location as `<project root>/state/followup_annotations.json`, `ANNOTATION_STORE_VERSION = 1`, and the error hierarchy `AnnotationError` with `AnnotationStoreUnreadableError`, `AnnotationStoreMalformedError`, `AnnotationStoreVersionError`, `AnnotationStoreDuplicateIdentityError`, `AnnotationStoreWriteError`, and `InvoiceNotAcceptedError`; use standard library only
++- [X] T013 [US2] Implement `load_annotations(store_path=None) -> dict[tuple[str, str], dict[str, str]]` in `invoice_desk/annotations.py`: a missing file returns `{}` without creating anything; read UTF-8 JSON and validate that `version` is the integer `1`, `annotations` is a list, each record is an object with exactly the four string fields `issuer`, `invoice_id`, `owner`, `notes`, with `issuer` and `invoice_id` non-empty, and no duplicate `(issuer, invoice_id)` pairs; raise `AnnotationStoreUnreadableError`, `AnnotationStoreMalformedError`, `AnnotationStoreVersionError`, or `AnnotationStoreDuplicateIdentityError` as specified and never write during a read
++- [X] T014 [US2] Implement the private atomic store writer in `invoice_desk/annotations.py`: serialize the complete next document in memory as UTF-8 JSON with non-ASCII preserved, records sorted by ascending `(issuer, invoice_id)`, and a trailing newline; omit records whose `owner` and `notes` are both empty; create the parent directory if needed; write to a uniquely named temporary file in the same directory using `tempfile.mkstemp` and `os.fdopen(..., "w", encoding="utf-8", newline="\n")`; flush, `os.fsync`, close, then `os.replace` onto the target; best-effort `os.fsync` the parent directory on POSIX; on failure remove the temporary file, leave the previous store intact, and raise `AnnotationStoreWriteError`
++- [X] T015 [US2] Implement `set_owner(accepted_identities, issuer, invoice_id, owner, *, store_path=None) -> None` in `invoice_desk/annotations.py`: first raise `InvoiceNotAcceptedError` if `(issuer, invoice_id)` is not in `accepted_identities` without touching the store; otherwise load the existing store, set only `owner` (`None` or whitespace-only clears it), preserve `notes`, drop the record only when both fields are empty, persist atomically, and return only after `os.replace` completes
++- [X] T016 [US2] Implement `set_notes(accepted_identities, issuer, invoice_id, notes, *, store_path=None) -> None` in `invoice_desk/annotations.py`: first raise `InvoiceNotAcceptedError` if `(issuer, invoice_id)` is not in `accepted_identities` without touching the store; otherwise load the existing store, set only `notes` (`None` or `""` clears it), preserve non-empty notes exactly including newlines, punctuation, and non-ASCII text, preserve `owner`, drop the record only when both fields are empty, persist atomically, and return only after `os.replace` completes
++- [X] T017 [US2] Implement `attach_annotations(queue, store_path=None) -> list[dict]` in `invoice_desk/annotations.py`: load and validate the store once, return a new queue list with the same order and `position` values, fill `owner`/`notes` only on exact `(issuer, invoice_id)` matches, expose stored empty strings as `None`, leave unmatched items at `owner=None`/`notes=None`, ignore stored records absent from the queue without deleting them, do not mutate the input queue, and do not write during attachment
++- [X] T018 [US2] Implement `followup_queue(import_result, store_path=None) -> list[dict]` in `invoice_desk/annotations.py` as `attach_annotations(build_followup_queue(import_result), store_path)`, importing `build_followup_queue` from `invoice_desk/queue.py`; do not re-implement ordering or change any queue field other than `owner`/`notes`
++- [X] T019 [US2] Re-export `DEFAULT_ANNOTATION_STORE_PATH`, `ANNOTATION_STORE_VERSION`, `load_annotations`, `set_owner`, `set_notes`, `attach_annotations`, `followup_queue`, and all `AnnotationError` subclasses from `invoice_desk/__init__.py` without changing `import_invoices` or the Stage 1 exports
++- [X] T020 [US2] Run `python -m pytest -q tests/test_followup_annotations.py tests/test_followup_queue.py tests/test_invoice_desk.py`, confirm all annotation persistence, validation, atomicity, ordering, and existing import tests pass, and confirm `state/` is never created by reads or by the temporary-path tests
+ 
+ **Checkpoint**: User Stories 1 and 2 are both independently functional: ordering is pure and repeatable, and owners/notes persist atomically without affecting ordering.
+ 
+ ---
+@@ -98,12 +98,12 @@
+ ## Phase 4: Polish & Cross-Cutting Concerns (Agent A)
+ 
+ **Purpose**: Verify the completed feature against the quickstart, constitution, and repository boundaries.
+ 
+-- [ ] T021 [P] Run the full suite with `python -m pytest -q`, confirm every test passes, and confirm `tests/test_invoice_desk.py` remains unchanged and green
+-- [ ] T022 [P] Run the `quickstart.md` validation checks in sections 2 through 7, including the frozen queue order, determinism, annotation persistence, missing/invalid stores, order preservation after annotation changes, and retained annotations for absent invoices, using temporary store paths only
+-- [ ] T023 [P] Review `invoice_desk/queue.py` and `invoice_desk/annotations.py` for integer-cents-only money handling, standard-library-only imports, no clock/randomness/network access, no annotation influence on ordering, and no changes to import classifications, balances, aging buckets, or totals
+-- [ ] T024 [P] Inspect `git status` and the diff to confirm only `invoice_desk/queue.py`, `invoice_desk/annotations.py`, `invoice_desk/__init__.py`, `tests/test_followup_queue.py`, `tests/test_followup_annotations.py`, and `.gitignore` changed, and that no `state/` file is committed or tracked
++- [X] T021 [P] Run the full suite with `python -m pytest -q`, confirm every test passes, and confirm `tests/test_invoice_desk.py` remains unchanged and green
++- [X] T022 [P] Run the `quickstart.md` validation checks in sections 2 through 7, including the frozen queue order, determinism, annotation persistence, missing/invalid stores, order preservation after annotation changes, and retained annotations for absent invoices, using temporary store paths only
++- [X] T023 [P] Review `invoice_desk/queue.py` and `invoice_desk/annotations.py` for integer-cents-only money handling, standard-library-only imports, no clock/randomness/network access, no annotation influence on ordering, and no changes to import classifications, balances, aging buckets, or totals
++- [X] T024 [P] Inspect `git status` and the diff to confirm only `invoice_desk/queue.py`, `invoice_desk/annotations.py`, `invoice_desk/__init__.py`, `tests/test_followup_queue.py`, `tests/test_followup_annotations.py`, and `.gitignore` changed, and that no `state/` file is committed or tracked
+ 
+ ---
+ 
+ ## Dependencies & Execution Order
+
+[0m
+[0m$ [0mpython -m pytest -q 2>&1 | tail -3; echo "---unchecked---"; grep -c "^- \[ \]" specs/004-deterministic-followup-queue/tasks.md || true; echo "---status---"; git status --short
+........................................................................ [ 85%]
+........................                                                 [100%]
+168 passed in 0.16s
+---unchecked---
+0
+---status---
+ M .gitignore
+ M invoice_desk/__init__.py
+ M specs/004-deterministic-followup-queue/tasks.md
+?? invoice_desk/annotations.py
+?? specs/004-deterministic-followup-queue/agent-a-implement.log
+?? tests/test_followup_annotations.py
+[0m
+[0m# [0mTodos
+[✓] T008 add state/ to .gitignore
+[✓] T009-T011 write tests/test_followup_annotations.py
+[✓] T012-T018 implement invoice_desk/annotations.py
+[✓] T019 re-export annotation API from invoice_desk/__init__.py
+[✓] T020 run annotation+queue+import tests
+[✓] T021-T024 run full suite, quickstart, review, git status
+[✓] Mark T008-T024 [X] in tasks.md
+[0m
+Implemented T008–T024 in order.
+
+- Added `state/` to `.gitignore`; no `state/` directory created.
+- Added `tests/test_followup_annotations.py` covering persistence, validation, atomic writes, ordering preservation, and absent-identity retention.
+- Added `invoice_desk/annotations.py` with versioned UTF-8 JSON storage, atomic `mkstemp` + `os.replace` writes, documented error hierarchy, assignment, attachment, and `followup_queue`.
+- Added annotation re-exports to `invoice_desk/__init__.py` without touching existing behavior.
+- Marked T008–T024 `[X]` in `tasks.md`.
+
+Validation: `python -m pytest -q` → **168 passed**. Quickstart sections 2–7 passed using temporary stores. `git status` shows only the authorized files plus the pre-existing untracked `specs/.../agent-a-implement.log`; no `state/` file is tracked. No commit/push was run.
+=== exit 0 | end 2026-10-23 22:02 EDT ===

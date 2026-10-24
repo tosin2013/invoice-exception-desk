@@ -16,6 +16,22 @@ import io
 import re
 from datetime import date
 
+from .annotations import (
+    ANNOTATION_STORE_VERSION,
+    DEFAULT_ANNOTATION_STORE_PATH,
+    AnnotationError,
+    AnnotationStoreDuplicateIdentityError,
+    AnnotationStoreMalformedError,
+    AnnotationStoreUnreadableError,
+    AnnotationStoreVersionError,
+    AnnotationStoreWriteError,
+    InvoiceNotAcceptedError,
+    attach_annotations,
+    followup_queue,
+    load_annotations,
+    set_notes,
+    set_owner,
+)
 from .queue import BUCKET_PRIORITY, accepted_invoice_identities, build_followup_queue
 
 HEADER_FIELDS = (
