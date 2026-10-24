@@ -55,6 +55,8 @@ personal data; import classification, balances, aging, and totals remain unchang
 
 Constitution version 1.1.0:
 
+*(Historical: this check was run against v1.1.0 at build time. See "Constitution v2.0.0 re-check and L4 ripple (2026-10-24)" at the end of this plan for the current check.)*
+
 | Principle | Result | Evidence |
 |-----------|--------|----------|
 | I. Money is integer cents | PASS | Queue exposes `remaining_balance_cents` copied from the import result; no float arithmetic is introduced. |
@@ -377,3 +379,7 @@ Agent B appends one bullet per decision made while implementing T001–T007 (dat
 
 - 2026-10-23, T001–T007: MSG-1177 clarifies that the spec/plan branch headers name the feature directory, not a Git ref; retained packet pin 413f493b68407e7cd97df307ea67df4e838195e2 without editing frozen headers. The same message reports Agent A stopped throughout this single-writer window.
 - 2026-10-23, T002–T003: Exercise permutations and large integer balances alongside the frozen fixture to verify case-sensitive tie-breaking, insertion-order independence, integer precision, and fresh output objects; retain the approved API unchanged.
+
+## Constitution v2.0.0 re-check and L4 ripple (2026-10-24)
+
+Constitution v2.0.0 (ratified 2026-10-24) amended II, V and VIII. II now explicitly authorizes a designed persistence step named by the owning spec and plan; the 004 annotation store in `invoice_desk/annotations.py` is its named example, so the earlier rationale that treated it as an exception is superseded by II as amended; queue building stays pure. V: no 004 requirement, contract or behaviour changed, so this is a recorded no-behaviour-impact note, not a regeneration. VIII: graded against keys held outside the builder workspace. Then the L4 ripple: feature 003 revised FR-008 to FR-008a (2026-10-24, decided by Tosin Akinosho): an `amount_cents` of `0` or with a leading zero is rejected at import as `invalid_amount`. 004 consumes accepted rows only, so a zero-amount invoice can no longer reach the queue or its `paid` bucket; the `paid` bucket now holds only fully paid invoices with a positive amount, such as `INV-1011` (50000 paid 50000). No 004 code, test or contract change. 004 FR-021 and SC-010 constrain what 004 itself may change and still hold. The statements in this plan that `tests/test_invoice_desk.py` "must remain unchanged" (Project Structure and Regression) were the scope rule for the 004 build; that file was later changed by the owning 003 L4 revision (commit `2526069`), which is allowed. Findings are tracked in `specs/003-desk-import/drift.md`.

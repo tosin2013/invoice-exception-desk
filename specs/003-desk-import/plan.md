@@ -10,6 +10,7 @@ One pure function, `import_invoices`, that reads CSV text, classifies each data 
 **Project Type**: library | **Scope**: create `invoice_desk/__init__.py` and `tests/test_invoice_desk.py`. Do not change `bill_split`, its tests, `data/`, `pyproject.toml`, `ROADMAP.md`, `ACCEPTANCE.md` or `NON_GOALS.md`. Nothing else.
 
 ## Constitution Check (v1.1.0)
+*(Historical, pre-L4. Current check: "L4 revision (2026-10-24)" below, against v2.0.0.)*
 I integer cents PASS · II pure PASS · III stdlib only PASS · IV tests PASS · V spec/plan/tasks/code land together on the branch (squash on merge) · VI synthetic, offline PASS · VII explicit `as_of` PASS · VIII sealed answer key held by the reviewer PASS
 
 ## Interface (exact)

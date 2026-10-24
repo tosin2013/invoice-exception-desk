@@ -1,5 +1,7 @@
 ## Specification Analysis Report
 
+> *Pre-L4 snapshot (historical, non-normative, noted 2026-10-24): findings A3 and C2 refer to the superseded FR-008 (`[0-9]+`, zero allowed). The current rule is FR-008a; see spec.md and drift.md.*
+
 | ID | Category | Severity | Location(s) | Summary | Recommendation |
 |----|----------|----------|-------------|---------|----------------|
 | A1 | Ambiguity | HIGH | `spec.md:101,107,79` | FR-005/FR-011 require “required fields” but never enumerate them. A blank `amount_cents`, `currency`, `paid_cents`, or date is ambiguous between `missing_required_field` and the field-specific rejection reason. | State that all seven fields are required (or list exceptions), and align T005 with that precedence. |
