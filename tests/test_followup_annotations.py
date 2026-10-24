@@ -733,3 +733,17 @@ def test_successful_write_is_utf8_sorted_and_newline_terminated(tmp_path):
         ("Bright Path Facilities", "INV-1012"),
     ]
     assert all(set(item) == set(REQUIRED_FIELDS) for item in document["annotations"])
+
+
+@pytest.mark.parametrize(
+    ("setter", "field", "value"),
+    [(set_owner, "owner", "Dana"), (set_notes, "notes", "Call Tuesday.")],
+)
+def test_setters_accept_a_one_shot_iterator_of_identities(tmp_path, setter, field, value):
+    path = store_path(tmp_path)
+    accepted = iter([("Acme Cleaning Co", "INV-1001")])
+
+    setter(accepted, "Acme Cleaning Co", "INV-1001", value, store_path=path)
+
+    stored = load_annotations(path)[("Acme Cleaning Co", "INV-1001")]
+    assert stored[field] == value

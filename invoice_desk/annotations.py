@@ -248,8 +248,9 @@ def set_owner(
     string nor ``None`` raises :class:`AnnotationValueTypeError` before the
     store is read or written.
     """
+    accepted = frozenset(accepted_identities)  # read a one-shot iterable once
     identity = (issuer, invoice_id)
-    if identity not in set(accepted_identities):
+    if identity not in accepted:
         raise InvoiceNotAcceptedError(
             f"invoice identity is not accepted: {identity!r}"
         )
@@ -262,7 +263,7 @@ def set_owner(
     else:
         normalized = owner if owner.strip() else ""
     _set_field(
-        accepted_identities,
+        accepted,
         issuer,
         invoice_id,
         "owner",
@@ -289,8 +290,9 @@ def set_notes(
     nor ``None`` raise :class:`AnnotationValueTypeError` before the store is
     read or written.
     """
+    accepted = frozenset(accepted_identities)  # read a one-shot iterable once
     identity = (issuer, invoice_id)
-    if identity not in set(accepted_identities):
+    if identity not in accepted:
         raise InvoiceNotAcceptedError(
             f"invoice identity is not accepted: {identity!r}"
         )
@@ -300,7 +302,7 @@ def set_notes(
         )
     normalized = "" if notes is None else notes
     _set_field(
-        accepted_identities,
+        accepted,
         issuer,
         invoice_id,
         "notes",
