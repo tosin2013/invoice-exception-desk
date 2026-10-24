@@ -82,7 +82,7 @@ specify init my-project --non-interactive         # no prompts (defaults to Copi
 - Run `specify check` to see the available integrations and which agent tools it can find.
 - `--here --force` skips the confirmation when the folder isn't empty.
 
-> **Confusion point: `--ai` or `--integration`?** Some blog posts and older write-ups use `--ai <agent>`. The v1.1.3 help only lists **`--integration <key>`**, so this guide uses that. Also note that the *integration key* isn't always the same as the agent's product name (OpenCode's key is `opencode`). See the [integrations reference](https://github.github.io/spec-kit/reference/integrations.html).
+> **Confusion point: `--ai` or `--integration`?** Some blog posts and older write-ups use `--ai <agent>`. The v1.1.3 help only lists **`--integration <key>`**, so this guide uses that. Also note that the *integration key* isn't always the same as the agent's product name (OpenCode's key is `opencode`). See the [integrations reference](https://github.github.io/spec-kit/integrations/cli.html) and the [OpenCode integration page](https://github.github.io/spec-kit/integrations/opencode.html).
 
 This is the new-folder command from the list above, using the OpenCode integration the rest of this page uses:
 
