@@ -246,4 +246,4 @@ The other probe failures follow from these (for example, a later duplicate of th
 - [ ] Reviewer runs the key (hash check first), fixes failures in spec, code and tests together, and records a receipt
 - [ ] Policy questions the key raised go to the product owner, not straight into the spec
 
-L4 is paused pending review. Compare the start branch with the finished steps: [`l3-start...l3-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l3-start...l3-solution). Next: [L3.5: Handing work between coding agents](L35-agent-handoff.md). Back: [L2: First feature](L2-first-feature.md). Back to [Home](index.md).
+Compare the start branch with the finished steps: [`l3-start...l3-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l3-start...l3-solution). Next: [L3.5: Handing work between coding agents](L35-agent-handoff.md). Back: [L2: First feature](L2-first-feature.md). Back to [Home](index.md).

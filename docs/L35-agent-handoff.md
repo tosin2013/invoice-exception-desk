@@ -208,4 +208,4 @@ Two we guarded against and didn't hit: two agents in one checkout (one writer at
 - [ ] Every review fix is reviewed again, and non-blocking items are written down
 - [ ] A sealed answer key grades the result (we skipped this; you shouldn't)
 
-L4 is paused pending review. Compare the start branch with the finished steps: [`l3-solution...l3h-handoff`](https://github.com/tosin2013/invoice-exception-desk/compare/l3-solution...l3h-handoff). Back: [L3: Invoice Exception Desk walkthrough](L3-invoice-desk.md). Back to [Home](index.md).
+Compare the start branch with the finished steps: [`l3-solution...l3h-handoff`](https://github.com/tosin2013/invoice-exception-desk/compare/l3-solution...l3h-handoff). Next: [L4: Changing a spec after code exists](L4-maintenance.md). Back: [L3: Invoice Exception Desk walkthrough](L3-invoice-desk.md). Back to [Home](index.md).

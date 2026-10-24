@@ -181,7 +181,7 @@ Scope each loop to the area you're touching, not the whole repo.
 
 To go deeper:
 - [L2: First feature, end to end](L2-first-feature.md)
-- L4: Maintenance and spec changes over time *(paused pending review)*
+- [L4: Changing a spec after code exists](L4-maintenance.md)
 
 
 ```mermaid
@@ -204,4 +204,4 @@ flowchart LR
 - [ ] Free model runs only `/speckit.tasks` and `/speckit.implement`
 - [ ] Answer key and baseline rerun, with spec and code in one commit
 
-L4 is paused pending review. Compare the start branch with the finished steps: [`l0-start...l0-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l0-start...l0-solution). Next: [L1: Setup](L1-setup.md), then [L2: First feature](L2-first-feature.md) and [L3: Invoice Exception Desk](L3-invoice-desk.md). Back to [Home](index.md).
+Compare the start branch with the finished steps: [`l0-start...l0-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l0-start...l0-solution). Next: [L1: Setup](L1-setup.md), then [L2: First feature](L2-first-feature.md) and [L3: Invoice Exception Desk](L3-invoice-desk.md). Back to [Home](index.md).

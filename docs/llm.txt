@@ -12,6 +12,7 @@ The guide is written while learning, so it records the confusing points too. The
 - [L2: First feature, end to end](https://tosin2013.github.io/invoice-exception-desk/L2-first-feature.html): Take split_weighted through specify, clarify, plan, tasks, implement, and analyze, graded by a hidden 169-check answer key
 - [L3: Invoice Exception Desk walkthrough](https://tosin2013.github.io/invoice-exception-desk/L3-invoice-desk.html): First slice of roadmap phase R1 (import, rejection reasons, cent totals, aging for AT-01 to AT-04), with analyze before implement and a sealed answer key that caught a paid-invoice bug 119 green tests missed
 - [L3.5: Handing work between coding agents](https://tosin2013.github.io/invoice-exception-desk/L35-agent-handoff.html): AT-05 (deterministic follow-up queue, owners and notes) built across a real two-agent handoff: OpenCode on a free model wrote spec, plan and tasks and T008-T024; a fresh OpenAI agent did T001-T007 from a frozen packet; review found bugs 168 green tests missed; no sealed key for AT-05 yet
+- [L4: Changing a spec after code exists](https://tosin2013.github.io/invoice-exception-desk/L4-maintenance.html): FR-008 superseded by FR-008a (only positive canonical amounts; 0, 00, 0100 rejected) under constitution v2.0.0: dated Clarification, tests changed first (8 failed before code, 205 passed after), analyze on 003 and 004 (4 HIGH, all stale text, fixed), drift.md, and a PASS against an L4 answer key sealed by OpenAI/Codex before the build
 
 ## Example branches
 
@@ -23,11 +24,12 @@ The guide is written while learning, so it records the confusing points too. The
 - [l2-solution](https://github.com/tosin2013/invoice-exception-desk/tree/l2-solution): One commit per L2 phase: specify, clarify, plan, tasks + implement, analyze + review fix
 - [l3-start](https://github.com/tosin2013/invoice-exception-desk/tree/l3-start): The L2 code plus the Invoice Exception Desk R0 kit (roadmap, acceptance list, non-goals, 30-row CSV), without the oracle
 - [l3-solution](https://github.com/tosin2013/invoice-exception-desk/tree/l3-solution): One commit per L3 step, ending with the review fix and run.log
-- [l3h-handoff](https://github.com/tosin2013/invoice-exception-desk/tree/l3h-handoff): The L3.5 run on top of l3-solution: agent A's spec steps, the frozen handoff packet (413f493), agent B's T001-T007 (d4f22c7), agent A's T008-T024 (40ec7ac) and two review fixes, merged
+- [l3h-handoff](https://github.com/tosin2013/invoice-exception-desk/tree/l3h-handoff): The L3.5 run on top of l3-solution: agent A's spec steps, the frozen handoff packet (413f493), agent B's T001-T007 (d4f22c7), agent A's T008-T024 (40ec7ac) and two review fixes, merged; later also the L4 commits (PR #8, merge 8c302ee)
+- [l4-start](https://github.com/tosin2013/invoice-exception-desk/tree/l4-start): The L3.5 code plus constitution v2.0.0 (9044f2b), the L4 starting point
 
 ## Optional
 
 - [Repository](https://github.com/tosin2013/invoice-exception-desk): Source for the guide (docs/) and the Invoice Exception Desk example
 - [R0 Results and Lessons](https://github.com/tosin2013/invoice-exception-desk/wiki/R0-Results-and-Lessons): The Discovery-phase run, including drift and a self-graded test oracle
 - [Project wiki](https://github.com/tosin2013/invoice-exception-desk/wiki): Older drafts, including Multi-Agent Workflow
-- Coming soon: L4 Maintenance, and Advanced (Copilot coding agent)
+- Coming soon: Advanced (Copilot coding agent)
