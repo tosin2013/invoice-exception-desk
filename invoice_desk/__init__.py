@@ -67,6 +67,7 @@ DUPLICATE_INCONSISTENT_REASON = "inconsistent_duplicate"
 AGING_BUCKETS = ("current", "1-30", "31-60", "61-90", "91+", "paid")
 
 _DATE_PATTERN = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}\Z")
+_AMOUNT_PATTERN = re.compile(r"[1-9][0-9]*\Z")
 _INTEGER_PATTERN = re.compile(r"[0-9]+\Z")
 
 
@@ -146,7 +147,7 @@ def _validate_row(
     if issue_date is None or due_date is None:
         return None, "invalid_date"
 
-    if _INTEGER_PATTERN.fullmatch(amount_text) is None:
+    if _AMOUNT_PATTERN.fullmatch(amount_text) is None:
         return None, "invalid_amount"
     amount_cents = int(amount_text)
 
