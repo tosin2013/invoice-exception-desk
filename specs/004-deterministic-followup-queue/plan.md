@@ -374,3 +374,6 @@ deployment. No import behaviour is re-implemented or changed.
 ## Decisions (receiver log)
 
 Agent B appends one bullet per decision made while implementing T001–T007 (date, task ID, decision, reason). Empty at handoff.
+
+- 2026-10-23, T001–T007: MSG-1177 clarifies that the spec/plan branch headers name the feature directory, not a Git ref; retained packet pin 413f493b68407e7cd97df307ea67df4e838195e2 without editing frozen headers. The same message reports Agent A stopped throughout this single-writer window.
+- 2026-10-23, T002–T003: Exercise permutations and large integer balances alongside the frozen fixture to verify case-sensitive tie-breaking, insertion-order independence, integer precision, and fresh output objects; retain the approved API unchanged.
