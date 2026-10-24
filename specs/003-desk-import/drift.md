@@ -57,5 +57,17 @@ All four earlier HIGH findings (003-I1, 004-C1, 004-I1, 004-I3) reported **RESOL
 | R-A01 | LOW | Spec assumes fixed column order; plan maps by header name. | `spec.md` Assumptions, `plan.md` Design 2 | **Accepted, pre-existing**; malformed headers are declared out of scope. |
 | R-D01 | LOW | FR-019 and FR-020 both state the bucket boundaries. | `spec.md` | **Accepted, pre-existing**, consistent duplication. |
 
+## Found by the re-check `/speckit.analyze` on 004 (at `1a3d6a4`)
+
+Three earlier attempts returned no output (free-tier "usage limit reached" on the free model); the fourth attempt (2026-10-24 08:49 EDT, `timeout 900`) completed. Earlier HIGH findings 003-I1, 004-C1, 004-I1, 004-I3 all reported **RESOLVED**; 0 CRITICAL, 0 HIGH.
+
+| ID | Sev | What | Where | Disposition |
+|----|-----|------|-------|-------------|
+| R2-I1 | MEDIUM | Residual of 004-I1: 004 plan's Regression block also says `ACCEPTANCE.md` is unchanged (L4 added an AT-02 policy note); 004 `quickstart.md` and `research.md` still say `tests/test_invoice_desk.py` must remain unchanged. | 004 `plan.md` Regression, `quickstart.md`, `research.md` | **Accepted, why:** these are build-window scope rules for the 004 build, the same category as R-I01; the dated L4 section in 004 `plan.md` states that later owning-spec revisions to these files are allowed. No behaviour impact; AT-01 to AT-04 values unchanged. Candidate for an editorial note in a later 004 change. |
+| R2-I2 | LOW | 004 T021/T024 are historical build-scope checks invalidated by the 003 revision. | 004 `tasks.md` | **Accepted** under the R-I01 rationale. |
+| R2-U1 | MEDIUM | `AnnotationValueTypeError` undocumented. | 004 | **Already accepted** as 004-U1. |
+| R2-G1 | MEDIUM | No 004-side zero-amount queue test. | 004 tests | **Already accepted** as 004-G1. |
+| R2-G2 | LOW | Re-import after annotation and empty-set annotation retention not exercised as combined scenarios. | 004 tests | **Accepted, pre-existing**, unrelated to FR-008a; identity keying makes duplication structurally unlikely. Candidate test for a later 004 change. |
+
 ## Merge conflicts
 None. `tasks.md` was appended by `/speckit.tasks` (Phase 7) with the task text of T001–T020 unchanged; no conflict occurred.
