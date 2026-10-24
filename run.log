@@ -13363,7 +13363,7 @@ No existing tests modified. Transcript kept off-repo. Final: python -m pytest -q
 
 === L4 run: FR-008 -> FR-008a (positive canonical amounts), sanitized receipt ===
 2026-10-24 07:08–08:55 EDT | branch l4-solution | start HEAD 9044f2b949fdd5b5ce3cebfb393f4b89b033cf87 (parent 3ba09fd)
-Constitution v2.0.0 sha256 3bb25f11... verified. Builder had no access to any answer key.
+Constitution v2.0.0 sha256 3bb25f11... verified. Builder had no access to the sealed L4 key (held off-box by OpenAI/Codex); the L3 key folder exists on the same computer and was not opened by the builder.
 Spec Kit: uvx --from git+https://github.com/github/spec-kit.git@v1.1.3 specify (pinned; box default 1.2.2.dev0 not used)
 Tool: OpenCode 1.19.3, model opencode/deepseek-v4.1-flash-free, `opencode run --auto --command speckit.<x>`
 Env: SPECIFY_FEATURE_DIRECTORY=specs/003-desk-import (or specs/004-deterministic-followup-queue) SPECIFY_FEATURE_NO_PERSIST=1
