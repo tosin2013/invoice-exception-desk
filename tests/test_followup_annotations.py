@@ -295,6 +295,76 @@ def test_non_accepted_identity_is_refused_without_touching_store(tmp_path):
     assert path.read_bytes() == before
 
 
+def test_set_owner_checks_identity_before_value_without_creating_store(tmp_path):
+    path = store_path(tmp_path)
+    identities = accepted_invoice_identities(frozen_result())
+
+    with pytest.raises(InvoiceNotAcceptedError):
+        set_owner(
+            identities,
+            "Acme Cleaning Co",
+            "INV-9001",
+            5,
+            store_path=path,
+        )
+
+    assert not path.exists()
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_set_owner_checks_identity_before_value_without_changing_store(tmp_path):
+    path = store_path(tmp_path)
+    identities = accepted_invoice_identities(frozen_result())
+    set_notes(identities, "Acme Cleaning Co", "INV-1001", "Keep.", store_path=path)
+    before = path.read_bytes()
+
+    with pytest.raises(InvoiceNotAcceptedError):
+        set_owner(
+            identities,
+            "Acme Cleaning Co",
+            "INV-9001",
+            5,
+            store_path=path,
+        )
+
+    assert path.read_bytes() == before
+
+
+def test_set_notes_checks_identity_before_value_without_creating_store(tmp_path):
+    path = store_path(tmp_path)
+    identities = accepted_invoice_identities(frozen_result())
+
+    with pytest.raises(InvoiceNotAcceptedError):
+        set_notes(
+            identities,
+            "Acme Cleaning Co",
+            "INV-9001",
+            5,
+            store_path=path,
+        )
+
+    assert not path.exists()
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_set_notes_checks_identity_before_value_without_changing_store(tmp_path):
+    path = store_path(tmp_path)
+    identities = accepted_invoice_identities(frozen_result())
+    set_owner(identities, "Acme Cleaning Co", "INV-1001", "Dana", store_path=path)
+    before = path.read_bytes()
+
+    with pytest.raises(InvoiceNotAcceptedError):
+        set_notes(
+            identities,
+            "Acme Cleaning Co",
+            "INV-9001",
+            5,
+            store_path=path,
+        )
+
+    assert path.read_bytes() == before
+
+
 @pytest.mark.parametrize("bad_owner", [5, b"x", ["a"]])
 def test_set_owner_rejects_non_string_without_creating_store(tmp_path, bad_owner):
     path = store_path(tmp_path)

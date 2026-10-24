@@ -54,8 +54,9 @@ class InvoiceNotAcceptedError(AnnotationError):
 class AnnotationValueTypeError(AnnotationError):
     """An owner or notes value is neither a string nor ``None``.
 
-    This is raised before the store is loaded or written, so a rejected value
-    never creates a store file or modifies an existing one.
+    The accepted-identity check runs first, so this is raised only for an
+    accepted identity. It is raised before the store is loaded or written, so a
+    rejected value never creates a store file or modifies an existing one.
     """
 
 
@@ -241,10 +242,17 @@ def set_owner(
     """Assign or clear the owner for one accepted identity.
 
     ``None`` or a whitespace-only owner clears the owner. Notes are preserved.
-    The store is untouched when the identity is not currently accepted. An
-    owner that is neither a string nor ``None`` raises
-    :class:`AnnotationValueTypeError` before the store is read or written.
+    An identity that is not currently accepted raises
+    :class:`InvoiceNotAcceptedError` before any value validation, and the store
+    is never touched. For an accepted identity, an owner that is neither a
+    string nor ``None`` raises :class:`AnnotationValueTypeError` before the
+    store is read or written.
     """
+    identity = (issuer, invoice_id)
+    if identity not in set(accepted_identities):
+        raise InvoiceNotAcceptedError(
+            f"invoice identity is not accepted: {identity!r}"
+        )
     if owner is not None and not isinstance(owner, str):
         raise AnnotationValueTypeError(
             f"owner must be a string or None, not {type(owner).__name__}"
@@ -275,10 +283,17 @@ def set_notes(
 
     ``None`` or ``""`` clears the notes; any other text is preserved exactly,
     including whitespace, newlines, punctuation, and non-ASCII characters. The
-    owner is preserved. The store is untouched when the identity is not accepted.
-    Notes that are neither a string nor ``None`` raise
-    :class:`AnnotationValueTypeError` before the store is read or written.
+    owner is preserved. An identity that is not currently accepted raises
+    :class:`InvoiceNotAcceptedError` before any value validation, and the store
+    is never touched. For an accepted identity, notes that are neither a string
+    nor ``None`` raise :class:`AnnotationValueTypeError` before the store is
+    read or written.
     """
+    identity = (issuer, invoice_id)
+    if identity not in set(accepted_identities):
+        raise InvoiceNotAcceptedError(
+            f"invoice identity is not accepted: {identity!r}"
+        )
     if notes is not None and not isinstance(notes, str):
         raise AnnotationValueTypeError(
             f"notes must be a string or None, not {type(notes).__name__}"

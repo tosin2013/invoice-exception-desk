@@ -13352,3 +13352,11 @@ failure cleanup (AnnotationStoreWriteError, previous store intact, no temp files
 Operator: copied specs/004-deterministic-followup-queue/agent-a-implement.log off-repo and git rm'd it; OpenCode
 transcript for this session kept off-repo (not committed). No out-of-scope files touched by OpenCode.
 Final: python -m pytest -q => 184 passed (was 168). No state/ created. Normal push only; no PR, merge, or converge.
+
+=== L3.5 Agent A (OpenCode) session: identity-before-value-type order fix ===
+2026-10-23 22:29–22:30 EDT | branch l35-agent-b-openai | start HEAD cd2a56733b242cba453bdfdd8aa1f1b312b802d3
+Tool: OpenCode 1.19.3, model opencode/deepseek-v4.1-flash-free, `opencode run --auto` (plain prompt), single run, exit 0
+Issue (OpenAI review): AnnotationValueTypeError ran before the accepted-identity check; T015/T016 require
+InvoiceNotAcceptedError first. Fix: set_owner/set_notes now check identity, then value type, then touch the store.
+Added 4 tests (unaccepted identity + invalid value => InvoiceNotAcceptedError; no file created / bytes unchanged).
+No existing tests modified. Transcript kept off-repo. Final: python -m pytest -q => 188 passed (was 184).
