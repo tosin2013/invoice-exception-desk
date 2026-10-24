@@ -93,11 +93,11 @@ gitGraph
   commit id: "step: implement"
 ```
 
-Check out `lN-start` and follow the page. Compare with `lN-solution` when you want the finished steps. `git log --oneline` on the solution branch lists them. L0 to L3 name the real branches in the table below. L3.5 has no start branch; it starts from `l3-solution` and its steps are on `l3h-handoff`.
+Check out `lN-start` and follow the page. Compare with `lN-solution` when you want the finished steps. `git log --oneline` on the solution branch lists them. L0 to L3 name the real branches in the table below. L3.5 has no start branch; it starts from `l3-solution` and its steps are on `l3h-handoff`. L4 starts from `l4-start`; its steps were merged into `l3h-handoff` by PR #8.
 
 ## Where are you in your project?
 
-Start at L0 when the repo already has code, and at L1 when it does not. L4 is paused pending review. L5 is an outline.
+Start at L0 when the repo already has code, and at L1 when it does not. L5 is an outline.
 
 ```mermaid
 flowchart LR
@@ -105,7 +105,7 @@ flowchart LR
   Q -->|no| L1["L1: setup + tiny feature"]
   L0 --> L2["L2: first feature"]
   L1 --> L2
-  L2 --> L3["L3: Invoice Exception Desk"] --> L35["L3.5: agent handoff"] --> L4["L4: maintenance (paused)"] --> L5["L5: unattended (outline)"]
+  L2 --> L3["L3: Invoice Exception Desk"] --> L35["L3.5: agent handoff"] --> L4["L4: change a spec"] --> L5["L5: unattended (outline)"]
 ```
 
 | You are… | Go to | Branches |
@@ -115,7 +115,7 @@ flowchart LR
 | Ready to build your first feature | [L2: First feature, end to end](L2-first-feature.md) | [`l2-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l2-start) → [`l2-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l2-solution) |
 | Working on a real multi-feature project | [L3: Invoice Exception Desk walkthrough](L3-invoice-desk.md) | [`l3-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l3-start) → [`l3-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l3-solution) |
 | Handing work from one coding agent to another | [L3.5: Handing work between coding agents](L35-agent-handoff.md) | [`l3-solution`](https://github.com/tosin2013/invoice-exception-desk/tree/l3-solution) → [`l3h-handoff`](https://github.com/tosin2013/invoice-exception-desk/tree/l3h-handoff) |
-| Changing specs after code exists | **L4: Maintenance** *(paused pending review)* | — |
+| Changing specs after code exists | [L4: Changing a spec after code exists](L4-maintenance.md) | [`l4-start`](https://github.com/tosin2013/invoice-exception-desk/tree/l4-start) → [`l3h-handoff`](https://github.com/tosin2013/invoice-exception-desk/tree/l3h-handoff) |
 | Ready to let agents work unattended | **L5: Walk away, unattended issue-to-PR automation** *(proposed — pending review; untested)* | — |
 | Mixing agents or using the Copilot coding agent | **Advanced** *(coming soon)* | — |
 
