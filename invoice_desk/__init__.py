@@ -16,6 +16,8 @@ import io
 import re
 from datetime import date
 
+from .queue import BUCKET_PRIORITY, accepted_invoice_identities, build_followup_queue
+
 HEADER_FIELDS = (
     "issuer",
     "invoice_id",

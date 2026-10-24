@@ -13288,3 +13288,42 @@ Generated `specs/004-deterministic-followup-queue/tasks.md`.
 
 No `.specify/extensions.yml` exists, so no extension hooks were checked or run. Nothing was implemented.
 exit=0
+
+=== Agent B native receiver: T001–T007 ===
+Execution environment: native OpenAI receiver, fresh task context on shared machine,
+separate clone; not a separate VM and not a Codex CLI run. No hidden oracle accessed.
+Start: 2026-10-23 17:13 ET; paused for dependencies and packet clarification.
+Resume: 2026-10-23 21:32 ET. Implementation completed: 2026-10-23 21:33 ET.
+Pin: 413f493b68407e7cd97df307ea67df4e838195e2
+Parent: eba9925e83470b3b605b1d9cf6e3bf6a3a2c8af7
+Subject: L3.5 frozen task packet v4 for Agent B (handoff.md, parent eba9925)
+Remote l3h-handoff and clean local HEAD matched pin at preflight and resume.
+Python: 3.12.14. Fresh .venv creation succeeded; initial pytest unavailable.
+Stopped without installing until explicit Founder approval ("Yes") was relayed.
+Installed only pytest and required dependencies into .venv:
+pytest 9.1.1; iniconfig 2.3.1; packaging 26.3; pluggy 1.7.0; Pygments 2.21.0.
+No system installs; no additional installs at resume; optional uvx checks not run.
+Initial baseline: python -m pytest -q => 119 passed in 0.12s.
+Resume baseline: python -m pytest -q => 119 passed in 0.07s.
+Paused on header ambiguity and single-writer evidence; read live MSG-1177 on resume.
+MSG-1177: headers mean feature directory, pin unchanged; Spec Kit reports no
+opencode/specify processes, clean sender HEAD at pin; Agent A remains stopped
+until Grok reviews returned implementation evidence. No frozen headers changed.
+Wrote T001, T002, T003 tests first, then ran:
+python -m pytest -q tests/test_followup_queue.py => exit 2
+ImportError: cannot import name 'BUCKET_PRIORITY' from 'invoice_desk'
+1 error in 0.09s (expected red test collection before implementation).
+Implemented T004, T005, T006 only; ran T007:
+python -m pytest -q tests/test_followup_queue.py tests/test_invoice_desk.py
+.................................................................... [100%]
+68 passed in 0.05s
+python -m pytest -q
+........................................................................ [53%]
+............................................................... [100%]
+135 passed in 0.09s
+Stage 1 verified without invoice_desk/annotations.py or state/ present.
+git diff --check => passed.
+Only queue module, new tests, re-exports and packet-allowed bookkeeping changed.
+No T008–T024 work. Independent Grok review remains pending; builder tests are
+not independent acceptance. No merge or main-branch write authorized/performed.
+Usage/cost: not reported by harness.
