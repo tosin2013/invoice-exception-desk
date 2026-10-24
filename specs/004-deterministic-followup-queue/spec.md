@@ -10,6 +10,10 @@
 
 ## Clarifications
 
+### Session 2026-10-24 (L4 ripple)
+
+- Q: Does the L4 change to 003 FR-008 (positive canonical amounts) need recording in 004? → A: Yes (Tosin, 2026-10-24). FR-021 and SC-010 keep their text as scope rules for the 004 build, and each now carries a dated L4 note recording the import-behaviour change made in 003. No 004 behaviour or code changes.
+
 ### Session 2026-10-23
 
 *Answers 2–5 approved by Tosin on Oct 23, 2026; answer 1 corrected by Tosin on Oct 23, 2026 (option B: issuer is the last key).*
@@ -113,6 +117,7 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 - **FR-019**: The feature MUST remain local and offline: no network calls, external services, credentials, secrets, or real personal data.
 - **FR-020**: The feature MUST NOT provide authentication, roles, multi-tenancy, reminders, outbound messages, payment processing, or collections automation. Owner is an internal label only.
 - **FR-021**: The feature MUST leave the existing `import_invoices` behaviour unchanged, including its classifications, balances, aging buckets, and totals.
+  - *L4 note (2026-10-24):* This requirement is about what the 004 build itself may change. Separately, the L4 revision of 003 (FR-008 superseded by FR-008a, commit 2526069) changed import behaviour: amount `0` and non-canonical amounts like `0100` are now `invalid_amount`, so zero-amount rows no longer appear in the follow-up queue's input. 004 code is unchanged; see `specs/003-desk-import/drift.md`.
 - **FR-022**: Owner and notes MUST be stored in a single versioned UTF-8 JSON annotation store at a caller-supplied path, defaulting to `state/followup_annotations.json` relative to the project root. Each stored record MUST carry `issuer`, `invoice_id`, `owner`, and `notes`, and MUST be keyed by the exact `(issuer, invoice_id)` pair rather than by row number, queue position, or a concatenated delimiter string.
 - **FR-023**: Each successful owner or notes change MUST be written through to the annotation store immediately, using atomic whole-file replacement, before the change is reported as applied. A crash during a write MUST NOT leave a partially written store that can be loaded.
 - **FR-024**: A missing annotation store MUST be treated as an empty annotation set. An unreadable, malformed, duplicate-identity, or unsupported-version store MUST cause a clear error, MUST leave the existing file untouched, and MUST NOT be silently reset or overwritten.
@@ -143,6 +148,7 @@ An operator assigns an owner and writes free-text notes on queue items. Those an
 - **SC-008**: The queue handles an empty accepted set without error and produces zero items.
 - **SC-009**: The feature operates with networking blocked and introduces no credentials, secrets, or real personal data.
 - **SC-010**: The existing import classifications, balances, aging buckets, and totals remain unchanged.
+  - *L4 note (2026-10-24):* This criterion is about what the 004 build itself may change. Separately, the L4 revision of 003 (FR-008 superseded by FR-008a, commit 2526069) changed import behaviour: amount `0` and non-canonical amounts like `0100` are now `invalid_amount`, so zero-amount rows no longer appear in the follow-up queue's input. 004 code is unchanged; see `specs/003-desk-import/drift.md`.
 - **SC-011**: With no annotation store present, the queue builds successfully and all items report no owner and no notes in 100% of runs.
 - **SC-012**: An unreadable, malformed, duplicate-identity, or unsupported-version annotation store produces a clear error and is never silently overwritten in 100% of tested cases.
 - **SC-013**: Every successful owner or notes change is durable before it is reported, and survives an immediate process stop in 100% of tested cases.
