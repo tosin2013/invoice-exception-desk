@@ -38,6 +38,12 @@ Aging totals (accepted rows): `current={3, 597047}`, `1-30={3, 396862}`, `31-60=
   `28 invalid_payment`, `29 empty_row`, `30 empty_row`.
 - **Oracle refs:** rows 19–30 (all `status=rejected`).
 - **Pass criterion:** reason per row matches; store contains zero records derived from rejected rows.
+- **Amount policy (revised 2026-10-24, decided by Tosin Akinosho; see `specs/003-desk-import/spec.md` FR-008a):**
+  `amount_cents` must be a positive, canonical ASCII decimal integer (`[1-9][0-9]*` after trimming).
+  `0` and leading-zero amounts such as `0100` are rejected as `invalid_amount`; lower-case `usd` stays
+  `invalid_currency`. The frozen fixture contains none of these values, so rows 19–30 and every
+  oracle value above are unchanged. Superseded (non-normative): any `[0-9]+` amount, including `0`,
+  was accepted.
 
 ## AT-03 — Integer-cent sums, zero balance excluded
 

@@ -288,18 +288,103 @@ def test_same_invoice_id_from_a_different_issuer_is_not_a_duplicate():
     assert result["totals"]["duplicate_inconsistent"] == 0
 
 
-def test_zero_amount_is_valid_and_lands_in_paid():
+def test_zero_amount_is_rejected_as_invalid_amount():
     result = import_invoices(
         make_csv("Acme,INV-Z1,2026-09-01,2026-09-01,0,USD,"),
         AS_OF,
     )
     row = result["rows"][0]
 
+    assert row["status"] == "rejected"
+    assert row["reason"] == "invalid_amount"
+    assert "issuer" not in row
+    assert "invoice_id" not in row
+    assert "amount_cents" not in row
+    assert "paid_cents" not in row
+    assert row["remaining_balance_cents"] is None
+    assert row["days_overdue"] is None
+    assert row["aging_bucket"] is None
+    assert result["totals"]["accepted"] == 0
+    assert result["totals"]["rejected"] == 1
+    assert result["totals"]["aging"]["paid"] == {"count": 0, "remaining_cents": 0}
+
+
+@pytest.mark.parametrize(
+    "amount",
+    ["1", "100", " 100 "],
+)
+def test_canonical_positive_amounts_are_accepted(amount):
+    text = make_csv(f"Acme,INV-A-{amount.strip()},2026-09-01,2026-10-01,{amount},USD,0")
+
+    result = import_invoices(text, AS_OF)
+    row = result["rows"][0]
+
     assert row["status"] == "accepted"
-    assert row["amount_cents"] == 0
-    assert row["paid_cents"] == 0
+    assert row["amount_cents"] == int(amount.strip())
+    assert row["remaining_balance_cents"] == int(amount.strip())
+
+
+def test_fully_paid_positive_invoice_stays_accepted_and_paid():
+    result = import_invoices(
+        make_csv("Acme,INV-FP1,2026-09-01,2026-10-01,100,USD,100"),
+        AS_OF,
+    )
+    row = result["rows"][0]
+
+    assert row["status"] == "accepted"
+    assert row["amount_cents"] == 100
+    assert row["paid_cents"] == 100
     assert row["remaining_balance_cents"] == 0
     assert row["aging_bucket"] == "paid"
+
+
+def test_paid_cents_with_leading_zero_is_unchanged():
+    result = import_invoices(
+        make_csv("Acme,INV-PZ1,2026-09-01,2026-10-01,1000,USD,0100"),
+        AS_OF,
+    )
+    row = result["rows"][0]
+
+    assert row["status"] == "accepted"
+    assert row["paid_cents"] == 100
+    assert row["remaining_balance_cents"] == 900
+
+
+@pytest.mark.parametrize(
+    ("row", "reason"),
+    [
+        ("Acme,INV-PR1,2026-13-40,2026-10-01,0,USD,0", "invalid_date"),
+        ("Acme,INV-PR2,not-a-date,2026-10-01,0,USD,0", "invalid_date"),
+        ("Acme,INV-PR3,2026-09-01,2026-10-01,0,EUR,0", "invalid_amount"),
+        ("Acme,INV-PR4,2026-09-01,2026-10-01,0,usd,0", "invalid_amount"),
+        ("Acme,INV-PR5,2026-09-01,2026-10-01,1000,usd,0", "invalid_currency"),
+    ],
+)
+def test_zero_amount_precedence_and_currency(row, reason):
+    result = import_invoices(make_csv(row), AS_OF)
+
+    assert result["rows"][0]["status"] == "rejected"
+    assert result["rows"][0]["reason"] == reason
+    assert result["totals"]["rejected"] == 1
+
+
+def test_zero_amount_does_not_take_part_in_duplicate_detection():
+    result = import_invoices(
+        make_csv(
+            "Acme,INV-ZD1,2026-09-01,2026-10-01,0,USD,0",
+            "Acme,INV-ZD1,2026-09-01,2026-10-01,1000,USD,0",
+        ),
+        AS_OF,
+    )
+
+    assert result["rows"][0]["status"] == "rejected"
+    assert result["rows"][0]["reason"] == "invalid_amount"
+    assert result["rows"][1]["status"] == "accepted"
+    assert result["rows"][1]["amount_cents"] == 1000
+    assert result["totals"]["accepted"] == 1
+    assert result["totals"]["rejected"] == 1
+    assert result["totals"]["duplicate_identical"] == 0
+    assert result["totals"]["duplicate_inconsistent"] == 0
 
 
 def test_inconsistent_duplicate_does_not_replace_first_record():
@@ -327,6 +412,10 @@ def test_inconsistent_duplicate_does_not_replace_first_record():
         ("Acme,INV-V3,2026-09-01,2026-10-01,12.50,USD,0", "invalid_amount"),
         ("Acme,INV-V4,2026-09-01,2026-10-01,-500,USD,0", "invalid_amount"),
         ("Acme,INV-V5,2026-09-01,2026-10-01,,USD,0", "invalid_amount"),
+        ("Acme,INV-V22,2026-09-01,2026-10-01,0,USD,0", "invalid_amount"),
+        ("Acme,INV-V23,2026-09-01,2026-10-01,00,USD,0", "invalid_amount"),
+        ("Acme,INV-V24,2026-09-01,2026-10-01,0100,USD,0", "invalid_amount"),
+        ("Acme,INV-V25,2026-09-01,2026-10-01, 0100 ,USD,0", "invalid_amount"),
         ("Acme,INV-V6,2026-13-40,2026-10-01,1000,USD,0", "invalid_date"),
         ("Acme,INV-V7,not-a-date,2026-10-01,1000,USD,0", "invalid_date"),
         ("Acme,INV-V8,10/15/2026,2026-10-01,1000,USD,0", "invalid_date"),

@@ -13360,3 +13360,28 @@ Issue (OpenAI review): AnnotationValueTypeError ran before the accepted-identity
 InvoiceNotAcceptedError first. Fix: set_owner/set_notes now check identity, then value type, then touch the store.
 Added 4 tests (unaccepted identity + invalid value => InvoiceNotAcceptedError; no file created / bytes unchanged).
 No existing tests modified. Transcript kept off-repo. Final: python -m pytest -q => 188 passed (was 184).
+
+=== L4 run: FR-008 -> FR-008a (positive canonical amounts), sanitized receipt ===
+2026-10-24 07:08–08:55 EDT | branch l4-solution | start HEAD 9044f2b949fdd5b5ce3cebfb393f4b89b033cf87 (parent 3ba09fd)
+Constitution v2.0.0 sha256 3bb25f11... verified. Builder had no access to the sealed L4 key (held off-box by OpenAI/Codex); the L3 key folder exists on the same computer and was not opened by the builder.
+Spec Kit: uvx --from git+https://github.com/github/spec-kit.git@v1.1.3 specify (pinned; box default 1.2.2.dev0 not used)
+Tool: OpenCode 1.19.3, model opencode/deepseek-v4.1-flash-free, `opencode run --auto --command speckit.<x>`
+Env: SPECIFY_FEATURE_DIRECTORY=specs/003-desk-import (or specs/004-deterministic-followup-queue) SPECIFY_FEATURE_NO_PERSIST=1
+Tests run with an existing local venv's python (pytest not installed system-wide; nothing installed).
+Step 0 preflight 07:08: specify version => 1.1.3 (exit 0); specify integration status => OK, opencode, 0 modified/missing managed files (exit 0); python -m pytest -q => 190 passed
+Step 1 spec edit (operator, 07:09): 003 spec.md Clarification session 2026-10-24 (decided by Tosin Akinosho); FR-008 marked SUPERSEDED (kept), FR-008a added; edge cases revised; ACCEPTANCE.md AT-02 amount-policy note
+Step 2 speckit.clarify 003 (07:09–07:12, exit 0): told not to answer its own questions, no files changed. 5 questions:
+  paid_cents parsing/duplicate spelling; required-field scope; trimmed whitespace set; 004 FR-021/SC-010 amendment; validation without fixture rows.
+  Q1-Q3 answered from the rulings (unchanged); Q4-Q5 answered from the approved brief/constitution V, VIII (no new policy). Recorded in spec.md.
+Step 3 plan (operator): 003 plan.md "L4 revision (2026-10-24)" incl. 004 ripple. speckit.tasks 003 (07:13–07:14, exit 0): appended Phase 7 T021-T030;
+  diff vs L3 tasks.md: +24 lines appended, T001-T020 unchanged (append-only honoured, no revert needed). plan.md diff vs L3: +1 inline superseded note, +L4 section.
+Step 4 speckit.implement 003 Phase 7 (07:14–07:15, exit 0, 1 invocation, 0 re-invocations): tests first => 8 failed, 197 passed;
+  then code (_AMOUNT_PATTERN [1-9][0-9]*; paid_cents keeps [0-9]+) => 205 passed. Changed (not deleted): test_zero_amount_is_valid_and_lands_in_paid
+  -> test_zero_amount_is_rejected_as_invalid_amount; invalid_amount table +0, 00, 0100, ' 0100 '. No test weakening, no out-of-scope edits.
+  004 tests/specs: no zero-amount invoice used; no 004 change needed. Commit 2526069 (spec+plan+tasks+ACCEPTANCE+tests+code, rule V).
+Step 5 speckit.analyze (read-only): 003 runs 1-4 returned no output (free-tier usage limit), run 5 (08:10–08:13) => 0 CRIT, 1 HIGH, 1 MED, 3 LOW.
+  004 run 1 (07:41–07:43) => 0 CRIT, 3 HIGH, 3 MED, 1 LOW. HIGHs fixed by OpenCode doc-only run (08:24, exit 0), commit 1a3d6a4.
+  Re-check 003 (08:25–08:27) => 0 HIGH, all earlier HIGHs RESOLVED. Re-check 004: 3 empty attempts (usage limit), 4th (08:49–08:52) => 0 HIGH, RESOLVED.
+  Manual grep for the old rule: only superseded/historical text and the intended paid_cents pattern remain. All entries in specs/003-desk-import/drift.md.
+Merge conflicts: none. Raw transcripts kept off-repo. No PR, no merge, no force-push. Usage/cost: not reported by harness (free model).
+Final: python -m pytest -q => 205 passed (was 190).

@@ -44,6 +44,7 @@ description: "Task list for Invoice Exception Desk import (R1 slice)"
 - [X] T003 Define in `invoice_desk/__init__.py` the seven header field names in order (`issuer`, `invoice_id`, `issue_date`, `due_date`, `amount_cents`, `currency`, `paid_cents`), the four statuses, the six rejection reasons, the two duplicate reason tokens (`identical_duplicate`, `inconsistent_duplicate`), and the six aging bucket names (`current`, `1-30`, `31-60`, `61-90`, `91+`, `paid`) as module constants
 - [X] T004 Implement a private CSV parsing helper in `invoice_desk/__init__.py` using `csv.reader(io.StringIO(csv_text))` and **not** `DictReader`, mapping columns from the header row, treating empty or header-only input as zero data rows, preserving blank lines as data rows, padding rows shorter than seven cells with `""`, ignoring cells beyond the seventh, and trimming leading/trailing whitespace on all seven fields (FR-002, FR-030, FR-031)
 - [X] T005 Implement a private row validation helper in `invoice_desk/__init__.py` that returns normalized field values or exactly one rejection reason using the precedence `empty_row`, `missing_required_field`, `invalid_date`, `invalid_amount`, `invalid_currency`, `invalid_payment`: `empty_row` when no cells or all cells blank; `missing_required_field` only when `issuer` or `invoice_id` is blank (all other fields use their own reason); `invalid_date` for a blank or non-strict non-real `YYYY-MM-DD` date; `invalid_amount` for a blank or non-`[0-9]+` amount (using `re.fullmatch`, rejecting `+100`, `-500`, `12.50`, `abc`); `invalid_currency` for a blank or non-`USD` currency; `invalid_payment` for a non-`[0-9]+` payment or one exceeding `amount_cents`, with a blank `paid_cents` treated as `0` (FR-005 to FR-011)
+  - *Historical note (added 2026-10-24, L4): the amount clause of this task (`invalid_amount` for a blank or non-`[0-9]+` amount) is superseded by FR-008a and T028: `amount_cents` must match `[1-9][0-9]*`, so `0`, `00` and `0100` are `invalid_amount`. The `paid_cents` clause (`[0-9]+`) is unchanged. The text above is kept as it was when the free model implemented it.*
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -210,3 +211,27 @@ The production code is one module (`invoice_desk/__init__.py`) and the tests are
 - Do not introduce persistence, owners, notes, payment events, promised-pay annotations, migration, CLI, UI, or network access; these are out of scope (FR-029 and `NON_GOALS.md`)
 - All money values must remain integer cents; never use floats
 - `import_invoices` must accept an explicit `as_of` date and never read the machine clock
+
+---
+
+## Phase 7: L4 revision (2026-10-24) - FR-008a positive canonical amounts
+
+**Goal**: Enforce FR-008a: after trimming (FR-030), `amount_cents` must match the canonical positive ASCII pattern `[1-9][0-9]*`, so `0`, `00`, `0100` and `007` are `invalid_amount` in addition to `+100`, `-500`, `12.50`, `abc` and blank. `paid_cents` keeps the unchanged `[0-9]+` pattern (FR-010), including a blank meaning `0` and leading zeros such as `0100`. Validation precedence (FR-011), trimming (FR-030), padding (FR-031), duplicates (FR-012 to FR-015), balances, aging, totals and the `import_invoices` interface are unchanged. `data/invoices.csv` stays byte-unchanged.
+
+**Dependency note**: This phase depends on Phases 1-6 (T001 to T020) being complete and green. Within the phase, the test changes (T021 to T027) MUST be written and FAIL before the implementation change (T028); T028 depends on T021 to T027; T029 depends on T028; T030 depends on T029. No task in this phase may modify `spec.md`, `plan.md`, `data/`, `ACCEPTANCE.md`, `bill_split`, or any other file.
+
+### Tests for Phase 7 (write first, ensure they FAIL) ⚠️
+
+- [X] T021 Change, not delete, `test_zero_amount_is_valid_and_lands_in_paid` in `tests/test_invoice_desk.py`: rename it to state the new rule (for example `test_zero_amount_is_rejected_as_invalid_amount`), and assert that the row `Acme,INV-Z1,2026-09-01,2026-09-01,0,USD,` is `rejected` with reason `invalid_amount`, exposes no accepted fields (`issuer`, `invoice_id`, `amount_cents`, `paid_cents`, `remaining_balance_cents`, `days_overdue`, `aging_bucket`), and that totals show `accepted = 0`, `rejected = 1`, and the `paid` bucket as `{"count": 0, "remaining_cents": 0}`
+- [X] T022 Extend the parametrized `invalid_amount` cases in `test_validation_reasons_and_precedence` in `tests/test_invoice_desk.py` with `0`, `00`, `0100`, and the trimmed ` 0100 `, each expected to be `invalid_amount` (keeping the existing `+100`, `abc`, `12.50`, `-500` and blank cases)
+- [X] T023 Add a test in `tests/test_invoice_desk.py` that canonical positive amounts `1`, `100` and ` 100 ` are accepted (assert `status == "accepted"`, the parsed integer `amount_cents`, and `remaining_balance_cents`)
+- [X] T024 Add a test in `tests/test_invoice_desk.py` that a fully paid positive invoice (`amount_cents = 100`, `paid_cents = 100`) is still accepted, has `remaining_balance_cents == 0`, and lands in the `paid` bucket
+- [X] T025 Add a test in `tests/test_invoice_desk.py` that `paid_cents` with a leading zero (`0100` on amount `1000`) is still accepted unchanged under FR-010, with `paid_cents == 100` and `remaining_balance_cents == 900`
+- [X] T026 Add precedence tests in `tests/test_invoice_desk.py`: a zero amount with a bad date is `invalid_date`; a zero amount with `EUR` or `usd` is `invalid_amount`; a positive amount with `usd` is `invalid_currency`
+- [X] T027 Add a duplicate-detection test in `tests/test_invoice_desk.py` where a zero-amount row shares the same `(issuer, invoice_id)` as a later valid row: the zero row is `rejected` / `invalid_amount` and does not take part in duplicate detection, so the later valid row is `accepted` and totals show `accepted = 1`, `rejected = 1`, `duplicate_identical = 0`, `duplicate_inconsistent = 0`
+
+### Implementation for Phase 7
+
+- [X] T028 Change ONLY the amount check in `invoice_desk/__init__.py` `_validate_row`: add a separate amount pattern matching `[1-9][0-9]*` and use it for `amount_cents` (rejecting `0`, `00`, `0100`, `007`, `+100`, `-500`, `12.50`, `abc` and blank as `invalid_amount`), while `paid_cents` keeps the existing `[0-9]+` pattern and validation; leave validation precedence, trimming, padding, duplicates, balances, aging, totals and the `import_invoices` interface unchanged
+- [X] T029 Run `python -m pytest -q` from the repository root and confirm all tests pass, including the changed and new L4 tests and the existing `tests/test_split_bill.py` and `tests/test_split_weighted.py`
+- [X] T030 Verify implementation scope with `git status` and `git diff`: only `tests/test_invoice_desk.py` and `invoice_desk/__init__.py` changed in implementation; confirm `spec.md`, `plan.md`, `data/invoices.csv`, `ACCEPTANCE.md`, `bill_split`, `tests/test_split_bill.py` and `tests/test_split_weighted.py` are unchanged
