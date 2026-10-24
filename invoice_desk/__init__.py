@@ -25,6 +25,7 @@ from .annotations import (
     AnnotationStoreUnreadableError,
     AnnotationStoreVersionError,
     AnnotationStoreWriteError,
+    AnnotationValueTypeError,
     InvoiceNotAcceptedError,
     attach_annotations,
     followup_queue,

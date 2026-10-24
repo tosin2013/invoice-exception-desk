@@ -51,6 +51,14 @@ class InvoiceNotAcceptedError(AnnotationError):
     """An assignment targets an identity absent from the accepted set."""
 
 
+class AnnotationValueTypeError(AnnotationError):
+    """An owner or notes value is neither a string nor ``None``.
+
+    This is raised before the store is loaded or written, so a rejected value
+    never creates a store file or modifies an existing one.
+    """
+
+
 def _resolved_path(store_path):
     if store_path is None:
         return DEFAULT_ANNOTATION_STORE_PATH
@@ -160,6 +168,8 @@ def _write_annotations(annotations, store_path):
     for issuer, invoice_id in sorted(annotations):
         annotation = annotations[(issuer, invoice_id)]
         owner = annotation.get("owner") or ""
+        if not owner.strip():
+            owner = ""
         notes = annotation.get("notes") or ""
         if not owner and not notes:
             continue
@@ -231,8 +241,14 @@ def set_owner(
     """Assign or clear the owner for one accepted identity.
 
     ``None`` or a whitespace-only owner clears the owner. Notes are preserved.
-    The store is untouched when the identity is not currently accepted.
+    The store is untouched when the identity is not currently accepted. An
+    owner that is neither a string nor ``None`` raises
+    :class:`AnnotationValueTypeError` before the store is read or written.
     """
+    if owner is not None and not isinstance(owner, str):
+        raise AnnotationValueTypeError(
+            f"owner must be a string or None, not {type(owner).__name__}"
+        )
     if owner is None:
         normalized = ""
     else:
@@ -260,7 +276,13 @@ def set_notes(
     ``None`` or ``""`` clears the notes; any other text is preserved exactly,
     including whitespace, newlines, punctuation, and non-ASCII characters. The
     owner is preserved. The store is untouched when the identity is not accepted.
+    Notes that are neither a string nor ``None`` raise
+    :class:`AnnotationValueTypeError` before the store is read or written.
     """
+    if notes is not None and not isinstance(notes, str):
+        raise AnnotationValueTypeError(
+            f"notes must be a string or None, not {type(notes).__name__}"
+        )
     normalized = "" if notes is None else notes
     _set_field(
         accepted_identities,
@@ -276,7 +298,9 @@ def attach_annotations(queue, store_path=None) -> list[dict]:
     """Return a new queue with stored owners/notes on exact identity matches.
 
     Order and positions are preserved. Stored empty strings become ``None``;
-    records for identities absent from the queue are ignored but retained.
+    an empty or whitespace-only owner becomes ``None`` while a non-blank owner
+    keeps its exact stored text. Records for identities absent from the queue
+    are ignored but retained.
     """
     annotations = load_annotations(store_path)
     attached = []
@@ -287,7 +311,8 @@ def attach_annotations(queue, store_path=None) -> list[dict]:
             copy["owner"] = None
             copy["notes"] = None
         else:
-            copy["owner"] = annotation["owner"] or None
+            owner = annotation["owner"]
+            copy["owner"] = owner if owner.strip() else None
             copy["notes"] = annotation["notes"] or None
         attached.append(copy)
     return attached

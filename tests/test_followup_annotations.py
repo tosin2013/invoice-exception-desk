@@ -15,6 +15,7 @@ from invoice_desk import (
     AnnotationStoreUnreadableError,
     AnnotationStoreVersionError,
     AnnotationStoreWriteError,
+    AnnotationValueTypeError,
     InvoiceNotAcceptedError,
     accepted_invoice_identities,
     attach_annotations,
@@ -93,6 +94,7 @@ def test_default_path_and_error_hierarchy():
         AnnotationStoreVersionError,
         AnnotationStoreDuplicateIdentityError,
         AnnotationStoreWriteError,
+        AnnotationValueTypeError,
         InvoiceNotAcceptedError,
     ):
         assert issubclass(error, AnnotationError)
@@ -169,6 +171,55 @@ def test_attach_preserves_order_and_maps_empty_strings_to_none(tmp_path):
     assert source == build_followup_queue(frozen_result())
 
 
+def test_whitespace_only_owner_is_attached_as_unassigned(tmp_path):
+    path = store_path(tmp_path)
+    write_document(
+        path,
+        {
+            "version": 1,
+            "annotations": [record(owner="   ", notes="Keep exactly.")],
+        },
+    )
+
+    attached = attach_annotations(build_followup_queue(frozen_result()), path)
+    by_id = {item["invoice_id"]: item for item in attached}
+
+    assert by_id["INV-1001"]["owner"] is None
+    assert by_id["INV-1001"]["notes"] == "Keep exactly."
+
+
+def test_writer_normalizes_whitespace_owner_and_omits_empty_record(tmp_path):
+    path = store_path(tmp_path)
+    identities = accepted_invoice_identities(frozen_result())
+    write_document(
+        path,
+        {
+            "version": 1,
+            "annotations": [
+                record(owner="   ", notes="Keep exactly."),
+                record(invoice_id="INV-1002", owner="   ", notes=""),
+            ],
+        },
+    )
+
+    set_notes(
+        identities,
+        "Bright Path Facilities",
+        "INV-1012",
+        "Trigger a rewrite.",
+        store_path=path,
+    )
+
+    document = json.loads(path.read_text(encoding="utf-8"))
+    by_identity = {
+        (item["issuer"], item["invoice_id"]): item
+        for item in document["annotations"]
+    }
+    assert by_identity[("Acme Cleaning Co", "INV-1001")]["owner"] == ""
+    assert by_identity[("Acme Cleaning Co", "INV-1001")]["notes"] == "Keep exactly."
+    assert ("Acme Cleaning Co", "INV-1002") not in by_identity
+
+
 def test_two_identities_do_not_cross_contaminate_and_reload(tmp_path):
     path = store_path(tmp_path)
     identities = accepted_invoice_identities(frozen_result())
@@ -241,6 +292,84 @@ def test_non_accepted_identity_is_refused_without_touching_store(tmp_path):
             "notes",
             store_path=path,
         )
+    assert path.read_bytes() == before
+
+
+@pytest.mark.parametrize("bad_owner", [5, b"x", ["a"]])
+def test_set_owner_rejects_non_string_without_creating_store(tmp_path, bad_owner):
+    path = store_path(tmp_path)
+    identities = accepted_invoice_identities(frozen_result())
+
+    with pytest.raises(AnnotationValueTypeError):
+        set_owner(
+            identities,
+            "Acme Cleaning Co",
+            "INV-1001",
+            bad_owner,
+            store_path=path,
+        )
+
+    assert not path.exists()
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("bad_owner", [5, b"x", ["a"]])
+def test_set_owner_rejects_non_string_without_changing_existing_store(
+    tmp_path, bad_owner
+):
+    path = store_path(tmp_path)
+    identities = accepted_invoice_identities(frozen_result())
+    set_notes(identities, "Acme Cleaning Co", "INV-1001", "Keep.", store_path=path)
+    before = path.read_bytes()
+
+    with pytest.raises(AnnotationValueTypeError):
+        set_owner(
+            identities,
+            "Acme Cleaning Co",
+            "INV-1001",
+            bad_owner,
+            store_path=path,
+        )
+
+    assert path.read_bytes() == before
+
+
+@pytest.mark.parametrize("bad_notes", [5, b"x", ["a"]])
+def test_set_notes_rejects_non_string_without_creating_store(tmp_path, bad_notes):
+    path = store_path(tmp_path)
+    identities = accepted_invoice_identities(frozen_result())
+
+    with pytest.raises(AnnotationValueTypeError):
+        set_notes(
+            identities,
+            "Acme Cleaning Co",
+            "INV-1001",
+            bad_notes,
+            store_path=path,
+        )
+
+    assert not path.exists()
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("bad_notes", [5, b"x", ["a"]])
+def test_set_notes_rejects_non_string_without_changing_existing_store(
+    tmp_path, bad_notes
+):
+    path = store_path(tmp_path)
+    identities = accepted_invoice_identities(frozen_result())
+    set_owner(identities, "Acme Cleaning Co", "INV-1001", "Dana", store_path=path)
+    before = path.read_bytes()
+
+    with pytest.raises(AnnotationValueTypeError):
+        set_notes(
+            identities,
+            "Acme Cleaning Co",
+            "INV-1001",
+            bad_notes,
+            store_path=path,
+        )
+
     assert path.read_bytes() == before
 
 
@@ -428,6 +557,82 @@ def test_replace_failure_keeps_previous_store_and_removes_temp_file(
     stored = load_annotations(path)
     assert stored[("Acme Cleaning Co", "INV-1001")]["owner"] == "Dana"
     assert stored[("Acme Cleaning Co", "INV-1001")]["notes"] == ""
+
+
+def test_fsync_failure_keeps_previous_store_and_removes_temp_file(
+    tmp_path, monkeypatch
+):
+    path = store_path(tmp_path)
+    identities = accepted_invoice_identities(frozen_result())
+    set_owner(identities, "Acme Cleaning Co", "INV-1001", "Dana", store_path=path)
+    before = path.read_bytes()
+
+    def fail_fsync(descriptor):
+        raise OSError("simulated fsync failure")
+
+    monkeypatch.setattr(annotations_module.os, "fsync", fail_fsync)
+
+    with pytest.raises(AnnotationStoreWriteError):
+        set_owner(
+            identities,
+            "Acme Cleaning Co",
+            "INV-1001",
+            "Zoë",
+            store_path=path,
+        )
+
+    assert path.read_bytes() == before
+    assert [entry.name for entry in tmp_path.iterdir()] == [path.name]
+    stored = load_annotations(path)
+    assert stored[("Acme Cleaning Co", "INV-1001")]["owner"] == "Dana"
+
+
+def test_file_write_failure_keeps_previous_store_and_removes_temp_file(
+    tmp_path, monkeypatch
+):
+    path = store_path(tmp_path)
+    identities = accepted_invoice_identities(frozen_result())
+    set_owner(identities, "Acme Cleaning Co", "INV-1001", "Dana", store_path=path)
+    before = path.read_bytes()
+    real_fdopen = annotations_module.os.fdopen
+
+    class FailingHandle:
+        def __init__(self, handle):
+            self._handle = handle
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return self._handle.__exit__(exc_type, exc, traceback)
+
+        def write(self, text):
+            raise OSError("simulated write failure")
+
+        def flush(self):
+            self._handle.flush()
+
+        def fileno(self):
+            return self._handle.fileno()
+
+    def failing_fdopen(descriptor, *args, **kwargs):
+        return FailingHandle(real_fdopen(descriptor, *args, **kwargs))
+
+    monkeypatch.setattr(annotations_module.os, "fdopen", failing_fdopen)
+
+    with pytest.raises(AnnotationStoreWriteError):
+        set_owner(
+            identities,
+            "Acme Cleaning Co",
+            "INV-1001",
+            "Zoë",
+            store_path=path,
+        )
+
+    assert path.read_bytes() == before
+    assert [entry.name for entry in tmp_path.iterdir()] == [path.name]
+    stored = load_annotations(path)
+    assert stored[("Acme Cleaning Co", "INV-1001")]["owner"] == "Dana"
 
 
 def test_successful_write_is_utf8_sorted_and_newline_terminated(tmp_path):

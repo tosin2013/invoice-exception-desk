@@ -13340,3 +13340,15 @@ OpenCode fixed the tests, then 101 passed targeted, 168 passed full suite. Quick
 Final (operator re-run): python -m pytest -q => 168 passed. No state/ directory created. No re-invocations needed.
 Full OpenCode transcript: specs/004-deterministic-followup-queue/agent-a-implement.log
 No push, no PR, no merge, no converge. Usage/cost: not reported by harness (free model).
+
+=== L3.5 Agent A (OpenCode) session: review fixes ===
+2026-10-23 22:07–22:08 EDT | branch l35-agent-b-openai | start HEAD 40ec7ac086f3581e3436f4328565bdb42f0ee2a1
+Tool: OpenCode 1.19.3, model opencode/deepseek-v4.1-flash-free, `opencode run --auto` (plain prompt), single run, exit 0
+Env: SPECIFY_FEATURE_DIRECTORY=specs/004-deterministic-followup-queue SPECIFY_FEATURE_NO_PERSIST=1
+Fixes (approved by Tosin): AnnotationValueTypeError for non-str/non-None owner/notes, raised before any store read/write
+(exported from invoice_desk); whitespace-only owner treated as unassigned in attach_annotations and in the writer; new tests
+for type rejection (no file created / existing bytes unchanged), whitespace owner read back as None, fsync and write
+failure cleanup (AnnotationStoreWriteError, previous store intact, no temp files).
+Operator: copied specs/004-deterministic-followup-queue/agent-a-implement.log off-repo and git rm'd it; OpenCode
+transcript for this session kept off-repo (not committed). No out-of-scope files touched by OpenCode.
+Final: python -m pytest -q => 184 passed (was 168). No state/ created. Normal push only; no PR, merge, or converge.
