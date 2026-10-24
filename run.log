@@ -13385,3 +13385,22 @@ Step 5 speckit.analyze (read-only): 003 runs 1-4 returned no output (free-tier u
   Manual grep for the old rule: only superseded/historical text and the intended paid_cents pattern remain. All entries in specs/003-desk-import/drift.md.
 Merge conflicts: none. Raw transcripts kept off-repo. No PR, no merge, no force-push. Usage/cost: not reported by harness (free model).
 Final: python -m pytest -q => 205 passed (was 190).
+
+=== Spec Kit upgrade 1.1.3 -> 1.2.3 (integration upgrade opencode), sanitized receipt ===
+2026-10-24 12:29–12:32 EDT | branch speckit-1.2.3-upgrade | start HEAD 8c302ee (l3h-handoff)
+Approved by Tosin Akinosho ("go with your recommendations"). Builder did not open any answer-key folder or L4 key.
+Spec Kit: uvx --from git+https://github.com/github/spec-kit.git@v1.2.3 specify (pinned; box default 1.2.2.dev0 not used)
+Release: v1.2.3 tag 5ea8b1cf, published 2026-10-22 09:33 EDT. Templates and command prompts identical to v1.1.3 (git diff v1.1.3..v1.2.3 -- templates => empty).
+Preflight: specify version => 1.2.3; specify integration status => OK, opencode only, multi-install safe, 0 modified/0 missing managed files
+Constitution v2.0.0 sha256 3bb25f11... before = after. specs/ file hashes before = after.
+Upgrade: specify integration upgrade opencode (no --force), exit 0. Printed "12 shared infrastructure path(s) already exist and were not updated"
+  (misleading: the 2 unchanged managed scripts that differ upstream WERE refreshed; no --force needed).
+Changed (6 files, +25/-15): .specify/init-options.json, .specify/integration.json, .specify/integrations/opencode.manifest.json,
+  .specify/integrations/speckit.manifest.json (version stamps/hashes), .specify/scripts/bash/check-prerequisites.sh (empty plan.md now an error),
+  .specify/scripts/bash/setup-plan.sh (missing/empty plan template now an error instead of an empty plan.md). Same 6 as the earlier throwaway-clone dry run.
+Post: specify integration status => OK, 0 modified/0 missing; python -m pytest -q => 205 passed (was 205).
+Smoke 12:30–12:31 EDT: OpenCode 1.19.3, model opencode/deepseek-v4.1-flash-free, `opencode run --auto --command speckit.analyze` (read-only),
+  env SPECIFY_FEATURE_DIRECTORY=specs/004-deterministic-followup-queue SPECIFY_FEATURE_NO_PERSIST=1, exit 0;
+  check-prerequisites.sh resolved FEATURE_DIR to 004 via the env var; report 0 CRITICAL, 0 HIGH, 4 MEDIUM, 2 LOW (known drift items); no files changed, no feature.json.
+Docs: README install pin -> 1.2.3; historical "recorded with 1.1.3" lines and specs/004-deterministic-followup-queue/handoff.md left untouched.
+Raw transcripts kept off-repo. New branch + PR only; no merge, no force-push. Usage/cost: not reported by harness (free model).
