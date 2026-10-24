@@ -33,7 +33,7 @@ title: "L4: Changing a spec after code exists"
 > flowchart LR
 >   s["l4-start<br/>9044f2b<br/>constitution v2.0.0"] --> c1["FR-008a: spec, tests, code<br/>2526069"]
 >   c1 --> c2["drift fixes + drift.md<br/>1a3d6a4"] --> c3["004 re-check<br/>3c2aa44"] --> c4["run.log receipt<br/>271cd2d"]
->   c4 --> g{{"sealed key<br/>PASS"}}
+>   c4 --> g(["sealed key<br/>PASS"])
 >   c4 --> r1["review L1<br/>0ea7ffc"] --> r2["review L2<br/>f6a9b5a"] --> m["PR #8 merged<br/>8c302ee"]
 > ```
 
