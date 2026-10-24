@@ -47,7 +47,7 @@ Status key: **exists** (live on the wiki), **draft** (started or partly written)
 - When to edit an existing spec and when to start a new feature folder
 - Re-running plan and tasks after a spec change
 - Amending the constitution, and versioning it
-- Upgrading Spec Kit itself (`specify version`, templates)
+- Upgrading Spec Kit itself (`specify version`, templates): written up as its own lesson, L4.5 (`docs/L45-speckit-upgrade.md`)
 - Spotting and fixing drift between the spec and the code
 **Where learners get confused:** whether old specs are history or living docs; merge conflicts in `tasks.md`; template upgrades overwriting local edits.
 

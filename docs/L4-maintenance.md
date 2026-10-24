@@ -9,7 +9,7 @@ title: "L4: Changing a spec after code exists"
 - **You are here if** you finished [L3.5](L35-agent-handoff.md) and need to change a rule in a feature that's already built, tested and merged, without the spec, the tests and the code drifting apart.
 - **You should already have** specify-cli 1.1.3 (we ran it through `uvx`, see section 2), OpenCode 1.19.3, Python 3.11+ with pytest, and a reviewer who can hold an answer key you never see.
 - **You leave with** one real behaviour change, **FR-008 → FR-008a**: an invoice amount must now be a positive, canonical number (`0`, `00` and `0100` are rejected). It lands as a dated Clarification, a superseded requirement that's kept, flipped tests, a one-line code change, a drift log, and a pass against a sealed answer key written before the build.
-- **Phases shown:** preflight, a hand-written spec edit, clarify, plan and tasks revision, implement (tests first), analyze on **two** features, drift log, review, sealed-key grading, merge. **Left out:** the Spec Kit 1.1.3 → 1.2.3 upgrade (a separate phase, not approved yet), a new feature folder (`005-…`, not needed here), `/speckit.converge`, extensions, and teams of several developers.
+- **Phases shown:** preflight, a hand-written spec edit, clarify, plan and tasks revision, implement (tests first), analyze on **two** features, drift log, review, sealed-key grading, merge. **Left out:** the Spec Kit 1.1.3 → 1.2.3 upgrade (its own lesson, [L4.5](L45-speckit-upgrade.md)), a new feature folder (`005-…`, not needed here), `/speckit.converge`, extensions, and teams of several developers.
 
 > **Key idea:** a spec isn't finished when the code ships. When a rule changes, you **edit the spec that owns the rule**, say when and why it changed, keep the old text marked as superseded, and land the spec, tests and code **in one commit**. Then you go looking for every other place that still describes the old rule.
 
@@ -293,4 +293,4 @@ Then Tosin merged [PR #8](https://github.com/tosin2013/invoice-exception-desk/pu
 - [ ] Every mismatch in `drift.md`: fixed, or accepted with a reason. Empty analyze runs are retried, not counted
 - [ ] Grade on three buckets: regression, approved policy, intentional divergence
 
-Compare the start branch with the finished steps: [`l4-start...l3h-handoff`](https://github.com/tosin2013/invoice-exception-desk/compare/l4-start...l3h-handoff). Back: [L3.5: Handing work between coding agents](L35-agent-handoff.md). Back to [Home](index.md).
+Compare the start branch with the finished steps: [`l4-start...l3h-handoff`](https://github.com/tosin2013/invoice-exception-desk/compare/l4-start...l3h-handoff). Next: [L4.5: Upgrading Spec Kit itself](L45-speckit-upgrade.md). Back: [L3.5: Handing work between coding agents](L35-agent-handoff.md). Back to [Home](index.md).
