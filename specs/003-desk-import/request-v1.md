@@ -3,7 +3,7 @@
 - **Document:** `request-v1.md`, the frozen ruling for the L5 worked example (asked for in Relay MSG-1256)
 - **Version:** v1
 - **Date:** 2026-10-25
-- **Status:** draft for Tosin review — not yet approved
+- **Status:** approved by Tosin, 2026-10-25 10:51 EDT
 - **Source:** L5 outline revision 3.3 (`L5-outline.md`, Oct 24, 2026), Tosin's decisions L5-D1 to L5-D8 and L5-Q2 (Oct 24, 2026), Tosin's key-holder decision (Oct 25, 2026), and the repo `tosin2013/invoice-exception-desk` read at the SHAs below.
 - **Owning feature:** `specs/003-desk-import/` (feature 003). Feature 004 gets a dated note only.
 
@@ -49,7 +49,7 @@ Points fixed by this ruling:
 | Scope and size comparison base | `d6c7d7be4fa61084cf48c400a73c44798e1a063a` |
 | Public test baseline at both SHAs | 205 passed (`uv run --with pytest python -m pytest -q`) |
 
-- **Bundle prerequisite:** `git bundle verify` needs the sealed base in the verifier's repository. The setup commit is local (not pushed), so the key holder and the run machine must first receive it, for example from the setup bundle `l5-setup.bundle` (range `a130646..d6c7d7b`, head `refs/heads/l5-setup` = `d6c7d7be4fa61084cf48c400a73c44798e1a063a`, SHA-256 `9a3dbac39bc28be7ac929714572deb08eeee11e7eb77396cf0dd734301ab3569`). Whether it is moved by that bundle or by publishing `l5-setup` is Tosin's call; the SHA must match either way.
+- **Bundle prerequisite:** `git bundle verify` needs the sealed base in the verifier's repository. The setup commit is published on the `l5-setup` branch of https://github.com/tosin2013/invoice-exception-desk (Tosin's choice, 2026-10-25), so the key holder and the run machine fetch `d6c7d7be4fa61084cf48c400a73c44798e1a063a` from there; the SHA must match.
 - **Branch:** the builder works on a local branch `l5/003-due-before-issue` (proposed slug) created from the setup SHA.
 
 ## 3. Allowed paths for the builder
@@ -129,4 +129,4 @@ Decisions by Tosin Akinosho:
 - **2026-10-24 (17:54 EDT) L5-Q2:** multiple commits allowed for the L5 worked example, as a lesson-scoped exception to rule V.
 - **2026-10-25 (07:36 EDT):** key holder is the same isolated Codex custodian used for L4.
 
-Final approval: ____ (Tosin, date)
+Final approval: approved (Tosin Akinosho, 2026-10-25 10:51 EDT; his words: "i approve it i just reviewed it")
