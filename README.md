@@ -25,7 +25,7 @@ If you're new to Spec Kit too, you're in the right place. Spec Kit helps you and
 | L2 First feature | Build one small feature, start to finish | Coming soon |
 | L3 Real project | Build the Invoice Exception Desk, one phase at a time | First phase done ([lessons](https://github.com/tosin2013/invoice-exception-desk/wiki/R0-Results-and-Lessons)) |
 | L4 Maintenance | Change specs, fix bugs, and keep everything in sync | Coming soon |
-| L5 Walk away *(proposed)* | Let agents turn ready issues into reviewed PRs, and handle routine Dependabot bumps, while a human keeps the big calls | Proposed — pending Muse/OpenAI review; untested |
+| [L5 Unattended agent loop](https://tosin2013.github.io/invoice-exception-desk/L5-agent-loop.html) | Let a free-model agent loop (Spec Kit Ralph) build a ruled change in a locked-down box, graded against a sealed key, while a human keeps the big calls | One worked example done (FR-007a, graded PASS, PR #14); issue-to-PR automation and Dependabot not tried yet |
 
 Curious how Spec Kit plugs into different assistants? See [Agent Integrations vs Extensions](https://github.com/tosin2013/invoice-exception-desk/wiki/Agent-Integrations-vs-Extensions).
 
