@@ -64,3 +64,31 @@ Follow-up queue, owners, notes (AT-05), payments (R2), promised pay (R3), migrat
 
 **Tasks**: append an "L4" phase to `tasks.md` (existing T001 to T020 unchanged).
 
+
+## L5 revision (2026-10-25)
+**Trigger**: Clarification session 2026-10-25 in `spec.md`, decided by Tosin Akinosho, from the approved ruling `specs/003-desk-import/request-v1.md` at commit `a54734c`. FR-007 is superseded by **FR-007a**: a `due_date` strictly earlier than `issue_date` is `invalid_date`; equal dates are valid. Constitution v2.0.0, rule V (spec, tests and code land together; superseded text kept, not deleted).
+
+**Constitution Check (v2.0.0)**: I integer cents PASS · II pure computation, no I/O added PASS · III stdlib only PASS · IV tests changed and added in `tests/test_invoice_desk.py` PASS · V spec Clarification + superseded FR-007 + FR-007a + plan + tasks + ACCEPTANCE.md + tests + code land together · VI synthetic PASS · VII explicit `as_of` PASS · VIII graded against an independently sealed L5 key held outside the builder workspace (not visible to this plan).
+
+**What changes**
+- `invoice_desk/__init__.py`, `_validate_row` only: right after the existing `invalid_date` check, return `None, "invalid_date"` when `due_date < issue_date`. Change nothing else.
+- Unchanged: the date form check, the FR-011 precedence order, the reason set, trimming (FR-030), padding (FR-031), duplicates (FR-012 to FR-015), balances, aging, totals, the `import_invoices` interface and the `ACCEPTANCE.md` values.
+- Frozen fixture `data/invoices.csv` is untouched; it has no valid-date row with `due_date < issue_date`.
+
+**Test that changes**
+- `test_aging_bucket_boundaries` in `tests/test_invoice_desk.py`: move every row's issue date from `2026-01-01` to `2025-01-01`, keeping all nine offsets. Row `INV-B365` would otherwise be `invalid_date`; the 365-day case is kept.
+
+**Tests added**
+- A due-before-issue row is `invalid_date`; due-before-issue plus amount `abc` is `invalid_date` (FR-011).
+- A due-before-issue row followed by a valid row with the same `(issuer, invoice_id)`: the first is `invalid_date`, the second is `accepted`, with no duplicates.
+- An equal-dates row is `accepted` (guard; passes already).
+
+**004 ripple**
+- 004's queue is built from accepted rows only. A row rejected under FR-007a can no longer reach 004's queue, so the accepted set can shrink for new inputs. No 004 code, contracts, data model or tests change; 004 FR-021 and SC-010 get dated notes only.
+
+**Run rules**
+- Allowed files only: `specs/003-desk-import/{spec,plan,tasks,drift,progress,ralph-memory}.md`, `specs/004-deterministic-followup-queue/spec.md`, `ACCEPTANCE.md`, `tests/test_invoice_desk.py`, `invoice_desk/__init__.py`. Anything else stops the run.
+- 300-line diff cap for the whole run. Up to 3 fix tries per failing task, then stop and record the failure in `ralph-memory.md`.
+- Never edit `.specify/`, `.opencode/`, the constitution, `data/`, `queue.py`, `annotations.py`, `pyproject.toml`, `run.log`. Install nothing. No push, no merge, no new branches, no git config changes.
+
+**Tasks**: append an "L5" phase to `tasks.md` (existing T001 to T030 unchanged).
