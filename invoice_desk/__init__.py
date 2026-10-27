@@ -147,6 +147,9 @@ def _validate_row(
     if issue_date is None or due_date is None:
         return None, "invalid_date"
 
+    if due_date < issue_date:
+        return None, "invalid_date"
+
     if _AMOUNT_PATTERN.fullmatch(amount_text) is None:
         return None, "invalid_amount"
     amount_cents = int(amount_text)

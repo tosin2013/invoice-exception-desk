@@ -235,3 +235,25 @@ The production code is one module (`invoice_desk/__init__.py`) and the tests are
 - [X] T028 Change ONLY the amount check in `invoice_desk/__init__.py` `_validate_row`: add a separate amount pattern matching `[1-9][0-9]*` and use it for `amount_cents` (rejecting `0`, `00`, `0100`, `007`, `+100`, `-500`, `12.50`, `abc` and blank as `invalid_amount`), while `paid_cents` keeps the existing `[0-9]+` pattern and validation; leave validation precedence, trimming, padding, duplicates, balances, aging, totals and the `import_invoices` interface unchanged
 - [X] T029 Run `python -m pytest -q` from the repository root and confirm all tests pass, including the changed and new L4 tests and the existing `tests/test_split_bill.py` and `tests/test_split_weighted.py`
 - [X] T030 Verify implementation scope with `git status` and `git diff`: only `tests/test_invoice_desk.py` and `invoice_desk/__init__.py` changed in implementation; confirm `spec.md`, `plan.md`, `data/invoices.csv`, `ACCEPTANCE.md`, `bill_split`, `tests/test_split_bill.py` and `tests/test_split_weighted.py` are unchanged
+
+## Phase 8: L5 revision (2026-10-25) - FR-007a due date not before issue date
+
+**Goal**: Enforce FR-007a: after trimming (FR-030), `issue_date` and `due_date` must each be real Gregorian dates in strict `YYYY-MM-DD` form, and a `due_date` strictly earlier than `issue_date` is `invalid_date`. Equal dates are valid. `invalid_date` is reused; FR-011, the reason set and the `ACCEPTANCE.md` values are unchanged. A rejected row takes no part in duplicate detection. `data/invoices.csv` stays byte-unchanged.
+
+**Dependency note**: This phase depends on Phases 1-7 (T001 to T030) being complete and green. T031 to T033 are one work unit, committed once, with the suite green. Within the unit, the test changes (T031, T032) MUST be written and FAIL before the implementation change (T033); T033 depends on T031 and T032. T034 depends on T033; T035 depends on T034. No task in this phase may modify `spec.md`, `plan.md`, `data/`, or any file outside the allowed list.
+
+**Run rules**
+- Allowed files only: `specs/003-desk-import/{spec,plan,tasks,drift,progress,ralph-memory}.md`, `specs/004-deterministic-followup-queue/spec.md`, `ACCEPTANCE.md`, `tests/test_invoice_desk.py`, `invoice_desk/__init__.py`. Anything else stops the run.
+- 300-line diff cap for the whole run. Up to 3 fix tries per failing task, then stop and record the failure in `ralph-memory.md`.
+- Never edit `.specify/`, `.opencode/`, the constitution, `data/`, `queue.py`, `annotations.py`, `pyproject.toml`, `run.log`. Install nothing. No push, no merge, no new branches, no git config changes.
+
+### Tests for Phase 8 (write first, ensure they FAIL) ⚠️
+
+- [X] T031 In `test_aging_bucket_boundaries`, change the issue date of every row from `2026-01-01` to `2025-01-01`; keep all nine offsets. Suite still passes.
+- [X] T032 Add tests (write first; they must FAIL on the current code): a due-before-issue row (for example `Acme,INV-D1,2026-09-15,2026-09-14,1000,USD,0`) is rejected with `invalid_date`; due-before-issue plus amount `abc` is `invalid_date` (FR-011); a due-before-issue row then a valid row with the same issuer and invoice_id: the first is `invalid_date`, the second is `accepted`, with no duplicates. Also add an equal-dates row that is `accepted` (a guard; it passes already). Run the suite and confirm that only the new due-before-issue tests fail.
+
+### Implementation for Phase 8
+
+- [X] T033 In `invoice_desk/__init__.py` `_validate_row`, right after the existing `invalid_date` check, return `None, "invalid_date"` when `due_date < issue_date`. Change nothing else. The full suite passes.
+- [X] T034 Add dated L5 notes, docs only: an entry in `specs/003-desk-import/drift.md`; in `specs/004-deterministic-followup-queue/spec.md`, a `Session 2026-10-25 (L5 ripple)` Clarification plus one dated L5 note under FR-021 and one under SC-010 (same style as the L4 notes); a note under AT-02 in `ACCEPTANCE.md`. No values change.
+- [X] T035 Final check: the full suite passes; `git diff --numstat d6c7d7be4fa61084cf48c400a73c44798e1a063a` shows only allowed paths, with under 300 lines in total; `grep -n 'INV-B{offset},2026-01-01' tests/test_invoice_desk.py` prints nothing; spec.md has no unstruck FR-007 line.

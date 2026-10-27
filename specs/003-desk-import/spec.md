@@ -29,6 +29,15 @@
   - Q: Does 004's "import behaviour unchanged" guarantee (004 FR-021, SC-010) need an amendment? → A: No amendment to 004's requirements. 004 FR-021/SC-010 constrain what 004 itself may change; this revision is owned by 003 (constitution V). The ripple (a zero-amount invoice is now rejected at import, so it can no longer reach 004's queue or its `paid` bucket) is recorded in 003 `plan.md` (L4 revision), in 004 `plan.md` (Constitution v2.0.0 re-check and L4 ripple) and in 003 `drift.md`, and checked by `/speckit.analyze` on 004.
   - Q: How is the revised amount policy validated, given the frozen fixture has none of the new invalid values? → A: Synthetic unit tests in `tests/test_invoice_desk.py` (written first), with `data/invoices.csv` byte-unchanged. Grading against an independently sealed L4 key, held outside the builder workspace, follows constitution VIII.
 
+### Session 2026-10-25 (L5 revision, decided by Tosin Akinosho)
+
+- Q: Is an invoice whose `due_date` is strictly earlier than its `issue_date` valid? → A: No. After trimming (FR-030), both dates must be real Gregorian dates in strict `YYYY-MM-DD` form, and a row with `due_date < issue_date` is rejected as `invalid_date`. FR-007a replaces FR-007.
+- Q: Are equal `issue_date` and `due_date` valid? → A: Yes. Only a strictly earlier due date is rejected.
+- Q: Is a new rejection reason added? → A: No. `invalid_date` is reused; the FR-011 precedence order, the reason set and the `ACCEPTANCE.md` acceptance table (AT-01 to AT-04 values) are unchanged.
+- Q: What happens to duplicate detection when the first occurrence is rejected under FR-007a? → A: A rejected row takes no part in duplicate detection, so a later valid row with the same `(issuer, invoice_id)` is accepted (FR-012 to FR-015 wording unchanged).
+- Q: Which existing test changes? → A: `test_aging_bucket_boundaries` in `tests/test_invoice_desk.py`; row `INV-B365` (issue `2026-01-01`, due `2025-10-15`) would become `invalid_date`, so its issue date moves to `2025-01-01` and all nine offsets, including the 365-day case, stay accepted.
+- Ruling: `specs/003-desk-import/request-v1.md` at commit `a54734c`, approved 2026-10-25.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Import and classify every invoice row (Priority: P1)
@@ -91,6 +100,7 @@ An operator reviews the desk for a specific reporting date and sees how overdue 
 - A row with fewer than seven cells is padded with blank values for the missing trailing fields, and cells beyond the seventh are ignored; the padded row then follows the normal precedence (so a missing required trailing field is `missing_required_field`, and an otherwise-all-blank row is `empty_row`).
 - A row with a blank required field is `missing_required_field`, even if another field would also fail validation.
 - Both `issue_date` and `due_date` must be real calendar dates in strict `YYYY-MM-DD` form; `2026-13-40`, `not-a-date`, and `10/15/2026` are invalid dates.
+- A `due_date` strictly earlier than its `issue_date` is `invalid_date`; equal dates are valid (FR-007a).
 - An amount of `abc`, `12.50`, or `-500` is invalid. An amount of `0` is invalid (`invalid_amount`), and so is an amount with a leading zero such as `0100` or `00` (FR-008a). *(Revised 2026-10-24. Superseded text, non-normative: "a zero amount is valid as an integer number of cents.")*
 - A canonical positive amount such as `1`, `100` or `1000000` is valid; surrounding whitespace is trimmed first (FR-030), so ` 100 ` is valid, but a leading zero is still invalid after trimming (` 0100 ` is `invalid_amount`).
 - A fully paid invoice with a positive amount (for example `amount_cents = 100`, `paid_cents = 100`) is still accepted, with zero remaining, in the `paid` bucket.
@@ -115,7 +125,8 @@ An operator reviews the desk for a specific reporting date and sees how overdue 
 - **FR-004**: Import MUST be a pure per-call function: no state persists between calls, duplicate detection is scoped to the rows of that single call, and the same CSV text and `as_of` date MUST return an identical result with no accumulated or double-counted records.
 - **FR-005**: The required fields are `issuer` and `invoice_id` (the identity). A row where either is missing or blank MUST be rejected as `missing_required_field`. A blank date, amount or currency is rejected with that field's own reason (`invalid_date`, `invalid_amount`, `invalid_currency`). A blank `paid_cents` means `0`. *(Analyze fix A1.)*
 - **FR-006**: A row with no cells or only blank cells MUST be rejected as `empty_row`. This reason takes precedence over every other validation reason.
-- **FR-007**: `issue_date` and `due_date` MUST each be a real Gregorian calendar date in strict `YYYY-MM-DD` form. Any other form or impossible date MUST be rejected as `invalid_date`.
+- **FR-007** *(SUPERSEDED 2026-10-25 by FR-007a; non-normative, kept for history)*: ~~`issue_date` and `due_date` MUST each be a real Gregorian calendar date in strict `YYYY-MM-DD` form. Any other form or impossible date MUST be rejected as `invalid_date`.~~
+- **FR-007a** *(added 2026-10-25, Clarification session 2026-10-25, decided by Tosin Akinosho; replaces FR-007)*: After trimming (FR-030), `issue_date` and `due_date` MUST each be a real Gregorian calendar date in strict `YYYY-MM-DD` form, and `due_date` MUST NOT be strictly earlier than `issue_date`. A row with an invalid date form, an impossible date, or a `due_date` strictly earlier than its `issue_date` MUST be rejected as `invalid_date`. A row whose `due_date` equals its `issue_date` is valid.
 - **FR-008** *(SUPERSEDED 2026-10-24 by FR-008a; non-normative, kept for history)*: ~~`amount_cents` MUST be one or more ASCII digits `[0-9]+` (no sign, no decimal point, no spaces inside). Anything else, including `+100`, `-500`, `12.50` and `abc`, MUST be rejected as `invalid_amount`.~~ *(Analyze fix A3.)*
 - **FR-008a** *(added 2026-10-24, Clarification session 2026-10-24, decided by Tosin Akinosho; replaces FR-008)*: After trimming (FR-030), `amount_cents` MUST be a positive, canonical ASCII decimal integer: it MUST match `[1-9][0-9]*` (no sign, no decimal point, no spaces inside, no leading zeros). Anything else, including `0`, `00`, `0100`, `+100`, `-500`, `12.50`, `abc` and a blank amount, MUST be rejected as `invalid_amount`. This requirement applies to `amount_cents` only; `paid_cents` stays governed by FR-010.
 - **FR-009**: `currency` MUST be exactly `USD`. Any other value MUST be rejected as `invalid_currency`.

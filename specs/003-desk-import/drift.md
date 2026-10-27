@@ -71,3 +71,17 @@ Three earlier attempts returned no output (free-tier "usage limit reached" on th
 
 ## Merge conflicts
 None. `tasks.md` was appended by `/speckit.tasks` (Phase 7) with the task text of T001–T020 unchanged; no conflict occurred.
+
+## L5 revision (2026-10-25) - FR-007a due date not before issue date
+
+Every mismatch found between spec, plan, tasks, docs, tests and code during the L5 revision
+(FR-007 → FR-007a). Each entry: what, where, how found, and the fix or "accepted, why".
+
+| ID | What | Where | How found | Disposition |
+|----|------|-------|-----------|-------------|
+| 003-L5-1 | FR-007 allowed any real dates, so a due date strictly before the issue date was accepted. | `spec.md` FR-007, `invoice_desk/__init__.py` `_validate_row` | Clarification session 2026-10-25 (ruling `request-v1.md` at `a54734c`) | **Fixed**: FR-007 marked superseded and FR-007a added; `_validate_row` now returns `invalid_date` when `due_date < issue_date`, right after the date-form check. Equal dates stay valid. |
+| 003-L5-2 | The 365-day aging boundary test used issue date `2026-01-01`, which is after its own `2025-10-15` due date once FR-007a lands. | `tests/test_invoice_desk.py` `test_aging_bucket_boundaries` | Pre-run review of the new rule | **Fixed**: issue date moved to `2025-01-01` for all nine offsets; the 365-day case is kept. |
+| 004-L5-1 | 004's queue is built from accepted rows only, so a row newly rejected under FR-007a can no longer reach it. | 004 `spec.md` FR-021, SC-010 | Cross-check during the L5 revision | **Recorded, no code change**: dated L5 notes under FR-021 and SC-010. 004 code, contracts, data model and tests are unchanged. |
+
+No behaviour change for the frozen `data/invoices.csv`: it has no valid-date row with
+`due_date < issue_date`, so AT-01 to AT-04 values are unchanged.

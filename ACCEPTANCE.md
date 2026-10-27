@@ -44,6 +44,10 @@ Aging totals (accepted rows): `current={3, 597047}`, `1-30={3, 396862}`, `31-60=
   `invalid_currency`. The frozen fixture contains none of these values, so rows 19–30 and every
   oracle value above are unchanged. Superseded (non-normative): any `[0-9]+` amount, including `0`,
   was accepted.
+- **Date policy (revised 2026-10-25, decided by Tosin Akinosho; see `specs/003-desk-import/spec.md` FR-007a):**
+  a row whose `due_date` is strictly earlier than its `issue_date` is rejected as `invalid_date`; equal
+  dates are valid. A rejected row takes no part in duplicate detection. The frozen fixture contains no
+  such row, so rows 19–30 and every oracle value above are unchanged.
 
 ## AT-03 — Integer-cent sums, zero balance excluded
 
