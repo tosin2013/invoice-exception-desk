@@ -309,4 +309,4 @@ Compared with L1's 1.1.3 list, there's one new key, `"allow_symlinks": false`, a
 - **A version that matched nothing.** The machine's default `specify` was 1.2.2.dev0. Without the `uvx` pin we'd have tested a third version.
 - **Stricter plan setup.** After 1.2.x, a missing or empty plan template stops `/speckit.plan` with an error, where it used to carry on with an empty `plan.md`. That's better, but if you've customised or deleted `plan-template.md`, expect the error.
 
-Compare the branch with the upgrade: [`l3h-handoff...speckit-1.2.3-upgrade`](https://github.com/tosin2013/invoice-exception-desk/compare/l3h-handoff...speckit-1.2.3-upgrade). Back: [L4: Changing a spec after code exists](L4-maintenance.md). Back to [Home](index.md).
+Compare the branch with the upgrade: [`l3h-handoff...speckit-1.2.3-upgrade`](https://github.com/tosin2013/invoice-exception-desk/compare/l3h-handoff...speckit-1.2.3-upgrade). Next: [L5: Letting an agent loop run unattended](L5-agent-loop.md). Back: [L4: Changing a spec after code exists](L4-maintenance.md). Back to [Home](index.md).
