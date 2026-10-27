@@ -552,7 +552,7 @@ def test_aging_bucket_boundaries():
         (365, "91+"),
     )
     rows = [
-        f"Acme,INV-B{offset},2026-01-01,{due_before(offset)},1000,USD,0"
+        f"Acme,INV-B{offset},2025-01-01,{due_before(offset)},1000,USD,0"
         for offset, _bucket in offsets
     ]
 
@@ -563,6 +563,56 @@ def test_aging_bucket_boundaries():
         invoice = invoices[f"INV-B{offset}"]
         assert invoice["days_overdue"] == offset
         assert invoice["aging_bucket"] == bucket
+
+
+def test_due_before_issue_is_invalid_date():
+    result = import_invoices(
+        make_csv("Acme,INV-D1,2026-09-15,2026-09-14,1000,USD,0"), AS_OF
+    )
+    row = result["rows"][0]
+
+    assert row["status"] == "rejected"
+    assert row["reason"] == "invalid_date"
+    assert result["totals"]["accepted"] == 0
+    assert result["totals"]["rejected"] == 1
+
+
+def test_due_before_issue_takes_precedence_over_invalid_amount():
+    result = import_invoices(
+        make_csv("Acme,INV-D2,2026-09-15,2026-09-14,abc,USD,0"), AS_OF
+    )
+
+    assert result["rows"][0]["status"] == "rejected"
+    assert result["rows"][0]["reason"] == "invalid_date"
+
+
+def test_rejected_due_before_issue_does_not_participate_in_duplicates():
+    result = import_invoices(
+        make_csv(
+            "Acme,INV-D3,2026-09-15,2026-09-14,1000,USD,0",
+            "Acme,INV-D3,2026-09-15,2026-09-20,1000,USD,0",
+        ),
+        AS_OF,
+    )
+    first, second = result["rows"]
+
+    assert first["status"] == "rejected"
+    assert first["reason"] == "invalid_date"
+    assert second["status"] == "accepted"
+    assert result["totals"]["accepted"] == 1
+    assert result["totals"]["rejected"] == 1
+    assert result["totals"]["duplicate_identical"] == 0
+    assert result["totals"]["duplicate_inconsistent"] == 0
+
+
+def test_equal_issue_and_due_dates_are_accepted():
+    result = import_invoices(
+        make_csv("Acme,INV-D4,2026-09-15,2026-09-15,1000,USD,0"), AS_OF
+    )
+    row = result["rows"][0]
+
+    assert row["status"] == "accepted"
+    assert row["remaining_balance_cents"] == 1000
 
 
 def test_due_today_and_future_are_current_with_zero_days():

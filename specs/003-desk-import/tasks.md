@@ -249,11 +249,11 @@ The production code is one module (`invoice_desk/__init__.py`) and the tests are
 
 ### Tests for Phase 8 (write first, ensure they FAIL) ⚠️
 
-- [ ] T031 In `test_aging_bucket_boundaries`, change the issue date of every row from `2026-01-01` to `2025-01-01`; keep all nine offsets. Suite still passes.
-- [ ] T032 Add tests (write first; they must FAIL on the current code): a due-before-issue row (for example `Acme,INV-D1,2026-09-15,2026-09-14,1000,USD,0`) is rejected with `invalid_date`; due-before-issue plus amount `abc` is `invalid_date` (FR-011); a due-before-issue row then a valid row with the same issuer and invoice_id: the first is `invalid_date`, the second is `accepted`, with no duplicates. Also add an equal-dates row that is `accepted` (a guard; it passes already). Run the suite and confirm that only the new due-before-issue tests fail.
+- [X] T031 In `test_aging_bucket_boundaries`, change the issue date of every row from `2026-01-01` to `2025-01-01`; keep all nine offsets. Suite still passes.
+- [X] T032 Add tests (write first; they must FAIL on the current code): a due-before-issue row (for example `Acme,INV-D1,2026-09-15,2026-09-14,1000,USD,0`) is rejected with `invalid_date`; due-before-issue plus amount `abc` is `invalid_date` (FR-011); a due-before-issue row then a valid row with the same issuer and invoice_id: the first is `invalid_date`, the second is `accepted`, with no duplicates. Also add an equal-dates row that is `accepted` (a guard; it passes already). Run the suite and confirm that only the new due-before-issue tests fail.
 
 ### Implementation for Phase 8
 
-- [ ] T033 In `invoice_desk/__init__.py` `_validate_row`, right after the existing `invalid_date` check, return `None, "invalid_date"` when `due_date < issue_date`. Change nothing else. The full suite passes.
-- [ ] T034 Add dated L5 notes, docs only: an entry in `specs/003-desk-import/drift.md`; in `specs/004-deterministic-followup-queue/spec.md`, a `Session 2026-10-25 (L5 ripple)` Clarification plus one dated L5 note under FR-021 and one under SC-010 (same style as the L4 notes); a note under AT-02 in `ACCEPTANCE.md`. No values change.
-- [ ] T035 Final check: the full suite passes; `git diff --numstat d6c7d7be4fa61084cf48c400a73c44798e1a063a` shows only allowed paths, with under 300 lines in total; `grep -n 'INV-B{offset},2026-01-01' tests/test_invoice_desk.py` prints nothing; spec.md has no unstruck FR-007 line.
+- [X] T033 In `invoice_desk/__init__.py` `_validate_row`, right after the existing `invalid_date` check, return `None, "invalid_date"` when `due_date < issue_date`. Change nothing else. The full suite passes.
+- [X] T034 Add dated L5 notes, docs only: an entry in `specs/003-desk-import/drift.md`; in `specs/004-deterministic-followup-queue/spec.md`, a `Session 2026-10-25 (L5 ripple)` Clarification plus one dated L5 note under FR-021 and one under SC-010 (same style as the L4 notes); a note under AT-02 in `ACCEPTANCE.md`. No values change.
+- [X] T035 Final check: the full suite passes; `git diff --numstat d6c7d7be4fa61084cf48c400a73c44798e1a063a` shows only allowed paths, with under 300 lines in total; `grep -n 'INV-B{offset},2026-01-01' tests/test_invoice_desk.py` prints nothing; spec.md has no unstruck FR-007 line.
