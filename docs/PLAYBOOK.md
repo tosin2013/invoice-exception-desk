@@ -26,11 +26,26 @@ Write down *what* to build and *why* before any code exists (a constitution once
 
 The pattern isn't tied to one coding agent. The builder step needs three things:
 
-- **A coding agent that can run headless** (from a script, no prompts) inside a sandbox with no keys, tokens or secrets. Spec Kit has integrations for 40-plus agents, for example Claude Code (`claude`), Codex CLI (`codex`), GitHub Copilot (`copilot`), Gemini CLI (`gemini`), Cursor (`cursor-agent`), Goose (`goose`), Qwen Code (`qwen`) and opencode (`opencode`). The full list and keys are on the [Spec Kit integrations page](https://github.github.io/spec-kit/integrations/index.html); `generic` covers agents that aren't listed.
+- **A coding agent that can run headless** (from a script, no prompts). Run unattended, it goes in a sandbox with no GitHub token, SSH keys or cloud credentials ([when you need one](#do-i-always-need-a-sandbox)). Spec Kit has integrations for 40-plus agents, for example Claude Code (`claude`), Codex CLI (`codex`), GitHub Copilot (`copilot`), Gemini CLI (`gemini`), Cursor (`cursor-agent`), Goose (`goose`), Qwen Code (`qwen`) and opencode (`opencode`). The full list and keys are on the [Spec Kit integrations page](https://github.github.io/spec-kit/integrations/index.html); `generic` covers agents that aren't listed.
 - **A loop driver with an iteration cap and a time cap** that starts a fresh agent call per work unit and stops on repeated failures. The [Ralph Loop](https://github.com/Rubiss-Projects/spec-kit-ralph) extension (v1.5.0) does this for `copilot`, `codex`, `claude` and `opencode` only, and refuses any other CLI. For anything else, use a small wrapper script with the same caps and stops (section 7).
 - **The written inputs:** the issue (the ruling), then the spec, plan and tasks files.
 
-This guide used **OpenCode 1.19.3 with the free model `opencode/deepseek-v4.1-flash-free`, driven by Ralph**. It stays the worked example throughout; notes marked "If you use OpenCode" or "If you use Ralph" apply only to that setup. Our box held no keys at all, because the free model needed none. If your harness can't run without a model API key, that's the one exception: make it the only secret in the box, scoped and spend-capped, and still no GitHub token, SSH key or push access.
+This guide used **OpenCode 1.19.3 with the free model `opencode/deepseek-v4.1-flash-free`, driven by Ralph**. It stays the worked example throughout; notes marked "If you use OpenCode" or "If you use Ralph" apply only to that setup. Our box held no keys at all, because the free model needed none. If your model needs an API key, see the key rule just below.
+
+### Do I always need a sandbox?
+
+No. A sandbox matters when an agent runs code **unattended**, with no person approving each step: the L5 to L7 builder loop, or any auto-approve ("yolo") mode. It limits the blast radius of a bad run: deleted files, a bad command, or the agent reading secrets.
+
+| Situation | Sandbox? | Keys |
+|---|---|---|
+| A person approves each step (Claude Code, Cursor, Copilot and others in their normal ask-before-acting mode) | No; a normal dev machine is fine | your usual setup |
+| Spec, plan and review work | No | your usual setup |
+| The agent runs unattended (builder loop, auto-approve or "yolo" mode) | Yes: a container or VM with a copy of the repo; the work comes out as a `git bundle` ([L5](https://tosin2013.github.io/invoice-exception-desk/L5-agent-loop.html), [L6](https://tosin2013.github.io/invoice-exception-desk/L6-issue-to-pr.html)) | no GitHub token, SSH keys or cloud credentials; at most one model key (below) |
+| CI grading | Nothing extra: [GitHub-hosted runners](https://docs.github.com/en/actions/concepts/runners/github-hosted-runners) are already isolated | none; the workflow stays read-only with no secrets (section 5) |
+
+**If the model needs an API key:** passing one into the container is fine if it's a dedicated, spend-capped key used only for that work, never one that can push code or reach production. A free or local model (for example [Ollama](https://ollama.com/)) needs no key.
+
+**Rule of thumb:** sandbox the agent when nobody is watching each step, and give it only the one key it needs.
 
 ## 3. Prerequisites
 
@@ -43,7 +58,7 @@ What our runs used (pin your own versions and trust your own `--help` over ours)
 | An AI coding agent with a Spec Kit integration and a headless mode (section 2) | OpenCode 1.19.3 (`--integration opencode`), free model `opencode/deepseek-v4.1-flash-free` | L1 |
 | A reviewer who isn't the builder | a separate model or a human | L2 |
 | A loop driver with iteration and time caps | [Ralph Loop](https://github.com/Rubiss-Projects/spec-kit-ralph) v1.5.0 (`specify extension add ralph`) plus a wrapper for timeouts | L5 |
-| Docker on a machine with **no keys, tokens or push access** | a separate Ubuntu host | L5 |
+| For the unattended builder loop: Docker on a machine with **no keys, tokens or push access** ([when you need it](#do-i-always-need-a-sandbox)) | a separate Ubuntu host | L5 |
 | GitHub Actions turned on | the [`ci.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/.github/workflows/ci.yml) workflow on `l5-setup` | L7 |
 | Push access to the default branch | for [`.github/dependabot.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/main/.github/dependabot.yml) | L8 |
 
@@ -167,8 +182,8 @@ Branches without CI (our `main`) are ungraded; schedule their bumps less often. 
 
 ## 9. Apply this to a new project: checklist for an AI
 
-1. **Ask the user which harness they use:** the coding agent or CLI, the model, and the budget. Or check what's installed (for example `command -v claude codex copilot gemini cursor-agent opencode`) and confirm with them. Don't assume OpenCode.
-2. **Map the loop to that harness** (section 2). Find its Spec Kit integration key and its headless command. If Ralph supports it (`copilot`, `codex`, `claude`, `opencode`), use Ralph; otherwise use a small wrapper with the caps and stops in section 7. If it has no headless mode or no loop driver, run the builder step by step instead: a human drives the loop, one fresh session per task inside the same keyless sandbox, counting the same caps and running the same scope checks after each step. Everything after the builder (bundle, grader commit, CI, human merge) stays the same.
+1. **Ask the user which harness they use:** the coding agent or CLI, the model, and the budget. Or check what's installed (for example `command -v claude codex copilot gemini cursor-agent opencode`) and confirm with them. Don't assume OpenCode. Also ask whether they'll run the builder unattended or approve each step; that decides whether they need a sandbox ([Do I always need a sandbox?](#do-i-always-need-a-sandbox)).
+2. **Map the loop to that harness** (section 2). Find its Spec Kit integration key and its headless command. If Ralph supports it (`copilot`, `codex`, `claude`, `opencode`), use Ralph; otherwise use a small wrapper with the caps and stops in section 7. If it has no headless mode or no loop driver, run the builder step by step instead: a human drives the loop, one fresh session per task, approving each step (a normal dev machine is fine, see [Do I always need a sandbox?](#do-i-always-need-a-sandbox); acceptance tests and sealed keys still stay out of the builder's reach), counting the same caps and running the same scope checks after each step. Everything after the builder (bundle, grader commit, CI, human merge) stays the same.
 3. **Run the decision gate** ([Home](https://tosin2013.github.io/invoice-exception-desk/)). If the answer is "no SDD" or "light SDD", stop here and use a normal PR or a short spec.
 4. **Set up Spec Kit** with the harness's key. New repo: `specify init --integration <key>` ([L1](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html)). Existing repo: inventory first, change nothing, then `specify init --here --integration <key>` and record the test baseline ([L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html)). Pin the `specify` version.
 5. **Have a human or strong model write the constitution,** 3 to 5 rules, each citing real code. Include "builder-written tests alone never mean done."
@@ -176,7 +191,7 @@ Branches without CI (our `main`) are ungraded; schedule their bumps less often. 
 7. **Write the ruling as a GitHub issue** with everything in section 4, step 2. Have the human approve it and add `agent-ready`.
 8. **Write the acceptance tests from the issue,** with its exact inputs, and keep them outside the builder's reach.
 9. **Add a read-only CI workflow** (no secrets): full suite, `acceptance/` when present, base test IDs still present, diff-size summary. Merge it before the first run. Copy ours: [`ci.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/.github/workflows/ci.yml).
-10. **Build the box:** a container on a host with no keys, no tokens, no push remote; the issue snapshot hash-checked; preflight probes; scope checks after every call; clean-tree check after the baseline tests; output as a `git bundle`.
+10. **Build the box** (for an unattended run): a container on a host with no keys, no tokens, no push remote; the issue snapshot hash-checked; preflight probes; scope checks after every call; clean-tree check after the baseline tests; output as a `git bundle`.
 11. **Install the loop driver in its own commit** (Ralph or your wrapper), set the agent and model from outside the tree, and set the caps in section 7.
 12. **Run.** The builder writes the spec trail (dated Clarification, spec, plan, tasks, analyze) and implements.
 13. **Verify the bundle** (hash and head), run the local self-check once, push the bundle unchanged, add the grader commit, open the PR.
