@@ -3,6 +3,7 @@
 This is the wrap-up of the [Spec Kit Developer Guide](https://tosin2013.github.io/invoice-exception-desk/). It sums up the whole pattern and links every lesson, so a person or an AI can pull this one file and apply the pattern to its own project.
 
 - Raw file, for agents: <https://raw.githubusercontent.com/tosin2013/invoice-exception-desk/main/PLAYBOOK.md>
+- On the guide site: <https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html>
 - Guide index for agents: [`llms.txt`](https://tosin2013.github.io/invoice-exception-desk/llms.txt) (same content as [`llm.txt`](https://tosin2013.github.io/invoice-exception-desk/llm.txt))
 
 Everything below comes from what the repo and its lessons actually show. Numbers are from our runs, not promises.
