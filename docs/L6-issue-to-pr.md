@@ -184,4 +184,4 @@ Tosin merged PR #17 at **8:46 AM EDT** (merge `3e972cf`). `l5-setup` now has 215
 - [ ] Sizes and counts come from the receipt, not the builder's notes
 - [ ] Someone other than the builder reviews; a human merges
 
-Compare the starting point with the merged result: [`61c1403...3e972cf`](https://github.com/tosin2013/invoice-exception-desk/compare/61c1403...3e972cf). Back: [L5: Letting an agent loop run unattended](L5-agent-loop.md). Back to [Home](index.md).
+Compare the starting point with the merged result: [`61c1403...3e972cf`](https://github.com/tosin2013/invoice-exception-desk/compare/61c1403...3e972cf). Back: [L5: Letting an agent loop run unattended](L5-agent-loop.md). Next: [L7: CI is the grader](L7-ci-grader.md). Back to [Home](index.md).
