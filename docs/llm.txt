@@ -39,4 +39,4 @@ The guide is written while learning, so it records the confusing points too. The
 - [Repository](https://github.com/tosin2013/invoice-exception-desk): Source for the guide (docs/) and the Invoice Exception Desk example
 - [R0 Results and Lessons](https://github.com/tosin2013/invoice-exception-desk/wiki/R0-Results-and-Lessons): The Discovery-phase run, including drift and a self-graded test oracle
 - [Project wiki](https://github.com/tosin2013/invoice-exception-desk/wiki): Older drafts, including Multi-Agent Workflow
-- Coming soon: Advanced (Copilot coding agent)
+- [Multi-Agent Workflow](https://github.com/tosin2013/invoice-exception-desk/wiki/Multi-Agent-Workflow): Advanced (mixing agents, Copilot coding agent) is not planned yet as a guide page; see this wiki page

@@ -1,5 +1,7 @@
 # Spec Kit Developer Guide: Full Outline
 
+> **Historical planning document.** This is the outline the guide was planned from, kept for history. It isn't kept fully up to date. For the current guide, read [`README.md`](README.md) and the [guide Home page](https://tosin2013.github.io/invoice-exception-desk/) ([`docs/index.md`](docs/index.md)); where they disagree with this file, they win.
+
 Guide site: https://tosin2013.github.io/invoice-exception-desk/
 Wiki (older drafts): https://github.com/tosin2013/invoice-exception-desk/wiki
 Order: simple to complex. Voice: friendly, plain words, each term explained the first time it appears. The guide is written while learning, so each page records where things got confusing.
@@ -60,11 +62,11 @@ Status key: **published** (live on the guide site, in `docs/`), **wiki** (draft 
 - **One issue = one branch = one PR.** Small, easy-to-review changes; nothing bundled.
 - **Checks before merge:** CI must pass, and a separate reviewer model (not the one that wrote the code) reviews the PR against the spec.
 - **Knowing when to stop:** after a set number of retries, the agent stops and adds a `needs-human` label.
-- **Dependabot PRs:** GitHub auto-merge plus branch protection merges safe bumps once checks pass; if a bump breaks the build, the agent tries a fix; major-version bumps always wait for a human. (Note: no Spec Kit Dependabot extension was found, so this uses plain GitHub features.)
+- **Dependabot PRs:** Dependabot opens version-update PRs, the same CI grades them, and a human merges each one on green. No auto-merge and no branch protection (that's what [L8](docs/L8-dependabot.md) does). (Note: no Spec Kit Dependabot extension was found, so this uses plain GitHub features.)
 - **Risks:** cost (loops can burn tokens or paid minutes), file collisions when two agents touch the same file, and weak tests that let bad code pass. Automation is only as good as your tests.
 - **Ties in with:** the L4 workshop sample (`speckit-workshop-issues-sample`) and its sample issues may make a good starting set.
 **Where learners get confused:** "unattended" doesn't mean "unreviewed"; which commands are core Spec Kit versus community extensions; why a fresh agent per task beats one long session.
-**Status:** the first worked example is written up in [`docs/L5-agent-loop.md`](docs/L5-agent-loop.md): one sealed, unattended Ralph run on FR-007a (graded PASS, PR #14). The issue-driven parts of this outline (ready gate, issues in and out, Dependabot, `needs-human`) haven't been tried yet and aren't on that page. The second worked example, [`docs/L6-issue-to-pr.md`](docs/L6-issue-to-pr.md) (published as L6), tries part of it: a human-written issue with acceptance checks and the `agent-ready` label as the ruling, the same container, a post-run self-check instead of a sealed key (L6 ran without the Codex custodian), a separate reviewer, and a human merge (issue #16, PR #17). The third, [`docs/L7-ci-grader.md`](docs/L7-ci-grader.md) (published as L7, done), adds CI on PRs: a read-only GitHub Actions workflow grades every PR (full suite, the issue's acceptance tests added as a separate grader commit, base test IDs still present, diff size), on FR-033 (issue #22, PR #21 for the workflow, PR #23 for the change). Branch protection and required checks are mentioned there as the real-world next step but not turned on. The fourth, [`docs/L8-dependabot.md`](docs/L8-dependabot.md) (published as L8, done), adds Dependabot version updates: pytest pinned in `requirements-dev.txt` (PR #25), a three-block `.github/dependabot.yml` on `main` with `target-branch: l5-setup` (PR #26), and the first Dependabot PRs graded by the unchanged L7 CI (PR #27 green; PR #28 for Pages on `main`, ungraded). Unlike the Dependabot bullet above, L8 deliberately uses **no auto-merge**: a human merges every Dependabot PR on green; alerts and security updates are explained but left off. Automatic pickup of labelled issues and `needs-human` are still untried. The wrap-up, [`PLAYBOOK.md`](PLAYBOOK.md), is done; loop tuning lives there instead of in its own lesson.
+**Status:** the first worked example is written up in [`docs/L5-agent-loop.md`](docs/L5-agent-loop.md): one sealed, unattended Ralph run on FR-007a (graded PASS, PR #14). The issue-driven parts of this outline (ready gate, issues in and out, Dependabot, `needs-human`) aren't on that page; the later examples below try some of them. The second worked example, [`docs/L6-issue-to-pr.md`](docs/L6-issue-to-pr.md) (published as L6), tries part of it: a human-written issue with acceptance checks and the `agent-ready` label as the ruling, the same container, a post-run self-check instead of a sealed key (L6 ran without the Codex custodian), a separate reviewer, and a human merge (issue #16, PR #17). The third, [`docs/L7-ci-grader.md`](docs/L7-ci-grader.md) (published as L7, done), adds CI on PRs: a read-only GitHub Actions workflow grades every PR (full suite, the issue's acceptance tests added as a separate grader commit, base test IDs still present, diff size), on FR-033 (issue #22, PR #21 for the workflow, PR #23 for the change). Branch protection and required checks are mentioned there as the real-world next step but not turned on. The fourth, [`docs/L8-dependabot.md`](docs/L8-dependabot.md) (published as L8, done), adds Dependabot version updates: pytest pinned in `requirements-dev.txt` (PR #25), a three-block `.github/dependabot.yml` on `main` with `target-branch: l5-setup` (PR #26), and the first Dependabot PRs graded by the unchanged L7 CI (PR #27 green; PR #28 for Pages on `main`, ungraded; Tosin merged both on Oct 28). As the Dependabot bullet above says, L8 deliberately uses **no auto-merge**: a human merges every Dependabot PR on green; alerts and security updates are explained but left off. Automatic pickup of labelled issues and `needs-human` are still untried. The wrap-up, [`PLAYBOOK.md`](PLAYBOOK.md), is done; loop tuning lives there instead of in its own lesson.
 
 ## PLAYBOOK: the wrap-up (done: [`PLAYBOOK.md`](PLAYBOOK.md), repo root)
 **Purpose:** the whole pattern on one page, so any AI can pull one file and apply it to its own project.
@@ -102,10 +104,10 @@ Status key: **published** (live on the guide site, in `docs/`), **wiki** (draft 
 - Commit habits, and when to update specs
 **Where learners get confused:** brownfield repos (existing code without specs); how much to spec up front.
 
-## Reference: Agent Integrations vs Extensions (wiki, stub)
+## Reference: Agent Integrations vs Extensions (wiki)
 **Purpose:** explain the difference between an integration (which agent you use) and an extension (what Spec Kit can do).
 - Definitions, with examples
-- Presets, workflows and bundles (TODO)
+- Presets, workflows and bundles (short summary with links to the official Spec Kit docs)
 - What this project uses
 **Where learners get confused:** the similar names; installing an extension and expecting a new agent.
 
@@ -115,4 +117,4 @@ Status key: **published** (live on the guide site, in `docs/`), **wiki** (draft 
 - Outputs
 - Lessons: drift, schema mismatch, a self-graded oracle, independent answer keys
 - Takeaway
-**Where learners get confused:** "15 tests pass" doesn't mean the work is correct; unverified review points are marked TODO.
+**Where learners get confused:** "15 tests pass" doesn't mean the work is correct; the wiki page marks review points it couldn't verify as "TODO, unverified".
