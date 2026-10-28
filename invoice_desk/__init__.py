@@ -218,6 +218,7 @@ def import_invoices(csv_text: str, as_of: date) -> dict:
                     "remaining_balance_cents": None,
                     "days_overdue": None,
                     "aging_bucket": None,
+                    "overdue": None,
                 }
             )
             continue
@@ -251,6 +252,7 @@ def import_invoices(csv_text: str, as_of: date) -> dict:
                     "remaining_balance_cents": None,
                     "days_overdue": None,
                     "aging_bucket": None,
+                    "overdue": None,
                 }
             )
             continue
@@ -294,6 +296,7 @@ def import_invoices(csv_text: str, as_of: date) -> dict:
                 "remaining_balance_cents": remaining_cents,
                 "days_overdue": days_overdue,
                 "aging_bucket": bucket,
+                "overdue": days_overdue > 0,
             }
         )
 
