@@ -9,12 +9,14 @@ Started: 2026-10-27T16:34:22Z
 - `import_invoices(csv_text, as_of)` is pure: stdlib only, integer cents, explicit `as_of`, no clock, no I/O state between calls.
 - Row validation lives in `_validate_row` and follows the FR-011 precedence: `empty_row`, `missing_required_field`, `invalid_date`, `invalid_amount`, `invalid_currency`, `invalid_payment`.
 - Parsing uses `csv.reader`, not `DictReader`, because blank lines must be preserved as `empty_row` data rows.
+- L6: accepted rows also expose `issue_date`, `due_date` (ISO `str`) and `currency`; convert the normalized `date` objects with `.isoformat()` at accepted-row construction only.
 
 ## Decisions
 
 - L4 (FR-008a): `amount_cents` matches `[1-9][0-9]*`; `paid_cents` keeps `[0-9]+`.
 - L5 (FR-007a): after the date-form check, `due_date < issue_date` returns `invalid_date`; equal dates are valid.
 - Rejected rows never enter duplicate detection, so a later valid row with the same `(issuer, invoice_id)` is accepted.
+- L6 (FR-032): rejected and duplicate rows keep exactly `{row, status, reason, remaining_balance_cents, days_overdue, aging_bucket}`; accepted rows add `issue_date`, `due_date`, `currency` to their previous key set. Queue totals/order/keys are unchanged.
 
 ## Gotchas
 

@@ -29,3 +29,25 @@ Started: 2026-10-27 16:34:22
 - L5 diff from the L4 baseline is 142 lines across allowed paths, under the 300-line cap.
 ---
 
+---
+## Iteration 2 - 2026-10-28 12:28
+**Work Unit**: Phase 9 - L6 revision (FR-032 accepted rows expose dates and currency)
+**Tasks Completed**:
+- [x] T036: add L6 acceptance tests for exact dates/currency, key sets, JSON repeatability, and unchanged queue/totals
+- [x] T037: add `issue_date`, `due_date`, and `currency` to accepted rows only
+- [x] T038: close drift 003-U1 and add L6 notes under 004 FR-021/SC-010
+- [x] T039: final suite, diff-size, and scope checks
+**Tasks Remaining in Work Unit**: 0
+**Commit**: This work-unit commit
+**Files Changed**:
+- invoice_desk/__init__.py
+- tests/test_invoice_desk.py
+- specs/003-desk-import/drift.md
+- specs/004-deterministic-followup-queue/spec.md
+- specs/003-desk-import/tasks.md
+- specs/003-desk-import/ralph-memory.md
+- specs/003-desk-import/progress.md
+**Learnings**:
+- Four new L6 tests failed before the implementation; all 215 tests pass after it (209 existing tests unchanged, 6 added).
+- L6 diff is 167 changed lines across allowed paths, under the 300-line cap.
+---

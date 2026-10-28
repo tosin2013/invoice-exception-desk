@@ -286,7 +286,10 @@ def import_invoices(csv_text: str, as_of: date) -> dict:
                 "reason": None,
                 "issuer": normalized["issuer"],
                 "invoice_id": normalized["invoice_id"],
+                "issue_date": normalized["issue_date"].isoformat(),  # type: ignore[union-attr]
+                "due_date": normalized["due_date"].isoformat(),  # type: ignore[union-attr]
                 "amount_cents": amount_cents,
+                "currency": normalized["currency"],
                 "paid_cents": paid_cents,
                 "remaining_balance_cents": remaining_cents,
                 "days_overdue": days_overdue,
