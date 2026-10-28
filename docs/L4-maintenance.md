@@ -1,5 +1,6 @@
 ---
 title: "L4: Changing a spec after code exists"
+description: "Change a rule in a feature that is already built and merged, keeping the spec, tests and code in step with a dated clarification, a drift log and a sealed answer key."
 ---
 
 # L4: Changing a spec after code exists

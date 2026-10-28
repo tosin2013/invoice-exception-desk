@@ -1,5 +1,6 @@
 ---
 title: "L7: CI is the grader"
+description: "Move grading onto the pull request with a GitHub Actions workflow that runs the issue's acceptance tests and the full suite on every PR, so CI is the grader."
 ---
 
 # L7: CI is the grader

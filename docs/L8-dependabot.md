@@ -1,5 +1,6 @@
 ---
 title: "L8: Dependabot, graded like everyone else"
+description: "Set up Dependabot so routine dependency bumps arrive as quiet, grouped PRs graded by the same CI as an agent's, with a human still merging every one on green."
 ---
 
 # L8: Dependabot, graded like everyone else

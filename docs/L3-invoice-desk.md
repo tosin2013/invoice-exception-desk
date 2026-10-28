@@ -1,5 +1,6 @@
 ---
 title: "L3: Invoice Exception Desk walkthrough"
+description: "Use the Spec Kit loop on a realistic project: build the first slice of the Invoice Exception Desk import, graded by an answer key withheld from the builder."
 ---
 
 # L3: Invoice Exception Desk walkthrough

@@ -1,5 +1,6 @@
 ---
 title: "L1: Setup"
+description: "Set up a new GitHub Spec Kit project with one AI coding agent, write a constitution, and build a tiny first feature with the right split between you and a free model."
 ---
 
 # L1: Setup

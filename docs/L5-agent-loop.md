@@ -1,5 +1,6 @@
 ---
 title: "L5: Letting an agent loop run unattended"
+description: "Let a free model take a small, already-ruled change from spec to commits unattended, using the Spec Kit Ralph Loop extension in a locked-down container and a sealed answer key."
 ---
 
 # L5: Letting an agent loop run unattended

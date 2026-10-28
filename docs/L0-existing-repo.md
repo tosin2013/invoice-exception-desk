@@ -1,5 +1,6 @@
 ---
 title: "L0: Start from an existing repo"
+description: "Add GitHub Spec Kit to a real codebase in place: write a constitution from your code, record a test baseline, and build one pilot feature checked against a hidden answer key."
 ---
 
 # L0: Start from an existing repo
