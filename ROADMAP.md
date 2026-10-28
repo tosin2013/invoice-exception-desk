@@ -11,6 +11,8 @@ Owner of this file: the PM / Founder (plans and replans). Status legend: `planne
 `building` · `done` · `dropped`. IDs never change. `Order` is the PM's priority (lowest first). Owner per
 stage is the accountable party (see each section); the reviewer approves stage exit. This file is the
 **one roadmap of record**: GitHub issues and PRs are linked from it, not a second status source.
+A `done` row needs a PR link or a commit link as evidence; a `done` row from before Spec Kit (R0) may
+have Spec dir `— (pre-Spec Kit)` if it has a commit link.
 
 **Where the specs live:** this roadmap is on `main`, but the code and `specs/` live on the
 [`l5-setup`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup) branch. So `Spec dir` names the branch as well as the path
@@ -19,7 +21,7 @@ paths from that branch with `git ls-tree`.
 
 | ID | Feature | One-line scope (in / out) | Outcome | Depends on | Order | Milestone | Status | Spec dir | Issue / PR |
 |----|---------|---------------------------|---------|------------|-------|-----------|--------|----------|------------|
-| R0 | Discovery & Spec Kit | In: data contract, fixture, oracle, acceptance suite, guardrails / Out: any app code (R1) | Discovery kit frozen; `tests/test_oracle.py` green; oracle recomputes exactly | — | 1 | — | done | — (discovery artifacts at repo root: `SPEC.md`, `ACCEPTANCE.md`, `data/`) | — (frozen in commit [`8de94f6`](https://github.com/tosin2013/invoice-exception-desk/commit/8de94f69b1b6307f0fa2617dda3ad1d078b61cf8), before PRs were used) |
+| R0 | Discovery & Spec Kit | In: data contract, fixture, oracle, acceptance suite, guardrails / Out: any app code (R1) | Discovery kit frozen; `tests/test_oracle.py` green; oracle recomputes exactly | — | 1 | — | done | — (pre-Spec Kit) | [commit `8de94f6`](https://github.com/tosin2013/invoice-exception-desk/commit/8de94f69b1b6307f0fa2617dda3ad1d078b61cf8) (frozen before PRs were used) |
 | R1 | Exception Desk MVP | In: import, aging, follow-up queue with owner/notes, AT-01..05, AT-09, AT-10 / Out: payments (R2), promised pay (R3), migration (R5) | All R1 acceptance items pass against the frozen oracle | R0 | 2 | — | building | [`l5-setup:specs/003-desk-import/`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup/specs/003-desk-import) (AT-01..04); [`l5-setup:specs/004-deterministic-followup-queue/`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup/specs/004-deterministic-followup-queue) (AT-05) | [issue #16](https://github.com/tosin2013/invoice-exception-desk/issues/16), [issue #22](https://github.com/tosin2013/invoice-exception-desk/issues/22) / [PR #5](https://github.com/tosin2013/invoice-exception-desk/pull/5), [PR #7](https://github.com/tosin2013/invoice-exception-desk/pull/7), [PR #8](https://github.com/tosin2013/invoice-exception-desk/pull/8), [PR #14](https://github.com/tosin2013/invoice-exception-desk/pull/14), [PR #17](https://github.com/tosin2013/invoice-exception-desk/pull/17), [PR #23](https://github.com/tosin2013/invoice-exception-desk/pull/23) |
 | R2 | Payment events (v2a) | In: event-ID idempotency, no negative or overpay, balance recalc / Out: collection, bank feeds, promised pay (R3) | AT-06 passes; original `amount_cents` never changes | R1 | 3 | — | planned | — | — |
 | R3 | Promised-pay annotations (v2b) | In: promised-pay date as a note that may affect ordering / Out: reminders, calendar sync | AT-07 passes; balances and buckets unchanged | R2 | 4 | — | planned | — | — |

@@ -4,7 +4,8 @@
 Checks:
   1. every specs/NNN-* dir is referenced by a ROADMAP row (or listed under "Specs outside this roadmap");
   2. every row at specified, building or done names a spec dir that exists;
-  3. every done row has a PR link ("PR #N" or a .../pull/N URL).
+  3. every done row has a PR link ("PR #N" or a .../pull/N URL) or a commit link (.../commit/<sha>).
+A done row may have no spec dir if its Spec dir cell is "— (pre-Spec Kit)" and it has a commit link.
 Also warns on a status outside planned|specified|building|done|dropped.
 
 A spec dir can be branch-qualified, "l5-setup:specs/003-desk-import/", for repos whose specs live on a
@@ -22,6 +23,8 @@ NEEDS_SPEC = {"specified", "building", "done"}
 QUALIFIED = re.compile(r"([A-Za-z0-9._/-]+?):(specs/\d{3}-[A-Za-z0-9._-]+)")
 BARE = re.compile(r"(?<![\w/:.-])(specs/\d{3}-[A-Za-z0-9._-]+)")
 PR_LINK = re.compile(r"\bPR #\d+|/pull/\d+")
+COMMIT_LINK = re.compile(r"/commit/[0-9a-f]{7,40}\b")
+PRE_SPEC_KIT = re.compile(r"^[—-]\s*\(pre-spec kit\)$", re.I)
 SPEC_DIR_NAME = re.compile(r"^\d{3}-")
 
 
@@ -112,7 +115,11 @@ def main(path="ROADMAP.md"):
             warn(f"{rid}: status '{status}' is not one of {'|'.join(sorted(STATUSES))}", n)
         dirs = refs_in(row.get("spec dir", ""))
         accounted.update(dirs)
-        if status in NEEDS_SPEC:
+        evidence = row.get("issue / pr", "")
+        has_commit = bool(COMMIT_LINK.search(evidence))
+        pre_spec_kit = (status == "done" and not dirs and has_commit
+                        and PRE_SPEC_KIT.match(row.get("spec dir", "").strip()))
+        if status in NEEDS_SPEC and not pre_spec_kit:
             if not dirs:
                 warn(f"{rid} is '{status}' but names no spec dir", n)
             for b, d in dirs:
@@ -122,8 +129,8 @@ def main(path="ROADMAP.md"):
                     warn(f"{rid}: can't read branch '{b}' to check {d} (fetch it, e.g. fetch-depth: 0)", n)
                 elif d not in have:
                     warn(f"{rid}: spec dir {d} does not exist on {where}", n)
-        if status == "done" and not PR_LINK.search(row.get("issue / pr", "")):
-            warn(f"{rid} is 'done' but has no PR link in Issue / PR", n)
+        if status == "done" and not (PR_LINK.search(evidence) or has_commit):
+            warn(f"{rid} is 'done' but has no PR or commit link in Issue / PR", n)
 
     for b, have in existing.items():
         for d in sorted(have or ()):

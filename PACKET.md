@@ -38,3 +38,13 @@ The only human interventions were:
 - `run.log`
 
 See `MANIFEST.sha256` for per-file SHA-256 digests.
+
+## Note, 2026-10-28: ROADMAP.md hash updated
+
+`ROADMAP.md` was restructured into the roadmap-of-record format used by the PLAYBOOK ("PM: plan the roadmap
+first"): new columns (Feature, One-line scope, Outcome, Order, Milestone, Spec dir, Issue / PR), a five-value
+status legend, and R1 moved from `planned` to `building` with its evidence (spec dirs and PRs on `l5-setup`).
+Its line in `MANIFEST.sha256` was updated to the new hash. The original R0 hash
+(`84e5cb4ad7a6326436c185f97bdc324871bf3905e06520ad941211fe1dbf3565`) is preserved in git history at commit
+[`8de94f6`](https://github.com/tosin2013/invoice-exception-desk/commit/8de94f69b1b6307f0fa2617dda3ad1d078b61cf8).
+No other artifact in the manifest changed.
