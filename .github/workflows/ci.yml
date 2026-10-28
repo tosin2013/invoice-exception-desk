@@ -1,0 +1,65 @@
+# L7 "CI is the grader". Read-only, no secrets, no deploys.
+# On a PR: full suite, the issue's acceptance tests, base tests still present, diff size.
+name: ci
+
+on:
+  pull_request:
+    branches: [l5-setup, main]
+  push:
+    branches: [l5-setup]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  UV_NO_PROJECT: "1"
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # the base commit is needed for the comparisons below
+
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          python-version: "3.12"
+
+      - name: Full test suite
+        run: uv run --no-project --with pytest python -m pytest -q
+
+      - name: Acceptance tests
+        if: ${{ !cancelled() }}
+        run: |
+          if [ -d acceptance ]; then
+            uv run --no-project --with pytest python -m pytest acceptance -q --noconftest --import-mode=importlib
+          else
+            echo "No acceptance/ directory on this branch, so there is nothing to run. Skipping."
+          fi
+
+      - name: Base tests still present
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          collect() { uv run --no-project --with pytest python -m pytest --collect-only -q | grep '::' | sort; }
+          collect > /tmp/head-ids.txt
+          git worktree add --detach /tmp/base "$BASE_SHA"
+          (cd /tmp/base && collect) > /tmp/base-ids.txt
+          echo "Base has $(wc -l < /tmp/base-ids.txt) tests, this PR has $(wc -l < /tmp/head-ids.txt)."
+          missing=$(comm -23 /tmp/base-ids.txt /tmp/head-ids.txt)
+          if [ -n "$missing" ]; then echo "Base tests missing from this PR:"; echo "$missing"; exit 1; fi
+          echo "All base tests are still present."
+
+      - name: Diff size (report only)
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        continue-on-error: true
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          stat=$(git diff --shortstat "$BASE_SHA...$HEAD_SHA" -- . \
+            ':(exclude,glob)specs/**/progress.md' ':(exclude,glob)specs/**/ralph-memory.md')
+          echo "Diff size, excluding specs/**/progress.md and specs/**/ralph-memory.md: ${stat:-no changes}" >> "$GITHUB_STEP_SUMMARY"
