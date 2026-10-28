@@ -189,4 +189,4 @@ For a purely additive PR that leaves every existing test alone, green CI is a mu
 - [ ] PRs that touch existing tests get a byte-level check or a review
 - [ ] A human merges, and only on green
 
-Compare the starting point with the merged result: [`ed1fa8e...211a728`](https://github.com/tosin2013/invoice-exception-desk/compare/ed1fa8e...211a728). Back: [L6: From an approved issue to a PR you can trust](L6-issue-to-pr.md). Next: **L8: Dependabot** *(coming soon)*. Back to [Home](index.md).
+Compare the starting point with the merged result: [`ed1fa8e...211a728`](https://github.com/tosin2013/invoice-exception-desk/compare/ed1fa8e...211a728). Back: [L6: From an approved issue to a PR you can trust](L6-issue-to-pr.md). Next: [L8: Dependabot, graded like everyone else](L8-dependabot.md). Back to [Home](index.md).
