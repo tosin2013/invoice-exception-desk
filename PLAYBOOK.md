@@ -58,6 +58,82 @@ What our runs used (pin your own versions and trust your own `--help` over ours)
 
 **If you use OpenCode:** the scripted `opencode run --command speckit.<command>` worked on 1.19.3; there is an open report that OpenCode v2 removed it ([spec-kit #4639](https://github.com/github/spec-kit/issues/4639)). When scripting OpenCode yourself, add `< /dev/null` or it can hang waiting for input ([L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html)). Ralph sends its prompt to `opencode run` on stdin and passes `--auto`, so check that your version's `opencode run --help` lists `--auto`. Other harnesses have their own headless quirks; dry-run one scripted call before you seal anything.
 
+### Run Spec Kit step by step (no assumptions)
+
+Use this when a person, or an AI working with one, runs Spec Kit in a chat session. Checked against Spec Kit v1.2.4 and its docs on 2026-10-28. If your `specify --help` says something different, trust it and tell the user. The unattended loop works differently; see the end of this subsection.
+
+**A. Setup, exact commands.** Run these in a terminal, in this order. **If a command fails or a flag isn't in your `--help`, stop and show the user the exact error.** Don't try another installer, version or flag on your own.
+
+1. **Ask** which harness (coding agent) the user runs, and whether this is a new project or an existing repo. Don't assume.
+2. **Check the prerequisites.** If one is missing, tell the user and stop.
+   ```bash
+   git --version
+   python3 --version        # 3.11 or newer
+   uv --version             # https://docs.astral.sh/uv/
+   command -v <harness>     # e.g. claude, codex, copilot, gemini, cursor-agent, opencode
+   ```
+3. **Install the CLI,** pinned to a [release tag](https://github.com/github/spec-kit/releases) the user agrees to (keep the `v`):
+   ```bash
+   uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@vX.Y.Z
+   specify version
+   ```
+   `uv tool install specify-cli` (from PyPI) is also official. For a one-off run with nothing installed, put `uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z` in front of each `specify` command instead.
+4. **Initialize** with the user's integration key (`specify integration list`, or the [integrations page](https://github.github.io/spec-kit/integrations/index.html)):
+   ```bash
+   specify init my-project --integration <key>   # new project: creates ./my-project
+   specify init --here --integration <key>       # existing repo: run from its root
+   ```
+   Use `--here` only in the repo the user named, with a clean `git status` ([L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html)). If it warns that the folder isn't empty, show the warning; add `--force` only if the user says so. `--script sh|ps|py` picks the script type (default `sh`; `ps` on Windows). An AI in a terminal that can't answer prompts adds `--non-interactive`, and must still pass `--integration`, or it silently gets Copilot. Old CLIs used `--ai`; v1.2.4 rejects it ("No such option"), so report the version rather than switching flags.
+5. **Run `specify check`.** It lists the agent tools it finds.
+6. **Confirm the commands show up** in the harness, opened in the project folder (type `/`, or look for the folder below). If they don't, stop.
+
+The steps are the same everywhere; only the spelling changes ([command invocation](https://github.github.io/spec-kit/integrations/cli.html#command-invocation)). This playbook writes the dotted form.
+
+| Harness | Type it as | Installed in |
+|---|---|---|
+| OpenCode, Gemini CLI | `/speckit.plan` | `.opencode/commands/`, `.gemini/commands/` |
+| Claude Code, GitHub Copilot, Cursor | `/speckit-plan` | `.claude/skills/`, `.github/skills/`, `.cursor/skills/` |
+| Codex CLI | `$speckit-plan` | `.agents/skills/` |
+| Any other | see its page on the [integrations list](https://github.github.io/spec-kit/integrations/index.html) | |
+
+**If you use Claude Code:** its Spec Kit skills are model-invocable by default, so the model can start one on its own. `--integration-options="--no-model-invocation"` at init makes the core ones run only when the user types them (trade-offs on the [Claude page](https://github.github.io/spec-kit/integrations/claude.html)).
+
+**B. Fixed order.** Never skip or reorder. **One command per turn.** Never run implement until `tasks.md` exists and the user has approved it.
+
+| Step | Command | What it produces | Who decides | Stop and wait for |
+|---|---|---|---|---|
+| 1 | `/speckit.constitution <principles>` (once per project) | `.specify/memory/constitution.md` (init leaves a template there) | the user: the rules | approval of the constitution |
+| 2 | `/speckit.specify <what and why>` | `specs/<NNN-feature>/spec.md` and `checklists/requirements.md` | the user: what to build | approval of the spec |
+| 3 | `/speckit.clarify` | answers written into `spec.md` under `## Clarifications` (up to 5 questions a run) | the user answers every question (C below) | each answer, then approval of the updated spec |
+| 4 | `/speckit.plan <tech stack>` | `plan.md`, plus `research.md`, `data-model.md`, `contracts/`, `quickstart.md` as needed | the user: the tech stack | approval of the plan |
+| 5 | `/speckit.tasks` | `tasks.md` | the AI drafts, the user approves | approval of `tasks.md` |
+| 6 (optional) | `/speckit.analyze` | a report only; it edits nothing | the user picks the fixes; fix at the step that owns them, then rerun | the user says the findings are handled |
+| 7 | `/speckit.implement` | code and tests; tasks ticked in `tasks.md` | the AI builds only what `tasks.md` says | the user reviews the diff and the test results |
+
+Spec Kit calls clarify, checklist and analyze optional quality gates. In this playbook clarify runs whenever the spec has open questions, and analyze always runs before implement, with HIGH findings fixed. Two more optional commands: `/speckit.checklist` (after plan; writes `checklists/<name>.md`, and only the user ticks its boxes) and `/speckit.converge` (after implement; it adds any missing tasks to `tasks.md`, then you implement again until it says "Converged"). Each is its own turn with its own review. A big feature can run implement one phase at a time, each phase a turn.
+
+**C. Clarify rule.** Put every `/speckit.clarify` question to the user, one at a time, and wait for the answer. Never answer for the user, and never take the "Recommended" option without saying so. If the user says "you pick", state your pick and why, and wait for an explicit OK before writing it into the spec.
+
+**D. Review gates.** After each command, show what changed: each file path created or edited, with a two- or three-line summary (a `git diff --stat` helps). Then ask: "Approve, or what should change?" Wait. Only a clear yes ("approved", "go on") counts. Silence, "I'll look later" or an unrelated question isn't approval. If the user asks for edits, make them (or rerun the same command), show the change and ask again. Commit after each approval if the user wants a checkpoint.
+
+**Unattended runs (L5 and up).** Nobody is there to answer mid-run, so the gates come before the loop starts. The approved ruling (the issue with `agent-ready`) answers every clarify question in advance. Anything it doesn't answer is a stop, not a guess. If a human or strong model writes the spec, plan and tasks first (as in L1 to L4), the user approves them before the loop starts. The loop keeps the same command order ([how the Ralph loop runs each spec](#how-the-ralph-loop-runs-each-spec)), and the result is checked after: bundle, grader commit, CI, human merge (section 4).
+
+**E. Guardrail prompt.** Paste this at the start of a session, in any harness:
+
+```text
+Follow GitHub Spec Kit exactly, as in "Run Spec Kit step by step (no assumptions)":
+https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#run-spec-kit-step-by-step-no-assumptions
+Rules for this session:
+1. Ask me which coding agent I use and whether this is a new project or an existing repo. Don't assume.
+2. Setup: use only these commands: uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@<tag I approve>, then specify init with --integration <my key> (add --here only for an existing repo), then specify check. If anything fails or a flag differs, stop and show me the exact error. Don't try another install method.
+3. Order: constitution, specify, clarify, plan, tasks, analyze (if I want it), implement. Never skip or reorder. Never implement before I approve tasks.md.
+4. One Spec Kit command per turn, spelled the way my agent shows it (/speckit.plan, /speckit-plan or $speckit-plan).
+5. Clarify: ask me every question, one at a time, and wait. Never answer for me or quietly take the recommended option. If I say "you pick", tell me your pick and wait for my OK.
+6. After each command: list the files changed (path and a short summary) and ask me to approve or request edits. Wait. Silence is not approval.
+7. If anything is unclear or conflicts, stop and ask.
+Start by asking your first question.
+```
+
 ## 4. The end-to-end loop
 
 ```mermaid
@@ -73,7 +149,7 @@ flowchart LR
 
 1. **Constitution (once, then amended with a version bump).** Start with 3 to 5 plain rules your agents follow, each tied to the real code (ours grew to eight). Ours ([`.specify/memory/constitution.md`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/.specify/memory/constitution.md), v2.0.0) says, for example: money is integer cents; computation is pure and never reads the clock; standard library only; spec, tests and code land together; every behaviour change is graded against a key the builder never sees; builder-written tests alone never mean "done".
 2. **Ruling.** Every choice the agent would otherwise guess goes in writing first: the rule, types, what other rows get, forbidden files, which existing test edits are allowed (exactly), given/when/then acceptance checks with exact inputs, the expected Spec Kit trail, a size limit, "stop and ask if anything conflicts", how it's graded, and any constitution exception for this change. From L6 on the ruling is a GitHub issue; a human adds the `agent-ready` label only when it's final. No label, no run.
-3. **Spec, plan, tasks.** `/speckit.specify`, `/speckit.clarify`, `/speckit.plan`, `/speckit.tasks`, then `/speckit.analyze` **before** implement, fixing HIGH findings. A rule change edits the spec that owns the rule: a dated Clarification, the old requirement kept but marked superseded, a new ID ([L4](https://tosin2013.github.io/invoice-exception-desk/L4-maintenance.html)). In L1 to L4 a human or strong model wrote the spec and plan; in L5 to L7 the free-model builder wrote them inside the box from the frozen ruling (a phase-1 prompt), then the loop (Ralph) implemented.
+3. **Spec, plan, tasks.** `/speckit.specify`, `/speckit.clarify`, `/speckit.plan`, `/speckit.tasks`, then `/speckit.analyze` **before** implement, fixing HIGH findings. Run them in that order, one at a time, with a review after each ([step by step](#run-spec-kit-step-by-step-no-assumptions)). A rule change edits the spec that owns the rule: a dated Clarification, the old requirement kept but marked superseded, a new ID ([L4](https://tosin2013.github.io/invoice-exception-desk/L4-maintenance.html)). In L1 to L4 a human or strong model wrote the spec and plan; in L5 to L7 the free-model builder wrote them inside the box from the frozen ruling (a phase-1 prompt), then the loop (Ralph) implemented.
 4. **Builder run in a sandbox.** Your agent, driven by a capped loop (ours: OpenCode on a free model, driven by Ralph), in a locked-down container (non-root, read-only root, no capabilities, no credentials, no git remote) on a keyless host. Preflight probes must all pass first (18 in L5, 13 in L6). Scope is checked after every agent call. The work comes out as a [`git bundle`](https://git-scm.com/docs/git-bundle), with its SHA-256 in a receipt.
 5. **Grader commit.** The acceptance tests were written from the issue and kept out of the builder's folder until the bundle was sealed. The bundle is pushed **unchanged**, and the acceptance tests are added as **one separate commit** under `acceptance/issue-<N>/` (example: [`f916383`](https://github.com/tosin2013/invoice-exception-desk/commit/f916383)). The PR then shows who wrote what.
 6. **CI is the grader.** The read-only `ci` workflow runs on every PR: the full suite, the `acceptance/` tests when present, a check that every base test ID still exists, and a diff-size summary ([L7](https://tosin2013.github.io/invoice-exception-desk/L7-ci-grader.html)).
@@ -162,6 +238,63 @@ The loop driver should also refuse to call itself complete unless every task is 
 
 Record the container image's **config digest**, not just its ID; the ID changed on every rebuild even with identical layers (L5).
 
+### How the Ralph loop runs each spec
+
+Checked against [Ralph Loop](https://github.com/Rubiss-Projects/spec-kit-ralph) v1.5.0, the latest tag. Its README, `commands/iterate.md` and `scripts/bash/ralph-loop.sh` are the same files installed on [`l5-setup`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup/.specify/extensions/ralph). A wrapper loop for another harness should behave the same way.
+
+**Input: approved spec files only.** The loop works from `.specify/memory/constitution.md` and `specs/<NNN-feature>/spec.md`, `plan.md` and `tasks.md`. A human approves them before the loop starts. The loop never plans. **Our runs differed:** in L5 to L7 a phase-1 prompt wrote the spec change, plan and tasks inside the box from the approved ruling, and Ralph started right after. That made the ruling the only approval up front, and the human reviewed the spec trail in the PR. If you can, review the spec, plan and tasks before you start the loop.
+
+**Order.** Ralph runs **one feature per run**: the one you pass with `--spec-dir` and `--tasks-path`, not every folder under `specs/`. With several features, run them one at a time in number order (001, 002, ...), each one finished before the next starts. Inside a feature, an iteration takes the first user story in `tasks.md` with unchecked tasks and works its tasks in order: dependencies first, then the `[P]` (parallel) tasks. Ralph lets one iteration finish one task or several from that story (L6 did 4 tasks in 1 iteration). It never starts a second story. The loop prompt below narrows that to one task per iteration, so set `max_iterations` to at least the number of tasks.
+
+**One iteration.** Each one is a fresh agent process that knows only what's in the files.
+
+1. Read `ralph-memory.md` first, then the constitution, `spec.md`, `plan.md`, `tasks.md`, and any `research.md`, `data-model.md` or `contracts/`. Ralph's own instructions don't name `spec.md` or the constitution; the loop prompt adds them.
+2. Implement only the next unchecked task.
+3. Run the tests (ours: `uv run --with pytest python -m pytest -q`).
+4. Only if they pass: tick the task `[x]` in `tasks.md`, update the handoff in `ralph-memory.md`, and add an entry to `progress.md`.
+5. Make one commit with the change, `tasks.md`, `ralph-memory.md` and `progress.md`.
+6. End. Ralph starts the next iteration as a new process. If the tests fail, nothing is ticked and nothing is committed.
+
+**What the loop never does.** It never runs `/speckit.specify`, `/speckit.clarify`, `/speckit.plan` or `/speckit.tasks`. It never edits `spec.md`, `plan.md`, the constitution, `.specify/` or its agent folder; its only spec-folder edits are `tasks.md` checkboxes, `ralph-memory.md` and `progress.md`. If a task is unclear, conflicts with the spec or is blocked, it writes the question down (`BLOCKED: <task ID>: <question>` in `progress.md`, and in the run's `questions.md` if there is one) and ends with no commit. Left alone, Ralph v1.5.0 would note it and try again or skip to another task. So your wrapper checks for the note after every call and stops the run. That's our "stop on a contract question" (`questions.md` stayed empty in L6 and L7). A human answers by editing the ruling or the spec, then reruns.
+
+**Stop conditions.**
+
+| Stop | Checked by | Exit |
+|---|---|---|
+| Every task `[x]`, tests green, `git status --short --untracked-files=all` empty, handoff reads `- Feature complete; no handoff required.`, and the agent prints `<promise>COMPLETE</promise>` on its own line | Ralph checks the tasks, handoff and clean tree itself; the agent runs the tests, and the self-check or CI reruns them | 0 |
+| `max_iterations` reached (ours: 10) | Ralph | 1 |
+| 3 failed agent calls in a row | Ralph | 1 |
+| A `BLOCKED` note or a question | your wrapper | non-zero |
+| Time cap, scope or size breach (section 7) | your wrapper | non-zero |
+| Ctrl+C | Ralph | 130 |
+
+**Start it.** Install Ralph in its own commit, then run the script from the repo root. The agent CLI must be `copilot`, `codex`, `claude` or `opencode`, or a path to one, such as our `opencode` wrapper.
+
+```bash
+specify extension add ralph --from https://github.com/Rubiss-Projects/spec-kit-ralph/archive/refs/tags/v1.5.0.zip
+SPECKIT_RALPH_AGENT_CLI=<agent cli or wrapper path> \
+bash .specify/extensions/ralph/scripts/bash/ralph-loop.sh \
+  --feature-name 003-desk-import --tasks-path specs/003-desk-import/tasks.md \
+  --spec-dir specs/003-desk-import --max-iterations 10 --model <model>
+```
+
+Inside an agent session, `/speckit.ralph.run --max-iterations 10` does the same in a new terminal window; on a headless box, use the script. The install also registers an optional `after_tasks` hook that offers to start Ralph. The operator decides when Ralph starts, not the hook.
+
+**Loop prompt.** Ralph v1.5.0 has no setting for extra instructions. Each iteration it sends `.specify/extensions/ralph/commands/iterate.md` as installed, and the launcher ignores free text. Leave that file alone. Put the rules below where the agent reads them on every fresh call: commit them in the setup commit as the project instructions file your harness loads (for example `AGENTS.md`, or `CLAUDE.md` for Claude Code; check your harness), or have your wrapper add them in front of Ralph's prompt.
+
+```text
+Ralph loop rules. Follow them in every iteration. Where they are stricter than Ralph's iterate command, these win.
+Inputs: .specify/memory/constitution.md and specs/<NNN-feature>/spec.md, plan.md and tasks.md. A human approved them. Read them and ralph-memory.md before you change anything.
+1. Work only in the feature folder Ralph gave you.
+2. Take the first unchecked task in tasks.md whose dependencies are done (non-[P] tasks before [P] ones). Implement only that task.
+3. Run the tests: <test command>. If they fail, fix them within this task, at most 3 tries. Still failing: tick nothing, commit nothing, end your turn.
+4. Tests green: tick that task [x] in tasks.md, update ralph-memory.md and progress.md, and make one commit with the change, tasks.md, ralph-memory.md and progress.md. Then end your turn. Don't start the next task.
+5. Never run /speckit.specify, /speckit.clarify, /speckit.plan or /speckit.tasks. Never edit spec.md, plan.md, the constitution, .specify/ or your own agent folder. Don't add, reword or delete tasks.
+6. If the task is unclear, conflicts with the spec or plan, or needs something that isn't done: don't guess and don't skip ahead. Append "BLOCKED: <task ID>: <question>" to progress.md (and to <questions file> if this run has one), commit nothing, and end your turn.
+7. Print <promise>COMPLETE</promise> on its own line only when every task is [x], the tests pass and git status is clean.
+8. Don't report sizes or counts; the receipt and CI do that.
+```
+
 ## 8. Dependency hygiene (the L8 recipe)
 
 1. **Make every dependency visible.** Dependabot reads manifest files, not CLI flags. We moved `--with pytest` into a one-line [`requirements-dev.txt`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/requirements-dev.txt) (`pytest==9.1.1`) and pointed CI at it with an absolute path (`--with-requirements "$GITHUB_WORKSPACE/requirements-dev.txt"`), because the base-test-ID step runs in a worktree of the older base commit.
@@ -179,15 +312,15 @@ Branches without CI (our `main`) are ungraded; schedule their bumps less often. 
 1. **Ask the user which harness they use:** the coding agent or CLI, the model, and the budget. Or check what's installed (for example `command -v claude codex copilot gemini cursor-agent opencode`) and confirm with them. Don't assume OpenCode. Also ask whether they'll run the builder unattended or approve each step; that decides whether they need a sandbox ([Do I always need a sandbox?](#do-i-always-need-a-sandbox)).
 2. **Map the loop to that harness** (section 2). Find its Spec Kit integration key and its headless command. If Ralph supports it (`copilot`, `codex`, `claude`, `opencode`), use Ralph; otherwise use a small wrapper with the caps and stops in section 7. If it has no headless mode or no loop driver, run the builder step by step instead: a human drives the loop, one fresh session per task, approving each step (a normal dev machine is fine, see [Do I always need a sandbox?](#do-i-always-need-a-sandbox); acceptance tests and sealed keys still stay out of the builder's reach), counting the same caps and running the same scope checks after each step. Everything after the builder (bundle, grader commit, CI, human merge) stays the same.
 3. **Run the decision gate** ([Home](https://tosin2013.github.io/invoice-exception-desk/)). If the answer is "no SDD" or "light SDD", stop here and use a normal PR or a short spec.
-4. **Set up Spec Kit** with the harness's key. New repo: `specify init --integration <key>` ([L1](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html)). Existing repo: inventory first, change nothing, then `specify init --here --integration <key>` and record the test baseline ([L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html)). Pin the `specify` version.
-5. **Have a human or strong model write the constitution,** 3 to 5 rules, each citing real code. Include "builder-written tests alone never mean done."
+4. **Set up Spec Kit** with the harness's key, using the exact commands in [Run Spec Kit step by step](#run-spec-kit-step-by-step-no-assumptions); if one fails, stop and show the user the error. New repo: `specify init <project-name> --integration <key>` ([L1](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html)). Existing repo: inventory first, change nothing, then `specify init --here --integration <key>` and record the test baseline ([L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html)). Pin the `specify` version.
+5. **Have a human or strong model write the constitution,** 3 to 5 rules, each citing real code. Include "builder-written tests alone never mean done." The user approves it before any spec.
 6. **Pick a small, already-decided first change,** ideally a known gap your specs already name, additive, and checkable by a script.
 7. **Write the ruling as a GitHub issue** with everything in section 4, step 2. Have the human approve it and add `agent-ready`.
 8. **Write the acceptance tests from the issue,** with its exact inputs, and keep them outside the builder's reach.
 9. **Add a read-only CI workflow** (no secrets): full suite, `acceptance/` when present, base test IDs still present, diff-size summary. Merge it before the first run. Copy ours: [`ci.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/.github/workflows/ci.yml).
 10. **Build the box** (for an unattended run): a container on a host with no keys, no tokens, no push remote; the issue snapshot hash-checked; preflight probes; scope checks after every call; clean-tree check after the baseline tests; output as a `git bundle`.
 11. **Install the loop driver in its own commit** (Ralph or your wrapper), set the agent and model from outside the tree, and set the caps in section 7.
-12. **Run.** The builder writes the spec trail (dated Clarification, spec, plan, tasks, analyze) and implements.
+12. **Run.** The builder writes the spec trail (dated Clarification, spec, plan, tasks, analyze) in the fixed order, then implements. Unattended, the approved ruling is the gate: it answers every clarify question in advance, and anything it doesn't answer is a stop. The loop takes one task per iteration and never edits the spec or plan ([how the Ralph loop runs each spec](#how-the-ralph-loop-runs-each-spec)). Step by step, use the review gates in [Run Spec Kit step by step](#run-spec-kit-step-by-step-no-assumptions).
 13. **Verify the bundle** (hash and head), run the local self-check once, push the bundle unchanged, add the grader commit, open the PR.
 14. **Let CI grade it.** If the PR touches existing tests, also keep a byte-level compare or a review.
 15. **A human merges** on green, and closes the issue if it targets a non-default branch.
