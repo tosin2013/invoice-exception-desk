@@ -1,0 +1,4 @@
+# Dev/test-only pin (not a runtime dependency). CI installs it with
+# `uv run --no-project --with-requirements requirements-dev.txt`, and Dependabot's
+# pip ecosystem watches this file for version updates (L8).
+pytest==9.1.1
