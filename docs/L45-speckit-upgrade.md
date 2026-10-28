@@ -1,5 +1,6 @@
 ---
 title: "L4.5: Upgrading Spec Kit itself"
+description: "A repeatable routine for upgrading GitHub Spec Kit itself without touching your constitution or specs, worked through on a real 1.1.3 to 1.2.3 upgrade."
 ---
 
 # L4.5: Upgrading Spec Kit itself

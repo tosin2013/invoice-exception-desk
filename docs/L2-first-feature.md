@@ -1,5 +1,6 @@
 ---
 title: "L2: First feature, end to end"
+description: "Take one small feature through the main Spec Kit phases once, slowly: specify, clarify, plan, tasks, analyze, implement, and reviewer checks."
 ---
 
 # L2: First feature, end to end

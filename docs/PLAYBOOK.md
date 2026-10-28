@@ -1,5 +1,6 @@
 ---
 title: "PLAYBOOK: the Invoice Exception Desk pattern on one page"
+description: "The whole Invoice Exception Desk pattern on one page: a spec-first ruling, an unattended free-model builder in a locked-down box, CI as the grader, and a human merge, with links to every lesson."
 ---
 
 <!-- Pages copy of /PLAYBOOK.md at the repo root. Edit the root file and copy it here; the two bodies must match. -->

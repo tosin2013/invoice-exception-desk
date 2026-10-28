@@ -1,5 +1,6 @@
 ---
 title: "L3.5: Handing work between coding agents"
+description: "Hand Spec Kit work between coding agents: one agent writes the spec, plan and tasks, a second implements part of tasks.md from a cold start, and the first finishes the rest."
 ---
 
 # L3.5: Handing work between coding agents

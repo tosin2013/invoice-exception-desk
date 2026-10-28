@@ -1,5 +1,6 @@
 ---
 title: "L6: From an approved issue to a PR you can trust"
+description: "Make an approved GitHub issue the ruling that starts an unattended agent run, and end with a reviewed pull request a human can trust and merge."
 ---
 
 # L6: From an approved issue to a PR you can trust

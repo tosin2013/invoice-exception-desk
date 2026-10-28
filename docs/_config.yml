@@ -1,3 +1,9 @@
 title: Spec Kit Developer Guide
-description: A real-project guide to Spec-Driven Development with GitHub Spec Kit, from simple to complex.
+description: "A simple-to-complex GitHub Spec Kit developer guide: constitution, spec, plan, tasks, an AI builder loop, CI as the grader, and Dependabot, worked end to end on one example project."
 theme: jekyll-theme-cayman
+url: https://tosin2013.github.io
+baseurl: /invoice-exception-desk
+author: Tosin Akinosho
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
