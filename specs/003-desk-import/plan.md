@@ -20,7 +20,7 @@ def import_invoices(csv_text: str, as_of: date) -> dict: ...
 ```
 Returns `{"rows": [...], "totals": {...}}`.
 
-- `rows`: one dict per data row, in input order. Keys: `row` (1-based data-row number; the header is not counted), `status` (`accepted`, `rejected`, `duplicate_identical`, `duplicate_inconsistent`), `reason` (the rejection reason for rejected rows, `None` for accepted, `"identical_duplicate"` / `"inconsistent_duplicate"` for duplicates), `remaining_balance_cents`, `days_overdue`, `aging_bucket` (integers/strings for accepted rows, `None` otherwise). Accepted rows also carry the normalized `issuer`, `invoice_id`, `issue_date`, `due_date` (ISO `YYYY-MM-DD` strings), `amount_cents`, `currency` (trimmed string) and `paid_cents` *(analyze fix C1; dates and currency added by FR-032, L6)*.
+- `rows`: one dict per data row, in input order. Keys: `row` (1-based data-row number; the header is not counted), `status` (`accepted`, `rejected`, `duplicate_identical`, `duplicate_inconsistent`), `reason` (the rejection reason for rejected rows, `None` for accepted, `"identical_duplicate"` / `"inconsistent_duplicate"` for duplicates), `remaining_balance_cents`, `days_overdue`, `aging_bucket` (integers/strings for accepted rows, `None` otherwise), and `overdue` (`bool` for accepted rows, `None` for rejected and duplicate rows). Accepted rows also carry the normalized `issuer`, `invoice_id`, `issue_date`, `due_date` (ISO `YYYY-MM-DD` strings), `amount_cents`, `currency` (trimmed string) and `paid_cents` *(analyze fix C1; dates and currency added by FR-032, L6; `overdue` added by FR-033, L7)*.
 - Empty `csv_text` (no header) returns zero rows and zero totals, with all six aging buckets present as `{"count": 0, "remaining_cents": 0}` *(analyze fix A2)*.
 - `totals`: `total_rows`, `accepted`, `rejected`, `duplicate_identical`, `duplicate_inconsistent`, `outstanding_invoice_count`, `total_outstanding_cents`, `total_paid_cents`, and `aging`: a dict with all six buckets `current`, `1-30`, `31-60`, `61-90`, `91+`, `paid`, each `{"count": int, "remaining_cents": int}`.
 
@@ -121,3 +121,37 @@ Follow-up queue, owners, notes (AT-05), payments (R2), promised pay (R3), migrat
 - Under 300 changed lines in total. Up to 3 fix tries per failing task, then stop and record it in `ralph-memory.md`. Install nothing. No push, no merge, no new branches, no git config changes.
 
 **Tasks**: append an "L6" phase to `tasks.md` (existing T001 to T035 unchanged).
+
+## L7 revision (2026-10-28)
+**Trigger**: Issue #22, decided by Tosin Akinosho. **FR-033**: every accepted row must expose `overdue` as a `bool`, `True` exactly when its remaining balance is greater than `0` and its `due_date` is earlier than `as_of` (FR-017), otherwise `False`; equivalently `overdue == (days_overdue > 0)` (FR-018). Rejected and duplicate rows must carry `overdue: None`. Constitution v2.0.0, rule V (spec, tests and code land together).
+
+**Constitution Check (v2.0.0)**: I integer cents PASS · II pure computation, no I/O added PASS · III stdlib only PASS · IV tests added in `tests/test_invoice_desk.py` PASS · V spec Clarification + FR-033 + plan + tasks + tests + code land together · VI synthetic PASS · VII explicit `as_of`, dates are `str` PASS · VIII graded by the L7 lesson rule in issue #22 (all acceptance checks, unchanged 215-test regression, Grok Bot approval) instead of a hidden key.
+
+**What changes**
+- `invoice_desk/__init__.py`: add `"overdue": days_overdue > 0` to accepted-row dicts, and `"overdue": None` to rejected and duplicate dicts. Nothing else changes.
+- Unchanged: classification, rejection reasons, validation precedence, trimming, padding, duplicates, balances, aging, totals, the `import_invoices` interface, and the existing accepted/rejected/duplicate keys apart from `overdue`.
+- No totals, aging, queue order or queue item keys change. The queue item contract does not gain `overdue`. `queue.py`, `annotations.py`, `contracts/public-api.md` and `ACCEPTANCE.md` are untouched.
+- Frozen fixture `data/invoices.csv` is untouched; no AT-01 to AT-04 value changes.
+
+**Tests added** (in `tests/test_invoice_desk.py`, written first; they must fail where the feature is missing)
+- Acceptance check 1: with the frozen CSV at `as_of = 2026-10-15`, `overdue is True` for exactly `INV-1003`, `INV-1004`, `INV-1005`, `INV-1006`, `INV-1007`, `INV-1008`, `INV-1009`, `INV-1010`, `INV-1012`, `INV-1014`; `overdue is False` for `INV-1001`, `INV-1002`, `INV-1011`, `INV-1013`.
+- Acceptance check 2: row `Acme,INV-T0,2026-09-01,2026-10-15,1000,USD,0` at `2026-10-15` is `overdue is False`, `days_overdue == 0`, `aging_bucket == "current"`.
+- Acceptance check 3: row `Acme,INV-T1,2026-09-01,2026-10-14,1000,USD,0` is `overdue is True`, `days_overdue == 1`, `aging_bucket == "1-30"`.
+- Acceptance check 4: `Acme,INV-P1,2026-06-01,2026-07-01,100,USD,100` is `overdue is False`, `days_overdue == 0`, `aging_bucket == "paid"`; `Acme,INV-C1,2026-09-01,2026-10-14,100,USD,99` has `remaining_balance_cents == 1`, `overdue is True`, `days_overdue == 1`, `aging_bucket == "1-30"`.
+- Acceptance check 5: every accepted row (rows 1-14) has exactly the full key set including `overdue` of type `bool`; every duplicate row (rows 15-18) and rejected row (rows 19-30) has exactly `{row, status, reason, remaining_balance_cents, days_overdue, aging_bucket, overdue}` with `overdue is None`.
+- Acceptance check 6: `row["overdue"] == (row["days_overdue"] > 0)` for every accepted row.
+- Acceptance check 7: `json.dumps(result)` succeeds and two calls give `==` results (FR-004, FR-026).
+- Acceptance check 8: through `build_followup_queue`, `totals`, the aging table, queue order `INV-1009 … INV-1011` and queue item keys are unchanged.
+
+**004 ripple**
+- 004's queue is built from accepted rows only and ignores the new `overdue` key. No 004 code, contracts, data model or tests change; 004 FR-021 and SC-010 get dated L7 notes only.
+
+**Run rules**
+- Allowed files: `specs/003-desk-import/{spec,plan,tasks,drift,progress,ralph-memory}.md`, `specs/004-deterministic-followup-queue/spec.md`, `tests/test_invoice_desk.py`, `invoice_desk/__init__.py`.
+- Never edit `invoice_desk/queue.py`, `invoice_desk/annotations.py`, `specs/004-deterministic-followup-queue/contracts/public-api.md`, `ACCEPTANCE.md`, anything under `.github/` or `acceptance/` (do not create, edit or run anything there), other test files, `data/`, `.specify/`, `.opencode/`, `pyproject.toml`.
+- Never edit, rename or delete an existing test or test helper. The only exception: add `"overdue"` to the `ACCEPTED_KEYS` and `NON_ACCEPTED_KEYS` sets in `tests/test_invoice_desk.py` (change nothing else in them or in `test_accepted_and_non_accepted_rows_have_exact_key_sets`).
+- Tests for acceptance check N use exactly the rows, dates and values given in check N of the issue. Do not invent other rows or values for them.
+- Do not report diff sizes, line counts or test counts in progress notes, task lines or commit messages; CI and the receipt report the size.
+- Under 300 changed lines in total. Up to 3 fix tries per failing task, then stop and record it in `ralph-memory.md`. Install nothing. No push, no merge, no new branches, no git config changes.
+
+**Tasks**: append an "L7" phase to `tasks.md` (existing T001 to T039 unchanged).
