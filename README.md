@@ -1,3 +1,9 @@
+> **This is the code branch for L5 to L8** ([L5](https://tosin2013.github.io/invoice-exception-desk/L5-agent-loop.html), [L6](https://tosin2013.github.io/invoice-exception-desk/L6-issue-to-pr.html), [L7](https://tosin2013.github.io/invoice-exception-desk/L7-ci-grader.html), [L8](https://tosin2013.github.io/invoice-exception-desk/L8-dependabot.html), and the [PLAYBOOK](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html) wrap-up). CI grades every PR into it.
+>
+> Run the tests (223 pass) from the repo root: `uv run --no-project --with-requirements requirements-dev.txt python -m pytest -q`
+>
+> The L3-start text below is kept for history; it describes how this branch began.
+
 # L3 start: a real multi-feature project (Invoice Exception Desk)
 
 This branch is the starting point for **L3: Invoice Exception Desk walkthrough** in the [Spec Kit Developer Guide](https://tosin2013.github.io/invoice-exception-desk/L3-invoice-desk.html).
