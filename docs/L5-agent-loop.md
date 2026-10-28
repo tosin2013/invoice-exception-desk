@@ -193,4 +193,4 @@ You can't reproduce the key numbers yourself, because the key isn't published. Y
 - [ ] Grade on separate buckets: regression, each approved policy, intentional divergence
 - [ ] Push the bundle exactly as built; the human merges
 
-Compare the setup commit with the finished steps: [`d6c7d7b...l5-setup`](https://github.com/tosin2013/invoice-exception-desk/compare/d6c7d7b...l5-setup). Back: [L4.5: Upgrading Spec Kit itself](L45-speckit-upgrade.md). Back to [Home](index.md).
+Compare the setup commit with the finished steps: [`d6c7d7b...l5-setup`](https://github.com/tosin2013/invoice-exception-desk/compare/d6c7d7b...l5-setup). Next: [L6: From an approved issue to a PR you can trust](L6-issue-to-pr.md). Back: [L4.5: Upgrading Spec Kit itself](L45-speckit-upgrade.md). Back to [Home](index.md).

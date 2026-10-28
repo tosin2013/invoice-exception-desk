@@ -63,7 +63,7 @@ Status key: **exists** (live on the wiki), **draft** (started or partly written)
 - **Risks:** cost (loops can burn tokens or paid minutes), file collisions when two agents touch the same file, and weak tests that let bad code pass. Automation is only as good as your tests.
 - **Ties in with:** the L4 workshop sample (`speckit-workshop-issues-sample`) and its sample issues may make a good starting set.
 **Where learners get confused:** "unattended" doesn't mean "unreviewed"; which commands are core Spec Kit versus community extensions; why a fresh agent per task beats one long session.
-**Status:** the first worked example is written up in `docs/L5-agent-loop.md`: one sealed, unattended Ralph run on FR-007a (graded PASS, PR #14). The issue-driven parts of this outline (ready gate, issues in and out, Dependabot, `needs-human`) haven't been tried yet and aren't on that page.
+**Status:** the first worked example is written up in `docs/L5-agent-loop.md`: one sealed, unattended Ralph run on FR-007a (graded PASS, PR #14). The issue-driven parts of this outline (ready gate, issues in and out, Dependabot, `needs-human`) haven't been tried yet and aren't on that page. The second worked example, `docs/L6-issue-to-pr.md`, tries part of it: a human-written issue with acceptance checks and the `agent-ready` label as the ruling, the same container, a post-run self-check instead of a sealed key, a separate reviewer, and a human merge (issue #16, PR #17). Automatic pickup of labelled issues, `needs-human`, CI on PRs and Dependabot are still untried.
 
 ## Advanced: Multi-Agent Workflow (exists)
 **Purpose:** save tokens by pairing strong models (judgment) with cheap or free models (mechanical work).

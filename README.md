@@ -2,7 +2,7 @@
 
 Hi, and welcome! This is me **learning [GitHub Spec Kit](https://github.com/github/spec-kit) by building something real**, and writing it all down as I go.
 
-If you're new to Spec Kit too, you're in the right place. Spec Kit helps you and an AI coding assistant write down *what* you want built (a "spec") before any code gets written. This repo and its wiki are an honest, step-by-step record of trying that out, rough edges included.
+If you're new to Spec Kit too, you're in the right place. Spec Kit helps you and an AI coding assistant write down *what* you want built (a "spec") before any code gets written. This repo and its [guide site](https://tosin2013.github.io/invoice-exception-desk/) are an honest, step-by-step record of trying that out, rough edges included.
 
 ## What you'll learn
 
@@ -14,18 +14,38 @@ If you're new to Spec Kit too, you're in the right place. Spec Kit helps you and
 
 ## Start here
 
-1. Read the [wiki Home page](https://github.com/tosin2013/invoice-exception-desk/wiki) for the big picture.
-2. Jump into [L1 Setup](https://github.com/tosin2013/invoice-exception-desk/wiki/L1-Setup) to get your tools ready.
+1. Read the [guide Home page](https://tosin2013.github.io/invoice-exception-desk/) for the big picture, including a decision gate on whether Spec Kit fits your project at all.
+2. Already have code? Start at [L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html). Starting fresh? Jump into [L1 Setup](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html) to get your tools ready.
+
+The guide lives in `docs/` and is published with GitHub Pages. The [wiki](https://github.com/tosin2013/invoice-exception-desk/wiki) holds older drafts.
 
 ## The levels
 
-| Level | What you do | Status |
-|---|---|---|
-| [L1 Setup](https://github.com/tosin2013/invoice-exception-desk/wiki/L1-Setup) | Install Spec Kit, connect an assistant, write your ground rules | Outline in progress |
-| L2 First feature | Build one small feature, start to finish | Coming soon |
-| L3 Real project | Build the Invoice Exception Desk, one phase at a time | First phase done ([lessons](https://github.com/tosin2013/invoice-exception-desk/wiki/R0-Results-and-Lessons)) |
-| L4 Maintenance | Change specs, fix bugs, and keep everything in sync | Coming soon |
-| [L5 Unattended agent loop](https://tosin2013.github.io/invoice-exception-desk/L5-agent-loop.html) | Let a free-model agent loop (Spec Kit Ralph) build a ruled change in a locked-down box, graded against a sealed key, while a human keeps the big calls | One worked example done (FR-007a, graded PASS, PR #14); issue-to-PR automation and Dependabot not tried yet |
+Each level has a page on the guide site and real branches you can check out.
+
+| Level | What you do | Branches | Status |
+|---|---|---|---|
+| [L0 Existing repo](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html) | Add Spec Kit to a repo that already has code (python-slugify) | `l0-start` → `l0-solution` | Done |
+| [L1 Setup](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html) | Install Spec Kit, connect an assistant, build a tiny first feature | `l1-start` → `l1-solution` | Done |
+| [L2 First feature](https://tosin2013.github.io/invoice-exception-desk/L2-first-feature.html) | Build one small feature, start to finish, graded by a hidden answer key | `l2-start` → `l2-solution` | Done |
+| [L3 Real project](https://tosin2013.github.io/invoice-exception-desk/L3-invoice-desk.html) | Build the first slice of the Invoice Exception Desk (AT-01 to AT-04) | `l3-start` → `l3-solution` | Done |
+| [L3.5 Agent handoff](https://tosin2013.github.io/invoice-exception-desk/L35-agent-handoff.html) | Hand work from one coding agent to another (AT-05) | `l3-solution` → `l3h-handoff` | Done (PR #5) |
+| [L4 Maintenance](https://tosin2013.github.io/invoice-exception-desk/L4-maintenance.html) | Change a spec after code exists (FR-008a, constitution v2.0.0) | `l4-start` → `l3h-handoff` | Done (graded PASS, PR #8) |
+| [L4.5 Upgrading Spec Kit](https://tosin2013.github.io/invoice-exception-desk/L45-speckit-upgrade.html) | A repeatable routine for upgrading Spec Kit itself (1.1.3 → 1.2.3) | `l3h-handoff` | Done (PR #12) |
+| [L5 Unattended agent loop](https://tosin2013.github.io/invoice-exception-desk/L5-agent-loop.html) | Let a free-model agent loop (Spec Kit Ralph) build a ruled change in a locked-down box, graded against a sealed key, while a human keeps the big calls | `l5-setup` | One worked example done (FR-007a, graded PASS, PR #14); issue-to-PR automation and Dependabot not tried yet |
+| [L6 Issue to PR](https://tosin2013.github.io/invoice-exception-desk/L6-issue-to-pr.html) | Turn an approved GitHub issue into a PR you can trust: the issue is the ruling, a self-check the agent never sees grades it, and a human merges | `l5-setup` | One worked example done (FR-032, issue #16, self-check PASS, PR #17); automatic pickup of labelled issues and CI not tried yet |
+
+**Who does the work:** a human or a strong model writes the constitution, the spec, and the plan. A separate reviewer holds the answer key and grades the result. A free model, running in OpenCode, runs the tasks and the implementation.
+
+**Versions:** L1 to L4 were recorded on specify-cli 1.1.3 with OpenCode 1.19.3. L4.5 upgraded `l3h-handoff` to Spec Kit 1.2.3, and L5 and L6 run on 1.2.3 with the Ralph Loop extension v1.5.0. Older lesson branches stay on the version they were recorded with.
+
+**Run the tests** from the repo root:
+
+```bash
+uv run --no-project --with pytest python -m pytest -q
+```
+
+`l5-setup`, the latest code, has 215 tests. `main` holds the guide and the R0 files, with 15 tests.
 
 Curious how Spec Kit plugs into different assistants? See [Agent Integrations vs Extensions](https://github.com/tosin2013/invoice-exception-desk/wiki/Agent-Integrations-vs-Extensions).
 
@@ -35,7 +55,7 @@ The project we build is an **Invoice Exception Desk**, a small tool that looks a
 
 ## Where things stand
 
-The files in this repo come from the project's first phase, a planning-only step. They were **generated by a free AI model and haven't been checked by hand yet**. The model also wrote its own tests and its own expected answers, so passing tests here mostly show it agrees with itself. That turned out to be a useful lesson in its own right. Read [R0 Results and Lessons](https://github.com/tosin2013/invoice-exception-desk/wiki/R0-Results-and-Lessons) for the full story, or look at [PACKET.md](PACKET.md) and [R0_REPORT.md](R0_REPORT.md) if you want the details.
+The files at the top of `main` come from the project's first phase (R0), a planning-only step. The code built in later levels is on the level branches above. They were **generated by a free AI model and haven't been checked by hand yet**. The model also wrote its own tests and its own expected answers, so passing tests here mostly show it agrees with itself. That turned out to be a useful lesson in its own right. Read [R0 Results and Lessons](https://github.com/tosin2013/invoice-exception-desk/wiki/R0-Results-and-Lessons) for the full story, or look at [PACKET.md](PACKET.md) and [R0_REPORT.md](R0_REPORT.md) if you want the details.
 
 ## Follow along or contribute
 
