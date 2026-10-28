@@ -48,3 +48,14 @@ Its line in `MANIFEST.sha256` was updated to the new hash. The original R0 hash
 (`84e5cb4ad7a6326436c185f97bdc324871bf3905e06520ad941211fe1dbf3565`) is preserved in git history at commit
 [`8de94f6`](https://github.com/tosin2013/invoice-exception-desk/commit/8de94f69b1b6307f0fa2617dda3ad1d078b61cf8).
 No other artifact in the manifest changed.
+
+**Later the same day (2026-10-28):** `ROADMAP.md` changed again after review (Muse MSG-1343/1344,
+OpenAI MSG-1345): status definitions (`planned`, `specified`, `building`, `blocked`, `done`, `dropped`),
+the whole-row rule for `done`, an honest R0 acceptance note, and a "why this order" note. Its
+`MANIFEST.sha256` line was refreshed again. No other artifact changed.
+
+**R0 provenance is unchanged.** The R0 record is commit `8de94f6` and the manifest as it was there
+([`MANIFEST.sha256` at 8de94f6](https://github.com/tosin2013/invoice-exception-desk/blob/8de94f69b1b6307f0fa2617dda3ad1d078b61cf8/MANIFEST.sha256),
+ROADMAP.md `84e5cb4ad7a6326436c185f97bdc324871bf3905e06520ad941211fe1dbf3565`). The refreshed line in the
+current manifest tracks the evolving roadmap only. It is not a re-seal of the R0 packet, and no R0 rerun or
+revalidation is implied. Every other digest in this manifest is still the R0 value.

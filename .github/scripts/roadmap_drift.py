@@ -1,150 +1,233 @@
 #!/usr/bin/env python3
-"""Warning-only drift check between ROADMAP.md and specs/NNN-*/ (PLAYBOOK: "PM: plan the roadmap first").
+"""Drift check between ROADMAP.md and specs/NNN-*/ (PLAYBOOK: "PM: plan the roadmap first").
 
-Checks:
-  1. every specs/NNN-* dir is referenced by a ROADMAP row (or listed under "Specs outside this roadmap");
-  2. every row at specified, building or done names a spec dir that exists;
-  3. every done row has a PR link ("PR #N" or a .../pull/N URL) or a commit link (.../commit/<sha>).
-A done row may have no spec dir if its Spec dir cell is "— (pre-Spec Kit)" and it has a commit link.
-Also warns on a status outside planned|specified|building|done|dropped.
+Drift findings are WARNINGS (exit 0). Execution errors are ERRORS (exit 1): the check could not
+inspect something, so the result is UNKNOWN, never clean.
 
-A spec dir can be branch-qualified, "l5-setup:specs/003-desk-import/", for repos whose specs live on a
-different branch from the roadmap. Those are read with `git ls-tree` from origin/<branch> (or a local
-<branch>). Unqualified "specs/NNN-x/" means the checked-out tree. Standard library only. It prints
-GitHub `::warning::` annotations and ALWAYS exits 0; it never fails a build.
+Drift checks (warnings):
+  1. every specs/NNN-* dir on an inspected branch is referenced by a row, or listed under
+     "Specs outside this roadmap";
+  2. every row at specified, building or done names spec dirs that exist on the named branch;
+  3. every done row has an evidence link (a PR: "PR #N" or .../pull/N, or a commit: .../commit/<sha>);
+     a done row may have Spec dir "— (pre-Spec Kit)" instead of a spec dir if it has a commit link;
+  4. status is one of planned|specified|building|blocked|done|dropped; blocked and dropped carry a
+     reason after the status ("blocked — <reason>");
+  5. "Depends on" names known IDs; a row (other than a dropped one) that depends on a dropped row
+     is flagged, because a dropped dependency is not satisfied and the row needs re-planning.
+It checks that evidence is PRESENT. It never decides that a row is done: acceptance of the whole
+row is a human review, and this script does not read it.
+
+Branches: a spec dir may be branch-qualified, "l5-setup:specs/003-desk-import/". The branch is
+resolved to origin/<branch> first, then a local <branch>, and the resolved commit SHA is printed.
+An unqualified "specs/NNN-x/" is read from the checked-out tree (HEAD). A named branch that can't
+be resolved is an ERROR (not "missing spec"): fetch it (CI uses fetch-depth: 0) or fix the name.
+
+Standard library only; no network; read-only.
 """
 import os
 import re
 import subprocess
 import sys
 
-STATUSES = {"planned", "specified", "building", "done", "dropped"}
+STATUSES = {"planned", "specified", "building", "blocked", "done", "dropped"}
 NEEDS_SPEC = {"specified", "building", "done"}
+NEEDS_REASON = {"blocked", "dropped"}
 QUALIFIED = re.compile(r"([A-Za-z0-9._/-]+?):(specs/\d{3}-[A-Za-z0-9._-]+)")
 BARE = re.compile(r"(?<![\w/:.-])(specs/\d{3}-[A-Za-z0-9._-]+)")
 PR_LINK = re.compile(r"\bPR #\d+|/pull/\d+")
 COMMIT_LINK = re.compile(r"/commit/[0-9a-f]{7,40}\b")
 PRE_SPEC_KIT = re.compile(r"^[—-]\s*\(pre-spec kit\)$", re.I)
-SPEC_DIR_NAME = re.compile(r"^\d{3}-")
-
+ROW_ID = re.compile(r"\bR\d+\b")
+SPEC_DIR_NAME = re.compile(r"^specs/\d{3}-")
+REQUIRED_COLS = ["id", "status", "spec dir", "issue / pr", "depends on"]
 
 FILE = "ROADMAP.md"
+WARNINGS = 0
+ERRORS = 0
+
+
+class CheckError(Exception):
+    pass
 
 
 def warn(msg, line=None):
+    global WARNINGS
+    WARNINGS += 1
     loc = f" file={FILE},line={line}" if line else f" file={FILE}"
     print(f"::warning{loc}::{msg}")
 
 
+def error(msg, line=None):
+    global ERRORS
+    ERRORS += 1
+    loc = f" file={FILE},line={line}" if line else f" file={FILE}"
+    print(f"::error{loc}::ERROR (result UNKNOWN): {msg}")
+
+
 def git(*args):
-    r = subprocess.run(["git", *args], capture_output=True, text=True)
-    return r.stdout if r.returncode == 0 else None
+    try:
+        r = subprocess.run(["git", *args], capture_output=True, text=True)
+    except OSError as exc:
+        raise CheckError(f"git could not run: {exc}")
+    return r.returncode, r.stdout, r.stderr.strip()
 
 
-def resolve_ref(branch):
+def resolve(branch):
+    """(ref, sha) for a branch name, or None if it can't be resolved."""
     for ref in (f"origin/{branch}", branch):
-        if git("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"):
-            return ref
+        rc, out, _ = git("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
+        if rc == 0 and out.strip():
+            return ref, out.strip()
     return None
 
 
-def spec_dirs_on(branch):
-    """Set of 'specs/NNN-x' dirs on a branch, or None if the branch can't be read."""
-    if branch is None:
-        if not os.path.isdir("specs"):
-            return set()
-        return {f"specs/{d}" for d in os.listdir("specs")
-                if SPEC_DIR_NAME.match(d) and os.path.isdir(os.path.join("specs", d))}
-    ref = resolve_ref(branch)
-    if ref is None:
-        return None
-    out = git("ls-tree", "-d", "--name-only", f"{ref}:specs")
-    if out is None:
+def spec_dirs_at(sha):
+    rc, out, err = git("ls-tree", "-d", "--name-only", sha, "specs/")
+    if rc != 0:
+        raise CheckError(f"git ls-tree {sha[:12]} specs/ failed: {err}")
+    return {d for d in out.split() if SPEC_DIR_NAME.match(d)}
+
+
+def checkout_dirs():
+    if not os.path.isdir("specs"):
         return set()
-    return {f"specs/{d}" for d in out.split() if SPEC_DIR_NAME.match(d)}
+    return {f"specs/{d}" for d in os.listdir("specs")
+            if re.match(r"^\d{3}-", d) and os.path.isdir(os.path.join("specs", d))}
 
 
 def refs_in(text):
-    """[(branch or None, 'specs/NNN-x')] referenced in text."""
     found = [(b, d) for b, d in QUALIFIED.findall(text)]
     found += [(None, d) for d in BARE.findall(QUALIFIED.sub("", text))]
     return found
 
 
-def main(path="ROADMAP.md"):
-    global FILE
-    FILE = path
-    if not os.path.exists(path):
-        warn(f"{path} not found; nothing to check")
-        return
-    lines = open(path, encoding="utf-8").read().splitlines()
-    header = None
-    rows = []
-    accounted = set()
-    outside = False
+def split_row(line):
+    # Pipes inside `code` are not used in ROADMAP.md tables; a plain split is enough.
+    return [c.strip() for c in line.strip().strip("|").split("|")]
+
+
+def parse(path):
+    try:
+        lines = open(path, encoding="utf-8").read().splitlines()
+    except OSError as exc:
+        raise CheckError(f"can't read {path}: {exc}")
+    header, rows, accounted, outside = None, [], set(), False
     for n, line in enumerate(lines, 1):
         if line.startswith("#"):
             outside = "specs outside this roadmap" in line.lower()
         if outside:
             accounted.update(refs_in(line))
         if not line.startswith("|"):
-            header = None if not line.strip() else header
+            if not line.strip():
+                header = None
             continue
-        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        cells = split_row(line)
         if header is None:
             header = [c.lower() for c in cells]
             continue
         if all(set(c) <= set("-: ") for c in cells):
             continue
-        if "id" in header and "status" in header and "spec dir" in header:
-            rows.append((n, dict(zip(header, cells))))
-
+        if not all(c in header for c in REQUIRED_COLS):
+            continue
+        if len(cells) != len(header):
+            raise CheckError(f"line {n}: row has {len(cells)} cells, header has {len(header)}")
+        rows.append((n, dict(zip(header, cells))))
     if not rows:
-        warn("no roadmap table with ID, Status and Spec dir columns found")
-        return
+        raise CheckError(f"no roadmap table with columns {', '.join(REQUIRED_COLS)} in {path}")
+    return rows, accounted
 
-    branches = {None}
+
+def main(path="ROADMAP.md"):
+    global FILE
+    FILE = path
+    rows, accounted = parse(path)
+
+    rc, head, err = git("rev-parse", "HEAD")
+    if rc != 0:
+        raise CheckError(f"git rev-parse HEAD failed: {err}")
+    print(f"inspected: this checkout (HEAD) @ {head.strip()}")
+
+    named = set()
     for _, row in rows:
-        branches.update(b for b, _ in refs_in(row.get("spec dir", "")))
-    branches.update(b for b, _ in accounted)
-    existing = {b: spec_dirs_on(b) for b in branches}
+        named.update(b for b, _ in refs_in(row.get("spec dir", "")) if b)
+    named.update(b for b, _ in accounted if b)
+    existing = {None: checkout_dirs()}
+    unreadable = set()
+    for b in sorted(named):
+        r = resolve(b)
+        if r is None:
+            unreadable.add(b)
+            error(f"branch '{b}' can't be resolved (not origin/{b} or a local branch); "
+                  f"its spec dirs were NOT checked")
+            continue
+        ref, sha = r
+        existing[b] = spec_dirs_at(sha)
+        print(f"inspected: branch {b} -> {ref} @ {sha} ({len(existing[b])} spec dirs)")
 
+    def first_word(cell):
+        words = cell.strip("` ").split()
+        return words[0].strip("`").lower() if words else ""
+
+    status_of = {row.get("id", ""): first_word(row.get("status", "")) for _, row in rows}
+
+    done_with_evidence = 0
     for n, row in rows:
-        rid, status = row.get("id", "?"), row.get("status", "").strip("` ").lower()
+        rid = row.get("id", "?")
+        raw = row.get("status", "").strip()
+        status = status_of.get(rid, "")
+        note = raw[len(status):].strip(" `—-:;") if status else ""
         if status not in STATUSES:
-            warn(f"{rid}: status '{status}' is not one of {'|'.join(sorted(STATUSES))}", n)
+            warn(f"{rid}: status '{raw}' is not one of {'|'.join(sorted(STATUSES))}", n)
+        if status in NEEDS_REASON and not note:
+            warn(f"{rid} is '{status}' with no reason (write '{status} — <reason>')", n)
+
+        for dep in ROW_ID.findall(row.get("depends on", "")):
+            if dep not in status_of:
+                warn(f"{rid} depends on {dep}, which is not a row", n)
+            elif status_of[dep] == "dropped" and status != "dropped":
+                warn(f"{rid} is '{status}' but depends on {dep}, which is dropped (not satisfied)", n)
+
         dirs = refs_in(row.get("spec dir", ""))
         accounted.update(dirs)
         evidence = row.get("issue / pr", "")
         has_commit = bool(COMMIT_LINK.search(evidence))
+        has_pr = bool(PR_LINK.search(evidence))
         pre_spec_kit = (status == "done" and not dirs and has_commit
                         and PRE_SPEC_KIT.match(row.get("spec dir", "").strip()))
         if status in NEEDS_SPEC and not pre_spec_kit:
             if not dirs:
                 warn(f"{rid} is '{status}' but names no spec dir", n)
             for b, d in dirs:
-                have = existing.get(b)
-                where = f"branch {b}" if b else "this checkout"
-                if have is None:
-                    warn(f"{rid}: can't read branch '{b}' to check {d} (fetch it, e.g. fetch-depth: 0)", n)
-                elif d not in have:
+                if b in unreadable:
+                    continue  # already reported as an ERROR; never reported as missing
+                if d not in existing[b]:
+                    where = f"branch {b}" if b else "this checkout"
                     warn(f"{rid}: spec dir {d} does not exist on {where}", n)
-        if status == "done" and not (PR_LINK.search(evidence) or has_commit):
-            warn(f"{rid} is 'done' but has no PR or commit link in Issue / PR", n)
+        if status == "done":
+            if has_pr or has_commit:
+                done_with_evidence += 1
+            else:
+                warn(f"{rid} is 'done' but has no PR or commit link in Issue / PR", n)
 
     for b, have in existing.items():
-        for d in sorted(have or ()):
+        for d in sorted(have):
             if (b, d) not in accounted:
                 where = f"{b}:{d}" if b else d
                 warn(f"{where} has no ROADMAP row (add one, or list it under 'Specs outside this roadmap')")
 
-    checked = ", ".join(sorted(b or "this checkout" for b in existing))
-    print(f"roadmap drift check: {len(rows)} rows; spec dirs read from: {checked}")
+    print(f"rows: {len(rows)}; done rows with an evidence link: {done_with_evidence} "
+          f"(evidence presence only; whole-row acceptance is a human review, not checked here)")
 
 
 if __name__ == "__main__":
     try:
         main(*sys.argv[1:2])
-    except Exception as exc:  # warning-only: never fail the build
-        print(f"::warning::roadmap drift check could not run: {exc}")
+    except CheckError as exc:
+        error(str(exc))
+    except Exception as exc:  # any crash is an execution error, never a clean result
+        error(f"checker crashed: {type(exc).__name__}: {exc}")
+    if ERRORS:
+        print(f"RESULT: ERROR — {ERRORS} error(s), {WARNINGS} warning(s); the check did not complete, result UNKNOWN")
+        sys.exit(1)
+    print(f"RESULT: {'CLEAN' if WARNINGS == 0 else 'DRIFT'} — {WARNINGS} warning(s), 0 errors")
     sys.exit(0)

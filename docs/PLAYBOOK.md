@@ -67,62 +67,139 @@ What our runs used (pin your own versions and trust your own `--help` over ours)
 
 ### PM: plan the roadmap first
 
-Spec Kit starts at **one feature**: `/speckit.specify` takes a single "what and why". Nothing in core breaks a product into features, orders them or tracks which ones are built. Spec Kit's own docs cover that gap with a plain-Markdown convention, not a command: [Spec of Specs](https://github.github.io/spec-kit/concepts/spec-of-specs.html) (a roadmap pass, a roadmap table, and two-way links between the roadmap and each spec). Use it before the first `/speckit.specify`. The PM owns the roadmap and never has to touch code: it's one file, editable in the GitHub web UI.
+Spec Kit starts at **one feature**: `/speckit.specify` takes a single "what and why". Nothing in core breaks a product into features, orders them or tracks which ones are finished. Spec Kit's own docs fill that gap with a plain-Markdown convention, not a command: [Spec of Specs](https://github.github.io/spec-kit/concepts/spec-of-specs.html), which describes a roadmap pass, a roadmap table, and links both ways between the roadmap and each spec. Use it when the product is bigger than one feature. A single small change doesn't need a roadmap. The PM owns the roadmap without touching code: it's one file, editable in the GitHub web UI.
 
-**One roadmap of record: `ROADMAP.md` at the repo root.** It names and orders features; it doesn't design them. GitHub issues and PRs are *linked* from it, not a second place to keep status. Columns:
+**One roadmap of record: `ROADMAP.md` at the repo root.** It's the record for this repo's technical roadmap. It names and orders features; it doesn't design them. Issues and PRs are *linked* from it, not a second place to keep status. **Boards are views, not records:** a GitHub Projects, Jira or Linear board can show the rows, but status of record stays in `ROADMAP.md`.
+
+Columns:
 
 | ID | Feature | One-line scope (in / out) | Outcome | Depends on | Order | Milestone | Status | Spec dir | Issue / PR |
 |---|---|---|---|---|---|---|---|---|---|
 | R1 | short name | what's in / what's deferred to a sibling | what's observably true when done | R0 | 1 | MVP | planned | — | — |
 
 - **ID** (`R1`, `R2`, ...) never changes once a spec cites it. **Order** is the PM's priority, lowest first. **Milestone** is a release name, or a GitHub milestone if you use them.
-- **Status** is one of `planned` · `specified` · `building` · `done` · `dropped`.
-- **Done evidence:** a `done` row links the PR that finished it, or a commit; work from before Spec Kit may set Spec dir to `— (pre-Spec Kit)` if it has a commit link.
-- **Spec dir** is the feature's `specs/NNN-name/`. If specs live on another branch than the roadmap, name the branch too: `l5-setup:specs/003-desk-import/` (our [`ROADMAP.md`](https://github.com/tosin2013/invoice-exception-desk/blob/main/ROADMAP.md) does this).
+- **Spec dir** and **Issue / PR** may each hold several entries; a row often needs more than one spec. If specs live on a different branch from the roadmap, name the branch too: `l5-setup:specs/003-desk-import/`.
 - Every `spec.md` opens with an `Input:` line naming its row, for example `**Input**: Parent roadmap -> R2. <feature description>`, so you can grep from a spec to its row and back.
+
+**Status** (one per row):
+
+- `planned`: no reviewed spec yet. The row is a candidate for `/speckit.specify`, not a build job.
+- `specified`: the row has a usable, reviewed spec. Implementation hasn't started.
+- `building`: implementation is underway, but the row's exit criteria aren't all met yet.
+- `blocked — <reason>; reopen when <condition>`: something outside the row's own work stops it. We keep `blocked` as a status rather than a separate field because it's one column the PM reads at a glance, and a blocked row is never eligible to run. The reason and reopen condition go in the same cell.
+- `done`: the row's **full** exit criteria are met, and the row's accountable reviewer has accepted it. Only the change that meets them sets `done`. A PR or commit link proves that a change exists, not that it was accepted. A row finished before Spec Kit was used can show `— (pre-Spec Kit)` as its Spec dir, with a commit link as evidence.
+- `dropped — <reason>`: removed on purpose. A dropped dependency is **not** satisfied, so re-plan the rows that depend on it.
+
+**Planning the roadmap, not just keeping it.**
+
+- **Outcome first.** A row is ready for the roadmap when you can state its outcome in one line. If you can't, it's an idea, not a row yet.
+- **Horizons.** Fully scope the next 1 or 2 rows: scope in and out, outcome, dependencies. Sketch the rows after those. Give far rows one line each. Detail is earned by proximity, and over-specified far rows are how roadmaps rot.
+- **Order.** Dependencies first, then the riskiest assumption earliest, then value.
+- **Replan** on triggers and on a cadence. Triggers: a row finishes, a dependency slips, a milestone arrives, or building a row shows its scope was wrong. Cadence: a regular review, for example each milestone or monthly. Keep, reorder, split or drop rows, and write down why.
+- **Drop deliberately.** Drop a row when its outcome stops mattering or its cost outgrows its value. Set `dropped — <reason>`. A roadmap that only grows isn't a plan.
+
+**Long-term walkthrough** (condensed; a fuller version may come later):
+
+1. **Start with the destination.** Who the user is, their problem, and what success looks like in roughly 6 to 12 months. Make it measurable if you can, but it's a direction, not a delivery promise.
+2. **Work backward** to the outcomes needed to get there, their dependencies, and the riskiest assumptions. Say why each row belongs and what's out of scope.
+3. **Now / Next / Later.** Only Now and Next get enough scope to specify. Later stays at the outcome level.
+4. **Choose the next slice deliberately** by readiness, user value, risk reduction and effort. The PM shows that reasoning in `Order`; the loop never decides it.
+5. **Replan from evidence.** After each delivery, compare the result with the row's outcome, then keep, reorder, split or drop rows. Label any user results you haven't observed as hypothetical.
 
 **Who updates what.**
 
 | When | Who | Change |
 |---|---|---|
-| Plan or replan | the PM | add, reorder or re-scope rows; update the roadmap first, then the specs it affects |
-| After `/speckit.specify` | whoever ran it | `planned` → `specified`, fill in `Spec dir`, in the same commit as the spec |
-| A build starts (optional) | the operator | `specified` → `building` |
-| The PR that finishes the feature merges | that PR's author, in the same PR; a human merges | → `done`, add the PR link |
+| Plan or replan | the PM | Add, reorder, re-scope, block or drop rows. Update the roadmap first, then the specs it affects. |
+| After `/speckit.specify` and review | whoever ran it | `planned` → `specified`, add the spec dir, in the same commit as the spec |
+| A build starts | the operator | → `building` |
+| A PR finishes one of the row's specs | that PR's author | add the PR link; the row stays `building` |
+| The change that meets the row's full exit criteria | its author proposes, the row's reviewer accepts, a human merges | → `done`, with the evidence links |
 | Inside the Ralph loop | **never** | the loop doesn't edit `ROADMAP.md`, just as it doesn't edit the spec or plan |
 
-**How it feeds Ralph, one feature at a time.** Take the lowest-`Order` row whose `Depends on` rows are all `done`. Run specify, clarify, plan, tasks and analyze for that row only ([step by step](#run-spec-kit-step-by-step-no-assumptions)), then start Ralph with `--spec-dir specs/<that row's dir>` ([how the Ralph loop runs each spec](#how-the-ralph-loop-runs-each-spec)). Ralph never picks the feature; the roadmap and the operator do. In the issue-driven flow (L6 and up), the `agent-ready` ruling issue is the row's issue link.
+**How it feeds Ralph: the operator picks the next eligible row.** A row is eligible to build when all of these hold:
 
-**Worked example.** Our own [`ROADMAP.md`](https://github.com/tosin2013/invoice-exception-desk/blob/main/ROADMAP.md) had drifted: R1 still said `planned` after its two specs (`003-desk-import`, `004-deterministic-followup-queue`) were built and merged. It now uses these columns, R1 is `building` with both spec dirs and its PRs linked, and it says why R1 isn't `done` yet.
+- its status is `specified` or `building`;
+- every `Depends on` row is `done` (a `dropped` dependency doesn't count);
+- its spec, plan and tasks exist and are approved, and analyze has run;
+- its required approvals are in place (from L6 on, the ruling issue has `agent-ready`);
+- the run preflight passes.
+
+Among eligible rows, take the lowest `Order`. A `planned` row is a candidate for `/speckit.specify` ([step by step](#run-spec-kit-step-by-step-no-assumptions)), not a Ralph job. If any input is ambiguous, missing or `blocked`, stop and ask the PM; don't pick around it. Then start Ralph with `--spec-dir specs/<the spec you're building>` ([how the Ralph loop runs each spec](#how-the-ralph-loop-runs-each-spec)). Ralph builds what it's given and never picks the row.
+
+**Worked example.** Our own [`ROADMAP.md`](https://github.com/tosin2013/invoice-exception-desk/blob/main/ROADMAP.md) had drifted: R1 still said `planned` after its two specs were built and merged.
+
+- **R1 is now `building`, not `done`.** Both of its spec dirs and all of its PRs are linked, but its exit criteria also cover AT-09 and AT-10, and no spec covers those yet.
+- **R2 follows R1** because R1 computes the remaining balance and R2's payment events recalculate it.
+- **R5 waits for R2 and R3** because it migrates the v2a and v2b schemas they introduce.
+- **Where the file gives no reason, we say so.** It doesn't say why R4 comes after R3, or which assumption is riskiest.
+- **R0 has its own note.** Its `done` is the original freeze record, which was self-graded.
+
+**Completion check before you set `done`** (condensed; a fuller version may come later). For each spec the row needs, record:
+
+- the roadmap ID, spec dir and revision;
+- the acceptance evidence;
+- what happened to each task (done, or deferred with the owner's OK and a reason);
+- the PR and target branch;
+- the reviewer and any remaining gap.
+
+Check both directions: no required spec is missing from the row, and no in-scope spec sits outside it. Confirm the work is merged into the intended branch, and that the spec, tasks, roadmap and linked issues describe the same scope. Ticked boxes, a green suite or a merged PR alone are not completion. Missing or contradictory evidence means not `done`. The drift check below is structural only and never proves this check passed.
 
 **Roadmap prompt.** Paste this into any harness:
 
 ```text
 You are helping a product manager plan a roadmap. Don't write code or specs.
 1. Read the constitution (.specify/memory/constitution.md), README, and any NON_GOALS or PRD file. List the dirs under specs/ on every branch I tell you holds specs.
-2. Restate the product outcome in one or two sentences and ask me to confirm.
-3. Propose 4 to 10 features. Each must be independently testable and small enough for one /speckit.specify run. For each: a one-line scope (what's IN, what's deferred to another row), the observable outcome, and which rows it depends on.
-4. Order them: dependencies first, then the shortest path to the outcome. Ask me about priority and milestones, one question at a time, and wait for each answer. Don't guess.
-5. Map every existing specs/NNN-* dir to a row (status specified, building or done) and list any dir that fits no row. Don't invent rows to absorb them; ask me.
+2. Ask me for the destination: the user, their problem, and what success looks like in 6-12 months. Restate the outcome in one or two sentences and ask me to confirm.
+3. Propose features: 4-10 is a starting range, not a quota. Each must be independently testable and small enough for one /speckit.specify run, with a one-line outcome (if you can't state one, it's an idea, not a row). Fully scope only the next 1-2 rows (scope in/out, dependencies); sketch the rest.
+4. Order them: dependencies first, then the riskiest assumption, then value. Ask me about priority and milestones one question at a time, and wait for each answer. Don't guess.
+5. Map every existing specs/NNN-* dir to a row (a row may have several) and list any dir that fits no row. Don't invent rows to absorb them; ask me.
 6. Write ROADMAP.md at the repo root with this table:
    | ID | Feature | One-line scope (in / out) | Outcome | Depends on | Order | Milestone | Status | Spec dir | Issue / PR |
-   Status is one of planned|specified|building|done|dropped. IDs (R1, R2, ...) never change.
+   Status is one of planned, specified, building, blocked — <reason>, done, dropped — <reason>. IDs (R1, R2, ...) never change. Don't set done unless I confirm the whole row's exit criteria were met and accepted.
 7. STOP. Show me the table and wait for my approval. Don't run /speckit.specify.
-8. After I approve, ask: "Which platform hosts this repo (GitHub, GitLab, Bitbucket, other)?" Then offer to open one issue per row as described in "Open issues against the roadmap". Don't open any issue until I say yes, and show me the titles first.
-The next step after that is /speckit.specify for the first row whose dependencies are done, with an Input line citing its ID.
+8. After I approve, ask: "Which platform hosts this repo (GitHub, GitLab, Bitbucket, other)?" Offer to open or update one issue per row, as in "Open issues against the roadmap". First search for existing issues by roadmap ID and show me which you'd reuse, update or create. Creating or editing issues needs its own OK from me; approving the roadmap is not that OK.
+The next step after that is /speckit.specify for the first planned row whose dependencies are done, with an Input line citing its ID.
 ```
 
-**Open issues against the roadmap (optional).** Issues are where people discuss and rule on a row; status still lives in `ROADMAP.md`. Each issue names its row ID (for example a title starting `R2:` and `Roadmap: R2` in the body), and the row's `Issue / PR` column gets the issue link. Open them only with the user's OK.
+**Open issues against the roadmap (optional).** Issues are where people discuss and rule on a row; status still lives in `ROADMAP.md`. Each issue names its row ID (a title starting `R2:` and `Roadmap: R2` in the body), and the row's `Issue / PR` column gets the link. **Reuse before you create:** search for the ID first, so a rerun doesn't make duplicates, and update an issue you find rather than opening another. Creating or editing issues needs the user's explicit OK, separate from approving the roadmap.
 
-- **On GitHub:** for a row, `gh issue create --title "R2: Payment events" --body "Roadmap: R2 in ROADMAP.md. <scope and outcome from the row>"` (add `--milestone` or `--label` if you use them), then paste the issue URL into the row. For a feature's **tasks** (not rows), Spec Kit v1.2.4 has a bundled, opt-in [`github` extension](https://github.com/github/spec-kit/tree/main/extensions/github): `specify extension add github`, then `/speckit.github.taskstoissues` (spelled `/speckit-github-taskstoissues` or `$speckit-github-taskstoissues` in some harnesses). It reads the feature's `tasks.md`, stops unless the git remote is GitHub, needs the GitHub MCP server, and creates `T001: ...` issues only for tasks that don't have one yet. The older core `/speckit.taskstoissues` still works in v1.2.4 but is deprecated ([extensions reference](https://github.github.io/spec-kit/reference/extensions.html)).
-- **Not on GitHub** (GitLab, Bitbucket, Azure DevOps, Jira, ...): search the catalog for your platform, `specify extension search <platform>` or the [community extensions page](https://github.github.io/spec-kit/community/extensions.html). Community entries are discovery-only, so you install them with `specify extension add <id> --from <release archive URL>` after reading them. On 2026-10-28 the catalog listed, among others, [azure-devops](https://github.com/pragya247/spec-kit-azure-devops), [jira](https://github.com/mbachorik/spec-kit-jira) and [linear](https://github.com/ashbrener/spec-kit-linear-sync); we haven't tried them. We found no GitLab or Bitbucket issue extension. If there's none for your platform, use its CLI or web UI and paste the link into the `Issue / PR` column.
+- **On GitHub:**
+  - **Rows:** first run `gh issue list --state all --search "R2 in:title"`. If nothing comes back, run `gh issue create --title "R2: Payment events" --body "Roadmap: R2 in ROADMAP.md. <scope and outcome from the row>"`, adding `--milestone` or `--label` if you use them. Paste the URL into the row.
+  - **Tasks:** for a feature's **tasks** (not rows), Spec Kit v1.2.4 has a bundled, opt-in [`github` extension](https://github.com/github/spec-kit/tree/main/extensions/github). Run `specify extension add github`, then `/speckit.github.taskstoissues` (spelled `/speckit-github-taskstoissues` or `$speckit-github-taskstoissues` in some harnesses).
+  - **What that command does:** it reads the feature's `tasks.md` and stops unless the git remote is GitHub. It needs the GitHub MCP server. It skips tasks that already have an issue and creates `T001: ...` issues for the rest.
+  - **The older command:** core `/speckit.taskstoissues` still works in v1.2.4 but is deprecated ([extensions reference](https://github.github.io/spec-kit/reference/extensions.html)).
+- **Not on GitHub** (GitLab, Bitbucket, Azure DevOps, Jira, ...):
+  - **Search the catalog** for your platform: `specify extension search <platform>`, or the [community extensions page](https://github.github.io/spec-kit/community/extensions.html). Community entries are discovery-only: read one first, then install it with `specify extension add <id> --from <release archive URL>`.
+  - **What we found** on 2026-10-28: the catalog listed, among others, [azure-devops](https://github.com/pragya247/spec-kit-azure-devops), [jira](https://github.com/mbachorik/spec-kit-jira) and [linear](https://github.com/ashbrener/spec-kit-linear-sync); we haven't tried them. We found no GitLab or Bitbucket issue extension.
+  - **If there's none** for your platform, use its CLI or web UI, search by ID first, and paste the link into the `Issue / PR` column.
 
-**Optional automation.**
+> **Sidebar: optional automation (last checked 2026-10-28).** Neither tool is needed for anything above.
+>
+> - **[speckit-roadmap](https://github.com/srobroek/speckit-roadmap)**. *Maturity:* early; v0.1.1, one maintainer; the catalog still lists v0.1.0, which doesn't install on Spec Kit 1.x.
+>   - *What it does:* adds `/speckit.roadmap.write`, plus read-only `brief`, `debrief` and `sync`, which reconcile a roadmap ledger with `specs/*/`.
+>   - *Install:* `specify extension add roadmap --from https://github.com/srobroek/speckit-roadmap/archive/refs/tags/v0.1.1.zip`, then `specify extension enable roadmap`.
+>   - **Known bug:** open issues [#4](https://github.com/srobroek/speckit-roadmap/issues/4) and [#10](https://github.com/srobroek/speckit-roadmap/issues/10) report that the archive ships its own `.specify/`, so its config loader can read the extension's roadmap instead of yours. Check which file it resolves before you trust it.
+>   - *Limits:* the default ledger is `.specify/memory/roadmap.md` (configurable), and there's no priority or milestone field.
+> - **[repo-governor](https://github.com/tosin2013/repo-governor)**, for unattended or high-assurance repos. *Maturity:* v0.8.0; its README says "architecture ready, thesis under validation".
+>   - *What it does:* answers a different question: is this feature *admitted* now (for example, on the current GitHub milestone), and is it done, so the agent stops? It doesn't own the roadmap.
+>   - **Its Spec Kit extension isn't built yet:** [ADR-037](https://github.com/tosin2013/repo-governor/blob/main/docs/adrs/037-a-spec-kit-extension-delivers-governance-at-spec-kits-steps.md) is Proposed, and issues [#265](https://github.com/tosin2013/repo-governor/issues/265) to [#270](https://github.com/tosin2013/repo-governor/issues/270) are open.
+>   - *Install for now, as an agent skill:* `git clone --branch v0.8.0 https://github.com/tosin2013/repo-governor /tmp/rg && /tmp/rg/tools/install-skill.sh /path/to/your/repo .claude/skills`. Pick the skills folder your harness reads; see its README.
 
-- [speckit-roadmap](https://github.com/srobroek/speckit-roadmap) adds `/speckit.roadmap.write` plus read-only `brief`, `debrief` and `sync` that reconcile a roadmap ledger with `specs/*/`. Pin **v0.1.1** (the catalog's v0.1.0 doesn't install on Spec Kit 1.x): `specify extension add roadmap --from https://github.com/srobroek/speckit-roadmap/archive/refs/tags/v0.1.1.zip`, then `specify extension enable roadmap`. **Warning:** open issues [#4](https://github.com/srobroek/speckit-roadmap/issues/4) and [#10](https://github.com/srobroek/speckit-roadmap/issues/10) report that the archive ships its own `.specify/`, so its config loader can read the extension's roadmap instead of yours. Check which file it resolves before you trust it. Its default ledger is `.specify/memory/roadmap.md` (configurable), and it has no priority or milestone field.
-- [repo-governor](https://github.com/tosin2013/repo-governor) (optional, for unattended or high-assurance repos) answers a different question: is this feature *admitted* now (for example, on the current GitHub milestone), and is it done, so the agent stops? It doesn't own the roadmap. **Its Spec Kit extension isn't built yet:** [ADR-037](https://github.com/tosin2013/repo-governor/blob/main/docs/adrs/037-a-spec-kit-extension-delivers-governance-at-spec-kits-steps.md) is Proposed and issues [#265](https://github.com/tosin2013/repo-governor/issues/265) to [#270](https://github.com/tosin2013/repo-governor/issues/270) are open. For now it installs as an agent skill: `git clone --branch v0.8.0 https://github.com/tosin2013/repo-governor /tmp/rg && /tmp/rg/tools/install-skill.sh /path/to/your/repo .claude/skills` (pick the skills folder your harness reads; see its README).
+**Drift check.** [`roadmap-drift.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/main/.github/workflows/roadmap-drift.yml) runs [`roadmap_drift.py`](https://github.com/tosin2013/invoice-exception-desk/blob/main/.github/scripts/roadmap_drift.py). It uses only the Python standard library, has no network access, and gets a `contents: read` token. It runs on PRs and pushes that touch `ROADMAP.md` or `specs/**`.
 
-**Drift check (warning only).** [`roadmap-drift.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/main/.github/workflows/roadmap-drift.yml) runs [`roadmap_drift.py`](https://github.com/tosin2013/invoice-exception-desk/blob/main/.github/scripts/roadmap_drift.py) (Python standard library, no network, `contents: read`) on PRs and pushes that touch `ROADMAP.md` or `specs/**`. It warns when a `specs/NNN-*` dir has no row, when a row at `specified` or later names a spec dir that doesn't exist, or when a `done` row has no PR or commit link. Branch-qualified spec dirs are read from that branch with `git ls-tree`. It only adds `::warning::` annotations and always exits 0; make it fail later if your team wants.
+- **Warnings** (it never fails on these):
+  - a `specs/NNN-*` dir has no row;
+  - a row at `specified` or later names a spec dir that doesn't exist;
+  - a `done` row has no PR or commit link;
+  - a status isn't in the list above;
+  - a `blocked` or `dropped` row gives no reason;
+  - a dependency is unknown or `dropped`.
+- **Errors fail the check.** A git failure, a branch it can't resolve, or a table it can't parse prints `ERROR (result UNKNOWN)`, so a check that didn't run never looks clean.
+- **How it finds specs:** a branch-qualified spec dir is read from `origin/<branch>` (or a local branch) with `git ls-tree`. It prints the commit SHA it read on each branch, and it tells a missing path apart from a branch it can't read.
+- **What it doesn't check:** whether a link means acceptance. It never decides a row is `done`.
+- **Where it runs:** only where the workflow file exists. Here that's `main` and branches made from it, so a spec added on `l5-setup` is caught the next time `ROADMAP.md` changes, or on a manual run.
+- **Making it blocking:** do that once the team trusts it, for example after about four weeks with no false positives.
 
 ### Run Spec Kit step by step (no assumptions)
 

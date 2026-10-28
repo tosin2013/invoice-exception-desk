@@ -7,12 +7,35 @@ invoicing, collections, payments, or a QuickBooks replacement (see `NON_GOALS.md
 - Product source: Notion child plan **"DRAFT v0.1 — Invoice Exception Desk"** (`<internal-plan-id>`).
 - This roadmap starts at **R0**, the only stage marked `[planned]` on the source plan.
 
-Owner of this file: the PM / Founder (plans and replans). Status legend: `planned` · `specified` ·
-`building` · `done` · `dropped`. IDs never change. `Order` is the PM's priority (lowest first). Owner per
-stage is the accountable party (see each section); the reviewer approves stage exit. This file is the
-**one roadmap of record**: GitHub issues and PRs are linked from it, not a second status source.
-A `done` row needs a PR link or a commit link as evidence; a `done` row from before Spec Kit (R0) may
-have Spec dir `— (pre-Spec Kit)` if it has a commit link.
+Owner of this file: the PM / Founder (plans and replans). This file is the **one roadmap of record**:
+GitHub issues and PRs are linked from it, not a second status source; boards are views, not records.
+IDs never change. `Order` is the PM's priority (lowest first). Owner per stage is the accountable party
+(see each section); that stage's reviewer accepts its exit.
+
+Status legend (one per row):
+
+- `planned` — on the roadmap, no reviewed spec yet. A candidate for `/speckit.specify`, not a build job.
+- `specified` — the row has a usable, reviewed spec (spec.md, and plan/tasks once written); no
+  implementation yet.
+- `building` — implementation is underway on one or more of the row's specs; the row's exit criteria
+  are not all met. A PR that finishes one of several specs adds its link and the row stays `building`.
+- `blocked — <reason>; reopen when <condition>` — can't proceed for a reason outside the row's own work.
+  Spec dirs and links stay. Never eligible to run.
+- `done` — the row's **full** exit criteria (its section below) are met and the stage reviewer has
+  accepted it. Only the change that meets them sets `done`. A PR or commit link is evidence that a change
+  exists, not that it was accepted.
+- `dropped — <reason>` — removed on purpose. A dropped dependency is **not** satisfied: rows that
+  depend on it must be re-planned.
+
+Rows may list several spec dirs and several issue/PR/commit links. A `done` row needs at least one PR or
+commit link; a row finished before Spec Kit was used (R0) may have Spec dir `— (pre-Spec Kit)` if it has a
+commit link.
+
+**R0 provenance is unchanged.** R0's record is the freeze commit
+[`8de94f6`](https://github.com/tosin2013/invoice-exception-desk/commit/8de94f69b1b6307f0fa2617dda3ad1d078b61cf8)
+and its [`MANIFEST.sha256`](https://github.com/tosin2013/invoice-exception-desk/blob/8de94f69b1b6307f0fa2617dda3ad1d078b61cf8/MANIFEST.sha256)
+(ROADMAP.md `84e5cb4a…dbf3565`). Restructuring this file later changed only its current hash (see
+`PACKET.md`); no R0 rerun or revalidation is implied.
 
 **Where the specs live:** this roadmap is on `main`, but the code and `specs/` live on the
 [`l5-setup`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup) branch. So `Spec dir` names the branch as well as the path
@@ -21,7 +44,7 @@ paths from that branch with `git ls-tree`.
 
 | ID | Feature | One-line scope (in / out) | Outcome | Depends on | Order | Milestone | Status | Spec dir | Issue / PR |
 |----|---------|---------------------------|---------|------------|-------|-----------|--------|----------|------------|
-| R0 | Discovery & Spec Kit | In: data contract, fixture, oracle, acceptance suite, guardrails / Out: any app code (R1) | Discovery kit frozen; `tests/test_oracle.py` green; oracle recomputes exactly | — | 1 | — | done | — (pre-Spec Kit) | [commit `8de94f6`](https://github.com/tosin2013/invoice-exception-desk/commit/8de94f69b1b6307f0fa2617dda3ad1d078b61cf8) (frozen before PRs were used) |
+| R0 | Discovery & Spec Kit | In: data contract, fixture, oracle, acceptance suite, guardrails / Out: any app code (R1) | Discovery kit frozen; `tests/test_oracle.py` green; oracle recomputes exactly | — | 1 | — | done — R0 freeze record (see note) | — (pre-Spec Kit) | [commit `8de94f6`](https://github.com/tosin2013/invoice-exception-desk/commit/8de94f69b1b6307f0fa2617dda3ad1d078b61cf8) (frozen before PRs were used) |
 | R1 | Exception Desk MVP | In: import, aging, follow-up queue with owner/notes, AT-01..05, AT-09, AT-10 / Out: payments (R2), promised pay (R3), migration (R5) | All R1 acceptance items pass against the frozen oracle | R0 | 2 | — | building | [`l5-setup:specs/003-desk-import/`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup/specs/003-desk-import) (AT-01..04); [`l5-setup:specs/004-deterministic-followup-queue/`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup/specs/004-deterministic-followup-queue) (AT-05) | [issue #16](https://github.com/tosin2013/invoice-exception-desk/issues/16), [issue #22](https://github.com/tosin2013/invoice-exception-desk/issues/22) / [PR #5](https://github.com/tosin2013/invoice-exception-desk/pull/5), [PR #7](https://github.com/tosin2013/invoice-exception-desk/pull/7), [PR #8](https://github.com/tosin2013/invoice-exception-desk/pull/8), [PR #14](https://github.com/tosin2013/invoice-exception-desk/pull/14), [PR #17](https://github.com/tosin2013/invoice-exception-desk/pull/17), [PR #23](https://github.com/tosin2013/invoice-exception-desk/pull/23) |
 | R2 | Payment events (v2a) | In: event-ID idempotency, no negative or overpay, balance recalc / Out: collection, bank feeds, promised pay (R3) | AT-06 passes; original `amount_cents` never changes | R1 | 3 | — | planned | — | — |
 | R3 | Promised-pay annotations (v2b) | In: promised-pay date as a note that may affect ordering / Out: reminders, calendar sync | AT-07 passes; balances and buckets unchanged | R2 | 4 | — | planned | — | — |
@@ -35,6 +58,26 @@ PRs #5 and #7, merged via `l3h-handoff`, which `l5-setup` contains). Every task 
 ticked and the suite on `l5-setup` passes. But R1's scope also names AT-09 (no network/secrets) and AT-10
 (fresh-checkout reproducibility), which no spec covers yet, and the R1 exit has not been reviewed by the
 Founder. Set `done` when that review happens, with the PR that records it.
+
+**R0 acceptance, honestly:** R0's `done` predates this legend. It was written by the R0 run itself
+and frozen in commit `8de94f6`; its evidence is that freeze record (`R0_REPORT.md`, `MANIFEST.sha256`,
+`PACKET.md`). `PACKET.md` says the oracle and tests were written by the builder and are self-grading, not
+independent correctness evidence. No separate reviewer acceptance record is linked in this repo. R0 stays
+`done` as the frozen discovery baseline that R1 was built on, not as an independently verified result.
+
+**Why this order** (from this file's own content):
+
+- **R1 before everything else (after R0):** every later stage depends on it, and R1's out-of-scope list
+  hands payments to R2, promised pay to R3 and migration to R5.
+- **R2 follows R1:** R2 depends on R1. R1 computes the exact remaining balance; R2 records payment events
+  so partial payments *recalculate* that balance without changing the original amount. R2 extends R1's
+  balance, so it can't come first.
+- **R3 after R2, R5 after R2 and R3:** R3 is "v2b" and R2 is "v2a"; R5 migrates v1 → v2a → v2b, so both
+  schemas must exist before there is anything to migrate.
+- **R4 at Order 5:** R4 depends only on R1, so it could run before R2. This file doesn't say why it comes
+  after R3. Its section says "R2/R3 fields become available during this stage", which suggests it waits for
+  them, but that is not stated as the reason. The order is kept from the original file; the PM decides.
+- **Riskiest assumption and value:** not recorded in this file, so they don't explain the order here.
 
 ### Specs outside this roadmap
 
