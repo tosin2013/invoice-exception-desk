@@ -96,3 +96,14 @@ Every mismatch found between spec, plan, tasks, docs, tests and code during the 
 | 003-U1 | Accepted rows exposed `issuer`, `invoice_id`, `amount_cents`, `paid_cents` but not the dates or currency named by the Key Entity. | `plan.md` Interface, `spec.md` Key Entities | Carried forward from the L4 analyze re-check | **Closed**: FR-032 adds `issue_date`, `due_date` (ISO strings) and `currency` (trimmed) to accepted rows only; rejected and duplicate rows keep exactly their existing keys. |
 | 003-L6-1 | No behaviour change for the frozen `data/invoices.csv`: only the accepted-row key set grows. | `invoice_desk/__init__.py` | L6 implementation review | **Recorded**: AT-01 to AT-04 totals, classification, balances, aging, queue order and queue item keys are unchanged; `data/invoices.csv` is byte-unchanged. |
 | 004-L6-1 | 004's queue is built from accepted rows and ignores the new keys. | 004 `spec.md` FR-021, SC-010 | Cross-check during the L6 revision | **Recorded, no code change**: dated L6 notes under FR-021 and SC-010. 004 code, contracts, data model and tests are unchanged. |
+
+## L7 revision (2026-10-28) - FR-033 accepted rows expose overdue
+
+Every mismatch found between spec, plan, tasks, docs, tests and code during the L7 revision
+(FR-033, issue #22).
+
+| ID | What | Where | How found | Disposition |
+|----|------|-------|-----------|-------------|
+| 003-L7-1 | Rows reported `days_overdue` but not an explicit `overdue` flag, while FR-033 requires one on every accepted row. | `spec.md` FR-033, `invoice_desk/__init__.py` | L7 implementation review | **Implemented**: accepted rows expose `overdue: bool`, `True` exactly when `days_overdue > 0`; rejected and duplicate rows expose `overdue: None`. |
+| 003-L7-2 | No behaviour change for the frozen `data/invoices.csv`: only the row key set grows. | `invoice_desk/__init__.py` | L7 implementation review | **Recorded**: AT-01 to AT-04 classifications, balances, aging, totals, queue order and queue item keys are unchanged; `data/invoices.csv` is byte-unchanged. |
+| 004-L7-1 | 004's queue is built from accepted rows and ignores the new key. | 004 `spec.md` FR-021, SC-010 | Cross-check during the L7 revision | **Recorded, no code change**: dated L7 notes under FR-021 and SC-010. 004 code, contracts, data model and tests are unchanged. |

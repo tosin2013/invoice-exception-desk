@@ -46,6 +46,14 @@
 - Q: Does anything else change? → A: No. No totals, aging, queue order or queue item keys change, and no other new output fields or totals are added. `queue.py`, `annotations.py`, `contracts/public-api.md` and `ACCEPTANCE.md` are untouched.
 - Ruling: approved by Tosin Akinosho in issue #16.
 
+### Session 2026-10-28 (L7, issue #22, decided by Tosin Akinosho)
+
+- Q: What must every accepted row also expose? → A: `overdue` as a `bool`: `True` exactly when its remaining balance is greater than `0` and its `due_date` is earlier than `as_of` (FR-017), otherwise `False`; equivalently `overdue == (days_overdue > 0)` (FR-018).
+- Q: What happens to rejected and duplicate rows? → A: They do get the key, with the value `None`, matching their existing `days_overdue: None` and `aging_bucket: None`.
+- Q: Is the key named `is_overdue` or `overdue`, and what type is it? → A: Exactly `overdue` (AT-04's word), a real `bool` (`True`/`False`) on accepted rows, not `0`/`1` and not a string.
+- Q: Does anything else change? → A: No. No overdue totals or counts, no new aging fields, no other new output fields, and no totals, aging, classifications, queue order or queue item keys change; the queue item contract does not gain `overdue`. `queue.py`, `annotations.py`, `contracts/public-api.md` and `ACCEPTANCE.md` are untouched.
+- Ruling: approved by Tosin Akinosho in issue #22.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Import and classify every invoice row (Priority: P1)
@@ -161,6 +169,7 @@ An operator reviews the desk for a specific reporting date and sees how overdue 
 - **FR-030**: Before any validation, empty-row detection, identity matching, or duplicate comparison, leading and trailing whitespace MUST be trimmed from all seven field values. Case and internal characters MUST remain significant, so trimming MUST NOT change case or collapse internal spacing.
 - **FR-031**: A data row with fewer than seven cells MUST be treated as having blank values for each missing trailing field, and cells beyond the seventh MUST be ignored. The padded row MUST then be evaluated using the same validation precedence and rejection reasons as a full-width row.
 - **FR-032**: Every accepted row MUST also expose `issue_date` and `due_date` as ISO `YYYY-MM-DD` strings and `currency` as the trimmed string, taken from the first accepted occurrence. Rejected and duplicate rows MUST NOT carry these keys (FR-015, SC-008). *(Added 2026-10-27, Clarification session 2026-10-27, issue #16, decided by Tosin Akinosho.)*
+- **FR-033**: Every accepted row MUST expose `overdue` as a `bool`: `True` exactly when its remaining balance is greater than `0` and its `due_date` is earlier than `as_of` (FR-017), otherwise `False`. Equivalently, `overdue == (days_overdue > 0)` (FR-018). Rejected and duplicate rows MUST carry `overdue: None`, matching their existing `days_overdue: None` and `aging_bucket: None`. *(Added 2026-10-28, Clarification session 2026-10-28, issue #22, decided by Tosin Akinosho.)*
 
 ### Key Entities *(include if feature involves data)*
 

@@ -690,6 +690,7 @@ ACCEPTED_KEYS = {
     "remaining_balance_cents",
     "days_overdue",
     "aging_bucket",
+    "overdue",
 }
 
 NON_ACCEPTED_KEYS = {
@@ -699,6 +700,7 @@ NON_ACCEPTED_KEYS = {
     "remaining_balance_cents",
     "days_overdue",
     "aging_bucket",
+    "overdue",
 }
 
 
@@ -788,6 +790,167 @@ def test_queue_and_report_totals_are_unchanged_by_new_fields():
     assert totals["outstanding_invoice_count"] == 13
     assert totals["total_outstanding_cents"] == 2139435
     assert totals["total_paid_cents"] == 289999
+
+    queue = build_followup_queue(result)
+    assert [item["invoice_id"] for item in queue] == [
+        "INV-1009",
+        "INV-1012",
+        "INV-1008",
+        "INV-1007",
+        "INV-1005",
+        "INV-1006",
+        "INV-1014",
+        "INV-1004",
+        "INV-1003",
+        "INV-1010",
+        "INV-1001",
+        "INV-1002",
+        "INV-1013",
+        "INV-1011",
+    ]
+    expected_keys = {
+        "issuer",
+        "invoice_id",
+        "remaining_balance_cents",
+        "days_overdue",
+        "aging_bucket",
+        "owner",
+        "notes",
+        "position",
+    }
+    for item in queue:
+        assert set(item) == expected_keys
+
+
+# ---------------------------------------------------------------------------
+# L7 revision -- accepted rows expose overdue (FR-033)
+# ---------------------------------------------------------------------------
+
+
+def test_frozen_accepted_rows_expose_overdue():
+    invoices = accepted_by_id(frozen_result())
+
+    overdue_ids = {
+        "INV-1003",
+        "INV-1004",
+        "INV-1005",
+        "INV-1006",
+        "INV-1007",
+        "INV-1008",
+        "INV-1009",
+        "INV-1010",
+        "INV-1012",
+        "INV-1014",
+    }
+    not_overdue_ids = {"INV-1001", "INV-1002", "INV-1011", "INV-1013"}
+
+    for invoice_id in overdue_ids:
+        assert invoices[invoice_id]["overdue"] is True
+    for invoice_id in not_overdue_ids:
+        assert invoices[invoice_id]["overdue"] is False
+
+
+def test_due_today_invoice_is_not_overdue():
+    result = import_invoices(
+        make_csv("Acme,INV-T0,2026-09-01,2026-10-15,1000,USD,0"),
+        AS_OF,
+    )
+    row = result["rows"][0]
+
+    assert row["status"] == "accepted"
+    assert row["overdue"] is False
+    assert row["days_overdue"] == 0
+    assert row["aging_bucket"] == "current"
+
+
+def test_one_day_overdue_invoice_is_overdue():
+    result = import_invoices(
+        make_csv("Acme,INV-T1,2026-09-01,2026-10-14,1000,USD,0"),
+        AS_OF,
+    )
+    row = result["rows"][0]
+
+    assert row["status"] == "accepted"
+    assert row["overdue"] is True
+    assert row["days_overdue"] == 1
+    assert row["aging_bucket"] == "1-30"
+
+
+def test_paid_invoice_is_not_overdue_and_partially_paid_invoice_is():
+    result = import_invoices(
+        make_csv(
+            "Acme,INV-P1,2026-06-01,2026-07-01,100,USD,100",
+            "Acme,INV-C1,2026-09-01,2026-10-14,100,USD,99",
+        ),
+        AS_OF,
+    )
+    paid, partial = result["rows"]
+
+    assert paid["status"] == "accepted"
+    assert paid["overdue"] is False
+    assert paid["days_overdue"] == 0
+    assert paid["aging_bucket"] == "paid"
+
+    assert partial["status"] == "accepted"
+    assert partial["remaining_balance_cents"] == 1
+    assert partial["overdue"] is True
+    assert partial["days_overdue"] == 1
+    assert partial["aging_bucket"] == "1-30"
+
+
+def test_overdue_key_sets_and_types():
+    result = frozen_result()
+
+    for row in result["rows"][:14]:
+        assert row["status"] == "accepted"
+        assert set(row) == ACCEPTED_KEYS
+        assert type(row["overdue"]) is bool
+
+    for row in result["rows"][14:18]:
+        assert row["status"].startswith("duplicate_")
+        assert set(row) == NON_ACCEPTED_KEYS
+        assert row["overdue"] is None
+
+    for row in result["rows"][18:30]:
+        assert row["status"] == "rejected"
+        assert set(row) == NON_ACCEPTED_KEYS
+        assert row["overdue"] is None
+
+
+def test_overdue_matches_positive_days_overdue():
+    for row in frozen_result()["rows"]:
+        if row["status"] == "accepted":
+            assert row["overdue"] == (row["days_overdue"] > 0)
+
+
+def test_result_with_overdue_is_json_serialisable_and_repeatable():
+    first = frozen_result()
+    second = frozen_result()
+
+    json.dumps(first)
+    assert first == second
+
+
+def test_queue_and_report_totals_are_unchanged_by_overdue():
+    result = frozen_result()
+
+    totals = result["totals"]
+    assert totals["total_rows"] == 30
+    assert totals["accepted"] == 14
+    assert totals["rejected"] == 12
+    assert totals["duplicate_identical"] == 2
+    assert totals["duplicate_inconsistent"] == 2
+    assert totals["outstanding_invoice_count"] == 13
+    assert totals["total_outstanding_cents"] == 2139435
+    assert totals["total_paid_cents"] == 289999
+
+    aging = totals["aging"]
+    assert aging["current"] == {"count": 3, "remaining_cents": 597047}
+    assert aging["1-30"] == {"count": 3, "remaining_cents": 396862}
+    assert aging["31-60"] == {"count": 3, "remaining_cents": 259664}
+    assert aging["61-90"] == {"count": 2, "remaining_cents": 863731}
+    assert aging["91+"] == {"count": 2, "remaining_cents": 22131}
+    assert aging["paid"] == {"count": 1, "remaining_cents": 0}
 
     queue = build_followup_queue(result)
     assert [item["invoice_id"] for item in queue] == [

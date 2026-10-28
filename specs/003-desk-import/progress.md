@@ -51,3 +51,26 @@ Started: 2026-10-27 16:34:22
 - Four new L6 tests failed before the implementation; all 215 tests pass after it (209 existing tests unchanged, 6 added).
 - L6 diff is 167 changed lines across allowed paths, under the 300-line cap.
 ---
+
+---
+## Iteration 3 - 2026-10-28 14:04
+**Work Unit**: Phase 10 - L7 revision (FR-033 accepted rows expose overdue)
+**Tasks Completed**:
+- [x] T040: add L7 acceptance tests for overdue flags, boundaries, key sets, JSON repeatability, and unchanged queue/totals
+- [x] T041: add `overdue` to accepted rows and `overdue: None` to rejected and duplicate rows
+- [x] T042: add L7 drift table and dated L7 notes under 004 FR-021/SC-010
+- [x] T043: final suite and scope checks
+**Tasks Remaining in Work Unit**: 0
+**Commit**: This work-unit commit
+**Files Changed**:
+- invoice_desk/__init__.py
+- tests/test_invoice_desk.py
+- specs/003-desk-import/drift.md
+- specs/004-deterministic-followup-queue/spec.md
+- specs/003-desk-import/tasks.md
+- specs/003-desk-import/ralph-memory.md
+- specs/003-desk-import/progress.md
+**Learnings**:
+- Seven new/updated L7 tests failed before the implementation; all 223 tests pass after it.
+- Only the two key sets in the existing exact-key-set test were edited; every other existing test is unchanged.
+---
