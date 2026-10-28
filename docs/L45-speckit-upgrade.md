@@ -24,9 +24,9 @@ title: "L4.5: Upgrading Spec Kit itself"
 
 > **Inspect our solution**
 >
-> - The upgrade itself is [PR #12](https://github.com/tosin2013/invoice-exception-desk/pull/12), branch [`speckit-1.2.3-upgrade`](https://github.com/tosin2013/invoice-exception-desk/tree/speckit-1.2.3-upgrade) off `l3h-handoff`. It has two commits: `ae15359` (the `specify integration upgrade` output) and `aad75d8` (README pin and a sanitized `run.log` receipt). A human reviews and merges it; until then, `l3h-handoff` is still on 1.1.3.
+> - The upgrade itself is [PR #12](https://github.com/tosin2013/invoice-exception-desk/pull/12), from branch `speckit-1.2.3-upgrade` off `l3h-handoff` (deleted after the merge). It has two commits: `ae15359` (the `specify integration upgrade` output) and `aad75d8` (README pin and a sanitized `run.log` receipt). A human reviewed and merged it (merge commit [`a130646`](https://github.com/tosin2013/invoice-exception-desk/commit/a130646)), so `l3h-handoff` is now on 1.2.3.
 > - A broken link the upgrade exposed was fixed separately in [PR #11](https://github.com/tosin2013/invoice-exception-desk/pull/11). Spec Kit moved its integrations reference page.
-> - Compare: [`l3h-handoff...speckit-1.2.3-upgrade`](https://github.com/tosin2013/invoice-exception-desk/compare/l3h-handoff...speckit-1.2.3-upgrade).
+> - Compare: [`8c302ee...a130646`](https://github.com/tosin2013/invoice-exception-desk/compare/8c302ee...a130646) (`l3h-handoff` before and after the upgrade).
 >
 > ```mermaid
 > flowchart LR
@@ -199,7 +199,7 @@ gh pr create --base l3h-handoff --title "chore(speckit): upgrade Spec Kit $OLD -
 
 A human reviews and merges it. The agent that ran the upgrade doesn't merge its own PR.
 
-**Our real run:** branch `speckit-1.2.3-upgrade` from `8c302ee`, run between 12:29 and 12:32 EDT on Oct 24, 2026. It produced the same 6 files as the dry run, with only a different `installed_at` timestamp. The commits are `ae15359` (upgrade) and `aad75d8` (README and `run.log`): 8 files, +47 / −17 in total. That's [PR #12](https://github.com/tosin2013/invoice-exception-desk/pull/12).
+**Our real run:** branch `speckit-1.2.3-upgrade` from `8c302ee`, run between 12:29 and 12:32 EDT on Oct 24, 2026. It produced the same 6 files as the dry run, with only a different `installed_at` timestamp. The commits are `ae15359` (upgrade) and `aad75d8` (README and `run.log`): 8 files, +47 / −17 in total. That's [PR #12](https://github.com/tosin2013/invoice-exception-desk/pull/12), merged into `l3h-handoff` as `a130646`.
 
 ## 6. Update the doc pins, but only for the current toolchain
 
@@ -309,4 +309,4 @@ Compared with L1's 1.1.3 list, there's one new key, `"allow_symlinks": false`, a
 - **A version that matched nothing.** The machine's default `specify` was 1.2.2.dev0. Without the `uvx` pin we'd have tested a third version.
 - **Stricter plan setup.** After 1.2.x, a missing or empty plan template stops `/speckit.plan` with an error, where it used to carry on with an empty `plan.md`. That's better, but if you've customised or deleted `plan-template.md`, expect the error.
 
-Compare the branch with the upgrade: [`l3h-handoff...speckit-1.2.3-upgrade`](https://github.com/tosin2013/invoice-exception-desk/compare/l3h-handoff...speckit-1.2.3-upgrade). Next: [L5: Letting an agent loop run unattended](L5-agent-loop.md). Back: [L4: Changing a spec after code exists](L4-maintenance.md). Back to [Home](index.md).
+Compare `l3h-handoff` before and after the upgrade: [`8c302ee...a130646`](https://github.com/tosin2013/invoice-exception-desk/compare/8c302ee...a130646) ([PR #12](https://github.com/tosin2013/invoice-exception-desk/pull/12)). Next: [L5: Letting an agent loop run unattended](L5-agent-loop.md). Back: [L4: Changing a spec after code exists](L4-maintenance.md). Back to [Home](index.md).
