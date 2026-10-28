@@ -59,11 +59,17 @@ ticked and the suite on `l5-setup` passes. But R1's scope also names AT-09 (no n
 (fresh-checkout reproducibility), which no spec covers yet, and the R1 exit has not been reviewed by the
 Founder. Set `done` when that review happens, with the PR that records it.
 
+**Known sync gap (pending):** `l5-setup:specs/004-deterministic-followup-queue/spec.md` does not yet
+open with `Input: Parent roadmap -> R1` (003's Input names R1 in prose). Fixing it is an edit on
+`l5-setup` and needs its own approval; until then the R1 → 004 link exists only in this file.
+
 **R0 acceptance, honestly:** R0's `done` predates this legend. It was written by the R0 run itself
 and frozen in commit `8de94f6`; its evidence is that freeze record (`R0_REPORT.md`, `MANIFEST.sha256`,
 `PACKET.md`). `PACKET.md` says the oracle and tests were written by the builder and are self-grading, not
 independent correctness evidence. No separate reviewer acceptance record is linked in this repo. R0 stays
 `done` as the frozen discovery baseline that R1 was built on, not as an independently verified result.
+This self-graded `done` is a labeled historical exception, not a precedent: new rows reach `done` only
+through the whole-row rule above.
 
 **Why this order** (from this file's own content):
 

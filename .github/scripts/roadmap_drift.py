@@ -19,12 +19,14 @@ row is a human review, and this script does not read it.
 
 Branches: a spec dir may be branch-qualified, "l5-setup:specs/003-desk-import/". The branch is
 resolved to origin/<branch> first, then a local <branch>, and the resolved commit SHA is printed.
-An unqualified "specs/NNN-x/" is read from the checked-out tree (HEAD). A named branch that can't
-be resolved is an ERROR (not "missing spec"): fetch it (CI uses fetch-depth: 0) or fix the name.
+An unqualified "specs/NNN-x/" is read from the COMMITTED tree at HEAD with `git ls-tree` (uncommitted
+spec dirs are not seen), and HEAD's SHA is printed. ROADMAP.md itself is read from the path given, which
+may include uncommitted edits. A named branch that can't be resolved is an ERROR (not "missing spec"),
+including a branch that doesn't exist yet: fetch it (CI uses fetch-depth: 0), fix the name, or leave a
+planned row's Spec dir unset until its spec exists.
 
 Standard library only; no network; read-only.
 """
-import os
 import re
 import subprocess
 import sys
@@ -88,13 +90,6 @@ def spec_dirs_at(sha):
     return {d for d in out.split() if SPEC_DIR_NAME.match(d)}
 
 
-def checkout_dirs():
-    if not os.path.isdir("specs"):
-        return set()
-    return {f"specs/{d}" for d in os.listdir("specs")
-            if re.match(r"^\d{3}-", d) and os.path.isdir(os.path.join("specs", d))}
-
-
 def refs_in(text):
     found = [(b, d) for b, d in QUALIFIED.findall(text)]
     found += [(None, d) for d in BARE.findall(QUALIFIED.sub("", text))]
@@ -145,13 +140,14 @@ def main(path="ROADMAP.md"):
     rc, head, err = git("rev-parse", "HEAD")
     if rc != 0:
         raise CheckError(f"git rev-parse HEAD failed: {err}")
-    print(f"inspected: this checkout (HEAD) @ {head.strip()}")
+    head = head.strip()
+    print(f"inspected: committed tree at HEAD @ {head} (unqualified spec dirs; ROADMAP.md read from {path})")
 
     named = set()
     for _, row in rows:
         named.update(b for b, _ in refs_in(row.get("spec dir", "")) if b)
     named.update(b for b, _ in accounted if b)
-    existing = {None: checkout_dirs()}
+    existing = {None: spec_dirs_at(head)}
     unreadable = set()
     for b in sorted(named):
         r = resolve(b)
@@ -201,7 +197,7 @@ def main(path="ROADMAP.md"):
                 if b in unreadable:
                     continue  # already reported as an ERROR; never reported as missing
                 if d not in existing[b]:
-                    where = f"branch {b}" if b else "this checkout"
+                    where = f"branch {b}" if b else "the committed tree at HEAD"
                     warn(f"{rid}: spec dir {d} does not exist on {where}", n)
         if status == "done":
             if has_pr or has_commit:

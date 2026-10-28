@@ -42,8 +42,9 @@ See `MANIFEST.sha256` for per-file SHA-256 digests.
 ## Note, 2026-10-28: ROADMAP.md hash updated
 
 `ROADMAP.md` was restructured into the roadmap-of-record format used by the PLAYBOOK ("PM: plan the roadmap
-first"): new columns (Feature, One-line scope, Outcome, Order, Milestone, Spec dir, Issue / PR), a five-value
-status legend, and R1 moved from `planned` to `building` with its evidence (spec dirs and PRs on `l5-setup`).
+first"): new columns (Feature, One-line scope, Outcome, Order, Milestone, Spec dir, Issue / PR), a status legend
+(`planned`, `specified`, `building`, `done`, `dropped` at that point; `blocked` was added later the same day,
+see below), and R1 moved from `planned` to `building` with its evidence (spec dirs and PRs on `l5-setup`).
 Its line in `MANIFEST.sha256` was updated to the new hash. The original R0 hash
 (`84e5cb4ad7a6326436c185f97bdc324871bf3905e06520ad941211fe1dbf3565`) is preserved in git history at commit
 [`8de94f6`](https://github.com/tosin2013/invoice-exception-desk/commit/8de94f69b1b6307f0fa2617dda3ad1d078b61cf8).
@@ -59,3 +60,8 @@ the whole-row rule for `done`, an honest R0 acceptance note, and a "why this ord
 ROADMAP.md `84e5cb4ad7a6326436c185f97bdc324871bf3905e06520ad941211fe1dbf3565`). The refreshed line in the
 current manifest tracks the evolving roadmap only. It is not a re-seal of the R0 packet, and no R0 rerun or
 revalidation is implied. Every other digest in this manifest is still the R0 value.
+
+**v3, same day (2026-10-28):** after the re-check (OpenAI MSG-1350, Muse MSG-1351), `ROADMAP.md` gained
+a line that R0's self-graded `done` is not a precedent for new rows, and a "known sync gap (pending)" note
+about spec 004's missing R1 backlink. Its `MANIFEST.sha256` line was refreshed again. No other artifact
+changed, and R0 provenance is still as stated above.

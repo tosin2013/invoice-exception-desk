@@ -78,7 +78,7 @@ Columns:
 | R1 | short name | what's in / what's deferred to a sibling | what's observably true when done | R0 | 1 | MVP | planned | — | — |
 
 - **ID** (`R1`, `R2`, ...) never changes once a spec cites it. **Order** is the PM's priority, lowest first. **Milestone** is a release name, or a GitHub milestone if you use them.
-- **Spec dir** and **Issue / PR** may each hold several entries; a row often needs more than one spec. If specs live on a different branch from the roadmap, name the branch too: `l5-setup:specs/003-desk-import/`.
+- **Spec dir** and **Issue / PR** may each hold several entries; a row often needs more than one spec. If specs live on a different branch from the roadmap, name the branch too: `l5-setup:specs/003-desk-import/`. A `planned` row leaves Spec dir unset (`—`) until its spec exists; don't put in a path or branch that isn't there yet.
 - Every `spec.md` opens with an `Input:` line naming its row, for example `**Input**: Parent roadmap -> R2. <feature description>`, so you can grep from a spec to its row and back.
 
 **Status** (one per row):
@@ -87,7 +87,7 @@ Columns:
 - `specified`: the row has a usable, reviewed spec. Implementation hasn't started.
 - `building`: implementation is underway, but the row's exit criteria aren't all met yet.
 - `blocked — <reason>; reopen when <condition>`: something outside the row's own work stops it. We keep `blocked` as a status rather than a separate field because it's one column the PM reads at a glance, and a blocked row is never eligible to run. The reason and reopen condition go in the same cell.
-- `done`: the row's **full** exit criteria are met, and the row's accountable reviewer has accepted it. Only the change that meets them sets `done`. A PR or commit link proves that a change exists, not that it was accepted. A row finished before Spec Kit was used can show `— (pre-Spec Kit)` as its Spec dir, with a commit link as evidence.
+- `done`: the row's **full** exit criteria are met, and the row's accountable reviewer has accepted it. Only the change that meets them sets `done`. A PR or commit link proves that a change exists, not that it was accepted. A row finished before Spec Kit was used can show `— (pre-Spec Kit)` as its Spec dir, with a commit link as evidence. Our R0 is `done` on its self-graded freeze record; that is a labeled historical exception, not a precedent for new rows.
 - `dropped — <reason>`: removed on purpose. A dropped dependency is **not** satisfied, so re-plan the rows that depend on it.
 
 **Planning the roadmap, not just keeping it.**
@@ -98,13 +98,38 @@ Columns:
 - **Replan** on triggers and on a cadence. Triggers: a row finishes, a dependency slips, a milestone arrives, or building a row shows its scope was wrong. Cadence: a regular review, for example each milestone or monthly. Keep, reorder, split or drop rows, and write down why.
 - **Drop deliberately.** Drop a row when its outcome stops mattering or its cost outgrows its value. Set `dropped — <reason>`. A roadmap that only grows isn't a plan.
 
-**Long-term walkthrough** (condensed; a fuller version may come later):
+**Long-term walkthrough:**
 
 1. **Start with the destination.** Who the user is, their problem, and what success looks like in roughly 6 to 12 months. Make it measurable if you can, but it's a direction, not a delivery promise.
 2. **Work backward** to the outcomes needed to get there, their dependencies, and the riskiest assumptions. Say why each row belongs and what's out of scope.
 3. **Now / Next / Later.** Only Now and Next get enough scope to specify. Later stays at the outcome level.
 4. **Choose the next slice deliberately** by readiness, user value, risk reduction and effort. The PM shows that reasoning in `Order`; the loop never decides it.
 5. **Replan from evidence.** After each delivery, compare the result with the row's outcome, then keep, reorder, split or drop rows. Label any user results you haven't observed as hypothetical.
+
+**HYPOTHETICAL worked example** (made up to show the method; not this repo's history, and no real user results):
+
+- **Idea and user:** help the one accounts-receivable clerk at a small services company stop missing overdue invoices.
+- **6–12 month outcome:** within 9 months, the clerk's weekly overdue review takes under 30 minutes (today: about 3 hours in a spreadsheet), and no invoice over 60 days goes unreviewed.
+
+Initial roadmap:
+
+| ID | Horizon | Feature | Outcome | Depends on | Order | Status | Spec dir |
+|---|---|---|---|---|---|---|---|
+| R1 | Now | Import one CSV export; aging list | every open invoice appears once, in the right bucket | — | 1 | specified | `specs/001-overdue-list/` |
+| R2 | Next | Match payments from the bank export | balances reflect partial payments | R1 | 2 | planned | — |
+| R3 | Next | Owner and note per invoice | every overdue invoice has an owner | R1 | 3 | planned | — |
+| R4 | Later | Draft reminder emails | one line until R2 and R3 land | R2, R3 | 4 | planned | — |
+
+- **Trade-off:** R3 is cheaper, and the clerk asked for it first. But R2 tests the riskiest assumption: can we read real bank exports at all? Both depend only on R1, so the riskiest one goes first and R2 comes before R3.
+- **First slice (R1), spec `specs/001-overdue-list/spec.md`** with `**Input**: Parent roadmap -> R1.`
+  - Scope: import one CSV export, then compute days overdue and the bucket as of a given date. Out of scope: payments, owners and reminders.
+  - Acceptance criteria: given the 40-row sample export, every open invoice appears exactly once in the right bucket; an invalid row is listed with a reason, never dropped; importing the same file twice gives the same list.
+- **Hypothetical evidence:** after R1 is done and accepted, the clerk's review takes about 50 minutes, and most of that is checking which invoices were partly paid. A spike on three bank exports matched about 70% of payments by invoice number and failed on the rest.
+- **Decision: split R2.**
+  - **R2a** (Now): "match payments by invoice number", outcome "partly paid invoices show the right balance", depends on R1, Order 2, `planned`, Spec dir unset.
+  - **R2b** (Later): "fuzzy matching", one line.
+  - R3 keeps its place. The plan change and the reason are recorded in the roadmap.
+- **Revised next row:** R2a, which goes to `/speckit.specify` next.
 
 **Who updates what.**
 
@@ -135,7 +160,7 @@ Among eligible rows, take the lowest `Order`. A `planned` row is a candidate for
 - **Where the file gives no reason, we say so.** It doesn't say why R4 comes after R3, or which assumption is riskiest.
 - **R0 has its own note.** Its `done` is the original freeze record, which was self-graded.
 
-**Completion check before you set `done`** (condensed; a fuller version may come later). For each spec the row needs, record:
+**Completion check before you set `done`.** For each spec the row needs, record:
 
 - the roadmap ID, spec dir and revision;
 - the acceptance evidence;
@@ -143,7 +168,13 @@ Among eligible rows, take the lowest `Order`. A `planned` row is a candidate for
 - the PR and target branch;
 - the reviewer and any remaining gap.
 
-Check both directions: no required spec is missing from the row, and no in-scope spec sits outside it. Confirm the work is merged into the intended branch, and that the spec, tasks, roadmap and linked issues describe the same scope. Ticked boxes, a green suite or a merged PR alone are not completion. Missing or contradictory evidence means not `done`. The drift check below is structural only and never proves this check passed.
+Check both directions: no required spec is missing from the row, and no in-scope spec sits outside it. Confirm the work is merged into the intended branch, and that the spec, tasks, roadmap and linked issues describe the same scope. Ticked boxes, a green suite or a merged PR alone are not completion. Missing or contradictory evidence means not `done`.
+
+- **Read back after each relevant merge and at milestone review.** Reconcile the spec, tasks, roadmap and issue/PR, and record the revision reviewed and any mismatch.
+- **Deferrals:** a deferral must name where the work goes or when it reopens, and it must update the row's scope. It can't waive required exit criteria.
+- **Implemented, merged and deployed are different.** Deployment counts toward `done` only if the row's acceptance scope requires it.
+
+The drift check below is structural only and never proves this check passed.
 
 **Roadmap prompt.** Paste this into any harness:
 
@@ -195,8 +226,11 @@ The next step after that is /speckit.specify for the first planned row whose dep
   - a status isn't in the list above;
   - a `blocked` or `dropped` row gives no reason;
   - a dependency is unknown or `dropped`.
-- **Errors fail the check.** A git failure, a branch it can't resolve, or a table it can't parse prints `ERROR (result UNKNOWN)`, so a check that didn't run never looks clean.
-- **How it finds specs:** a branch-qualified spec dir is read from `origin/<branch>` (or a local branch) with `git ls-tree`. It prints the commit SHA it read on each branch, and it tells a missing path apart from a branch it can't read.
+- **Errors fail the check.** A git failure, a branch it can't resolve, or a table it can't parse prints `ERROR (result UNKNOWN)`, so a check that didn't run never looks clean. Naming a branch that doesn't exist yet fails the check by design: leave a planned row's Spec dir unset until the spec exists.
+- **How it finds specs:** with `git ls-tree`, always from committed trees, and it prints each tree's commit SHA.
+  - A branch-qualified spec dir is read from `origin/<branch>` (or a local branch).
+  - An unqualified `specs/...` is read from the committed tree at HEAD, so uncommitted spec dirs aren't seen. `ROADMAP.md` itself is read from the file, uncommitted edits included.
+  - It tells a missing path apart from a branch it can't read.
 - **What it doesn't check:** whether a link means acceptance. It never decides a row is `done`.
 - **Where it runs:** only where the workflow file exists. Here that's `main` and branches made from it, so a spec added on `l5-setup` is caught the next time `ROADMAP.md` changes, or on a manual run.
 - **Making it blocking:** do that once the team trusts it, for example after about four weeks with no false positives.
