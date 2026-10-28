@@ -1,0 +1,23 @@
+# Warning-only drift check between ROADMAP.md and specs/ (PLAYBOOK: "PM: plan the roadmap first").
+# Read-only, no secrets, no network beyond the checkout. It only adds ::warning:: annotations and never fails.
+name: roadmap-drift
+
+on:
+  pull_request:
+    paths: ["ROADMAP.md", "specs/**", ".github/scripts/roadmap_drift.py", ".github/workflows/roadmap-drift.yml"]
+  push:
+    paths: ["ROADMAP.md", "specs/**", ".github/scripts/roadmap_drift.py", ".github/workflows/roadmap-drift.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # all branches, so branch-qualified spec dirs (l5-setup:specs/...) can be read
+      - name: Check ROADMAP.md against specs (warnings only)
+        run: python3 .github/scripts/roadmap_drift.py ROADMAP.md

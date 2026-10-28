@@ -58,6 +58,64 @@ What our runs used (pin your own versions and trust your own `--help` over ours)
 
 **If you use OpenCode:** the scripted `opencode run --command speckit.<command>` worked on 1.19.3; there is an open report that OpenCode v2 removed it ([spec-kit #4639](https://github.com/github/spec-kit/issues/4639)). When scripting OpenCode yourself, add `< /dev/null` or it can hang waiting for input ([L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html)). Ralph sends its prompt to `opencode run` on stdin and passes `--auto`, so check that your version's `opencode run --help` lists `--auto`. Other harnesses have their own headless quirks; dry-run one scripted call before you seal anything.
 
+### PM: plan the roadmap first
+
+Spec Kit starts at **one feature**: `/speckit.specify` takes a single "what and why". Nothing in core breaks a product into features, orders them or tracks which ones are built. Spec Kit's own docs cover that gap with a plain-Markdown convention, not a command: [Spec of Specs](https://github.github.io/spec-kit/concepts/spec-of-specs.html) (a roadmap pass, a roadmap table, and two-way links between the roadmap and each spec). Use it before the first `/speckit.specify`. The PM owns the roadmap and never has to touch code: it's one file, editable in the GitHub web UI.
+
+**One roadmap of record: `ROADMAP.md` at the repo root.** It names and orders features; it doesn't design them. GitHub issues and PRs are *linked* from it, not a second place to keep status. Columns:
+
+| ID | Feature | One-line scope (in / out) | Outcome | Depends on | Order | Milestone | Status | Spec dir | Issue / PR |
+|---|---|---|---|---|---|---|---|---|---|
+| R1 | short name | what's in / what's deferred to a sibling | what's observably true when done | R0 | 1 | MVP | planned | — | — |
+
+- **ID** (`R1`, `R2`, ...) never changes once a spec cites it. **Order** is the PM's priority, lowest first. **Milestone** is a release name, or a GitHub milestone if you use them.
+- **Status** is one of `planned` · `specified` · `building` · `done` · `dropped`.
+- **Spec dir** is the feature's `specs/NNN-name/`. If specs live on another branch than the roadmap, name the branch too: `l5-setup:specs/003-desk-import/` (our [`ROADMAP.md`](https://github.com/tosin2013/invoice-exception-desk/blob/main/ROADMAP.md) does this).
+- Every `spec.md` opens with an `Input:` line naming its row, for example `**Input**: Parent roadmap -> R2. <feature description>`, so you can grep from a spec to its row and back.
+
+**Who updates what.**
+
+| When | Who | Change |
+|---|---|---|
+| Plan or replan | the PM | add, reorder or re-scope rows; update the roadmap first, then the specs it affects |
+| After `/speckit.specify` | whoever ran it | `planned` → `specified`, fill in `Spec dir`, in the same commit as the spec |
+| A build starts (optional) | the operator | `specified` → `building` |
+| The PR that finishes the feature merges | that PR's author, in the same PR; a human merges | → `done`, add the PR link |
+| Inside the Ralph loop | **never** | the loop doesn't edit `ROADMAP.md`, just as it doesn't edit the spec or plan |
+
+**How it feeds Ralph, one feature at a time.** Take the lowest-`Order` row whose `Depends on` rows are all `done`. Run specify, clarify, plan, tasks and analyze for that row only ([step by step](#run-spec-kit-step-by-step-no-assumptions)), then start Ralph with `--spec-dir specs/<that row's dir>` ([how the Ralph loop runs each spec](#how-the-ralph-loop-runs-each-spec)). Ralph never picks the feature; the roadmap and the operator do. In the issue-driven flow (L6 and up), the `agent-ready` ruling issue is the row's issue link.
+
+**Worked example.** Our own [`ROADMAP.md`](https://github.com/tosin2013/invoice-exception-desk/blob/main/ROADMAP.md) had drifted: R1 still said `planned` after its two specs (`003-desk-import`, `004-deterministic-followup-queue`) were built and merged. It now uses these columns, R1 is `building` with both spec dirs and its PRs linked, and it says why R1 isn't `done` yet.
+
+**Roadmap prompt.** Paste this into any harness:
+
+```text
+You are helping a product manager plan a roadmap. Don't write code or specs.
+1. Read the constitution (.specify/memory/constitution.md), README, and any NON_GOALS or PRD file. List the dirs under specs/ on every branch I tell you holds specs.
+2. Restate the product outcome in one or two sentences and ask me to confirm.
+3. Propose 4 to 10 features. Each must be independently testable and small enough for one /speckit.specify run. For each: a one-line scope (what's IN, what's deferred to another row), the observable outcome, and which rows it depends on.
+4. Order them: dependencies first, then the shortest path to the outcome. Ask me about priority and milestones, one question at a time, and wait for each answer. Don't guess.
+5. Map every existing specs/NNN-* dir to a row (status specified, building or done) and list any dir that fits no row. Don't invent rows to absorb them; ask me.
+6. Write ROADMAP.md at the repo root with this table:
+   | ID | Feature | One-line scope (in / out) | Outcome | Depends on | Order | Milestone | Status | Spec dir | Issue / PR |
+   Status is one of planned|specified|building|done|dropped. IDs (R1, R2, ...) never change.
+7. STOP. Show me the table and wait for my approval. Don't run /speckit.specify.
+8. After I approve, ask: "Which platform hosts this repo (GitHub, GitLab, Bitbucket, other)?" Then offer to open one issue per row as described in "Open issues against the roadmap". Don't open any issue until I say yes, and show me the titles first.
+The next step after that is /speckit.specify for the first row whose dependencies are done, with an Input line citing its ID.
+```
+
+**Open issues against the roadmap (optional).** Issues are where people discuss and rule on a row; status still lives in `ROADMAP.md`. Each issue names its row ID (for example a title starting `R2:` and `Roadmap: R2` in the body), and the row's `Issue / PR` column gets the issue link. Open them only with the user's OK.
+
+- **On GitHub:** for a row, `gh issue create --title "R2: Payment events" --body "Roadmap: R2 in ROADMAP.md. <scope and outcome from the row>"` (add `--milestone` or `--label` if you use them), then paste the issue URL into the row. For a feature's **tasks** (not rows), Spec Kit v1.2.4 has a bundled, opt-in [`github` extension](https://github.com/github/spec-kit/tree/main/extensions/github): `specify extension add github`, then `/speckit.github.taskstoissues` (spelled `/speckit-github-taskstoissues` or `$speckit-github-taskstoissues` in some harnesses). It reads the feature's `tasks.md`, stops unless the git remote is GitHub, needs the GitHub MCP server, and creates `T001: ...` issues only for tasks that don't have one yet. The older core `/speckit.taskstoissues` still works in v1.2.4 but is deprecated ([extensions reference](https://github.github.io/spec-kit/reference/extensions.html)).
+- **Not on GitHub** (GitLab, Bitbucket, Azure DevOps, Jira, ...): search the catalog for your platform, `specify extension search <platform>` or the [community extensions page](https://github.github.io/spec-kit/community/extensions.html). Community entries are discovery-only, so you install them with `specify extension add <id> --from <release archive URL>` after reading them. On 2026-10-28 the catalog listed, among others, [azure-devops](https://github.com/pragya247/spec-kit-azure-devops), [jira](https://github.com/mbachorik/spec-kit-jira) and [linear](https://github.com/ashbrener/spec-kit-linear-sync); we haven't tried them. We found no GitLab or Bitbucket issue extension. If there's none for your platform, use its CLI or web UI and paste the link into the `Issue / PR` column.
+
+**Optional automation.**
+
+- [speckit-roadmap](https://github.com/srobroek/speckit-roadmap) adds `/speckit.roadmap.write` plus read-only `brief`, `debrief` and `sync` that reconcile a roadmap ledger with `specs/*/`. Pin **v0.1.1** (the catalog's v0.1.0 doesn't install on Spec Kit 1.x): `specify extension add roadmap --from https://github.com/srobroek/speckit-roadmap/archive/refs/tags/v0.1.1.zip`, then `specify extension enable roadmap`. **Warning:** open issues [#4](https://github.com/srobroek/speckit-roadmap/issues/4) and [#10](https://github.com/srobroek/speckit-roadmap/issues/10) report that the archive ships its own `.specify/`, so its config loader can read the extension's roadmap instead of yours. Check which file it resolves before you trust it. Its default ledger is `.specify/memory/roadmap.md` (configurable), and it has no priority or milestone field.
+- [repo-governor](https://github.com/tosin2013/repo-governor) (optional, for unattended or high-assurance repos) answers a different question: is this feature *admitted* now (for example, on the current GitHub milestone), and is it done, so the agent stops? It doesn't own the roadmap. **Its Spec Kit extension isn't built yet:** [ADR-037](https://github.com/tosin2013/repo-governor/blob/main/docs/adrs/037-a-spec-kit-extension-delivers-governance-at-spec-kits-steps.md) is Proposed and issues [#265](https://github.com/tosin2013/repo-governor/issues/265) to [#270](https://github.com/tosin2013/repo-governor/issues/270) are open. For now it installs as an agent skill: `git clone --branch v0.8.0 https://github.com/tosin2013/repo-governor /tmp/rg && /tmp/rg/tools/install-skill.sh /path/to/your/repo .claude/skills` (pick the skills folder your harness reads; see its README).
+
+**Drift check (warning only).** [`roadmap-drift.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/main/.github/workflows/roadmap-drift.yml) runs [`roadmap_drift.py`](https://github.com/tosin2013/invoice-exception-desk/blob/main/.github/scripts/roadmap_drift.py) (Python standard library, no network, `contents: read`) on PRs and pushes that touch `ROADMAP.md` or `specs/**`. It warns when a `specs/NNN-*` dir has no row, when a row at `specified` or later names a spec dir that doesn't exist, or when a `done` row has no PR link. Branch-qualified spec dirs are read from that branch with `git ls-tree`. It only adds `::warning::` annotations and always exits 0; make it fail later if your team wants.
+
 ### Run Spec Kit step by step (no assumptions)
 
 Use this when a person, or an AI working with one, runs Spec Kit in a chat session. Checked against Spec Kit v1.2.4 and its docs on 2026-10-28. If your `specify --help` says something different, trust it and tell the user. The unattended loop works differently; see the end of this subsection.
@@ -314,7 +372,7 @@ Branches without CI (our `main`) are ungraded; schedule their bumps less often. 
 3. **Run the decision gate** ([Home](https://tosin2013.github.io/invoice-exception-desk/)). If the answer is "no SDD" or "light SDD", stop here and use a normal PR or a short spec.
 4. **Set up Spec Kit** with the harness's key, using the exact commands in [Run Spec Kit step by step](#run-spec-kit-step-by-step-no-assumptions); if one fails, stop and show the user the error. New repo: `specify init <project-name> --integration <key>` ([L1](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html)). Existing repo: inventory first, change nothing, then `specify init --here --integration <key>` and record the test baseline ([L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html)). Pin the `specify` version.
 5. **Have a human or strong model write the constitution,** 3 to 5 rules, each citing real code. Include "builder-written tests alone never mean done." The user approves it before any spec.
-6. **Pick a small, already-decided first change,** ideally a known gap your specs already name, additive, and checkable by a script.
+6. **Pick a small, already-decided first change,** ideally a known gap your specs already name, additive, and checkable by a script. For a whole product, have the PM write `ROADMAP.md` first and take its first ready row ([PM: plan the roadmap first](#pm-plan-the-roadmap-first)).
 7. **Write the ruling as a GitHub issue** with everything in section 4, step 2. Have the human approve it and add `agent-ready`.
 8. **Write the acceptance tests from the issue,** with its exact inputs, and keep them outside the builder's reach.
 9. **Add a read-only CI workflow** (no secrets): full suite, `acceptance/` when present, base test IDs still present, diff-size summary. Merge it before the first run. Copy ours: [`ci.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/.github/workflows/ci.yml).

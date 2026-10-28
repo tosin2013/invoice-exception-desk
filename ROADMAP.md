@@ -7,18 +7,40 @@ invoicing, collections, payments, or a QuickBooks replacement (see `NON_GOALS.md
 - Product source: Notion child plan **"DRAFT v0.1 — Invoice Exception Desk"** (`<internal-plan-id>`).
 - This roadmap starts at **R0**, the only stage marked `[planned]` on the source plan.
 
-Legend — status: `done` | `planned` | `blocked`. Owner is the accountable party; the
-reviewer approves stage exit.
+Owner of this file: the PM / Founder (plans and replans). Status legend: `planned` · `specified` ·
+`building` · `done` · `dropped`. IDs never change. `Order` is the PM's priority (lowest first). Owner per
+stage is the accountable party (see each section); the reviewer approves stage exit. This file is the
+**one roadmap of record**: GitHub issues and PRs are linked from it, not a second status source.
 
-| ID | Objective (one line) | Depends on | Owner | Status |
-|----|----------------------|------------|-------|--------|
-| R0 | Freeze discovery artifacts: data contract, oracle, acceptance suite, guardrails | — | Implementer (review: Founder) | done |
-| R1 | Build the read-only exception desk MVP: import, aging, follow-up queue | R0 | Implementer (review: Founder) | planned |
-| R2 | Add payment events: partial payments, idempotent event IDs, overpay/negative guards | R1 | Implementer (review: Founder) | planned |
-| R3 | Add promised-pay annotations (note-only; never mutates balance) | R2 | Implementer (review: Founder) | planned |
-| R4 | Prioritization, owners, notes persistence and queue workflow hardening | R1 | Implementer (review: Founder) | planned |
-| R5 | Schema/version migration (v1 → v2a → v2b) with no data loss | R2, R3 | Implementer (review: Founder) | planned |
-| R6 | Review, hardening, and hand-off readiness (no deployment) | R4, R5 | Implementer (review: Founder) | planned |
+**Where the specs live:** this roadmap is on `main`, but the code and `specs/` live on the
+[`l5-setup`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup) branch. So `Spec dir` names the branch as well as the path
+(`l5-setup:specs/NNN-name/`), with a link. The drift check (`.github/workflows/roadmap-drift.yml`) reads those
+paths from that branch with `git ls-tree`.
+
+| ID | Feature | One-line scope (in / out) | Outcome | Depends on | Order | Milestone | Status | Spec dir | Issue / PR |
+|----|---------|---------------------------|---------|------------|-------|-----------|--------|----------|------------|
+| R0 | Discovery & Spec Kit | In: data contract, fixture, oracle, acceptance suite, guardrails / Out: any app code (R1) | Discovery kit frozen; `tests/test_oracle.py` green; oracle recomputes exactly | — | 1 | — | done | — (discovery artifacts at repo root: `SPEC.md`, `ACCEPTANCE.md`, `data/`) | — (frozen in commit [`8de94f6`](https://github.com/tosin2013/invoice-exception-desk/commit/8de94f69b1b6307f0fa2617dda3ad1d078b61cf8), before PRs were used) |
+| R1 | Exception Desk MVP | In: import, aging, follow-up queue with owner/notes, AT-01..05, AT-09, AT-10 / Out: payments (R2), promised pay (R3), migration (R5) | All R1 acceptance items pass against the frozen oracle | R0 | 2 | — | building | [`l5-setup:specs/003-desk-import/`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup/specs/003-desk-import) (AT-01..04); [`l5-setup:specs/004-deterministic-followup-queue/`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup/specs/004-deterministic-followup-queue) (AT-05) | [issue #16](https://github.com/tosin2013/invoice-exception-desk/issues/16), [issue #22](https://github.com/tosin2013/invoice-exception-desk/issues/22) / [PR #5](https://github.com/tosin2013/invoice-exception-desk/pull/5), [PR #7](https://github.com/tosin2013/invoice-exception-desk/pull/7), [PR #8](https://github.com/tosin2013/invoice-exception-desk/pull/8), [PR #14](https://github.com/tosin2013/invoice-exception-desk/pull/14), [PR #17](https://github.com/tosin2013/invoice-exception-desk/pull/17), [PR #23](https://github.com/tosin2013/invoice-exception-desk/pull/23) |
+| R2 | Payment events (v2a) | In: event-ID idempotency, no negative or overpay, balance recalc / Out: collection, bank feeds, promised pay (R3) | AT-06 passes; original `amount_cents` never changes | R1 | 3 | — | planned | — | — |
+| R3 | Promised-pay annotations (v2b) | In: promised-pay date as a note that may affect ordering / Out: reminders, calendar sync | AT-07 passes; balances and buckets unchanged | R2 | 4 | — | planned | — | — |
+| R4 | Prioritization, owners & notes hardening | In: deterministic order, owner, note history, persistence across restarts, queue filters / Out: notifications, SLAs, analytics | Same input gives the same queue; owner/notes survive restart (AT-05) | R1 | 5 | — | planned | — | — |
+| R5 | Schema & version migration | In: v1 → v2a → v2b with no data loss / Out: cross-tenant or cloud migration | AT-08 passes; balances and queue identical after migration | R2, R3 | 6 | — | planned | — | — |
+| R6 | Review & hand-off readiness | In: full AT-01..AT-10 run, secrecy/network checks, fresh-checkout run, docs sync / Out: deployment, hosting, auth | Every acceptance item passes from a clean checkout with no network | R4, R5 | 7 | — | planned | — | — |
+
+**Why R1 is `building`, not `done`:** both R1 slices are specified and implemented on `l5-setup`
+(`003-desk-import`: AT-01..AT-04, L3, then PRs #8, #14, #17, #23; `004-deterministic-followup-queue`: AT-05,
+PRs #5 and #7, merged via `l3h-handoff`, which `l5-setup` contains). Every task in both `tasks.md` files is
+ticked and the suite on `l5-setup` passes. But R1's scope also names AT-09 (no network/secrets) and AT-10
+(fresh-checkout reproducibility), which no spec covers yet, and the R1 exit has not been reviewed by the
+Founder. Set `done` when that review happens, with the PR that records it.
+
+### Specs outside this roadmap
+
+These dirs on `l5-setup` are the L1/L2 tutorial exercises (`bill_split`), not Invoice Exception Desk
+features, so they have no row. The drift check counts a dir listed here as accounted for.
+
+- `l5-setup:specs/001-split-bill/` (L1)
+- `l5-setup:specs/002-weighted-split/` (L2)
 
 ---
 
@@ -48,6 +70,8 @@ reviewer approves stage exit.
 - **Dependencies:** R0.
 - **Owner:** Implementer; exit reviewed by Founder.
 - **Spec/test links:** `ACCEPTANCE.md` AT-01..AT-05, AT-09, AT-10; `data/oracle.json`.
+- **Spec dirs (on `l5-setup`):** `specs/003-desk-import/` (AT-01..AT-04) and
+  `specs/004-deterministic-followup-queue/` (AT-05). AT-09 and AT-10 have no spec yet.
 - **Exit evidence:** All R1 acceptance items pass against the frozen oracle on the generated CSV;
   rejected rows never partially import; re-import is idempotent.
 
