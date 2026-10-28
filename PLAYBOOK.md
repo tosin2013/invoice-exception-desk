@@ -10,13 +10,23 @@ Everything below comes from what the repo and its lessons actually show. Numbers
 
 ## 1. The pattern in a few sentences
 
-Write down *what* to build and *why* before any code exists (a constitution once, then a spec per change), using [GitHub Spec Kit](https://github.com/github/spec-kit). A human (or a strong model) makes every decision **before** the run and writes it into one frozen ruling: a signed file in L5, a GitHub issue from L6 on. A cheap or free model then builds it unattended, inside a locked-down box with no keys, driven by the Spec Kit **Ralph Loop** extension. The result is graded by checks the builder never saw: a sealed answer key (L2 to L5), a hidden self-check (L6), then a read-only CI workflow (L7). A human merges every PR. Dependabot's PRs go through the same CI and the same human merge (L8).
+Write down *what* to build and *why* before any code exists (a constitution once, then a spec per change), using [GitHub Spec Kit](https://github.com/github/spec-kit). A human (or a strong model) makes every decision **before** the run and writes it into one frozen ruling: a signed file in L5, a GitHub issue from L6 on. A cheap or free model then builds it unattended, inside a locked-down box with no keys, driven by a loop with hard caps. We used OpenCode with the Spec Kit **Ralph Loop** extension; any coding-agent harness that can run headless works (section 2). The result is graded by checks the builder never saw: a sealed answer key (L2 to L5), a hidden self-check (L6), then a read-only CI workflow (L7). A human merges every PR. Dependabot's PRs go through the same CI and the same human merge (L8).
 
 > "Unattended" doesn't mean "unreviewed." Decide everything before the run, check everything after it. ([L5](https://tosin2013.github.io/invoice-exception-desk/L5-agent-loop.html))
 
 **Should you use it at all?** Run the [decision gate on the Home page](https://tosin2013.github.io/invoice-exception-desk/) first. Short version: you need checkable "done" outcomes, work bigger than one sitting, someone other than the builder checking the result, quiet-wrongness risks, and one frozen example to specify against. Typos, config changes, dependency bumps and prototypes get a normal PR, not SDD.
 
-## 2. Prerequisites
+## 2. Choose your harness
+
+The pattern isn't tied to one coding agent. The builder step needs three things:
+
+- **A coding agent that can run headless** (from a script, no prompts) inside a sandbox with no keys, tokens or secrets. Spec Kit has integrations for 40-plus agents, for example Claude Code (`claude`), Codex CLI (`codex`), GitHub Copilot (`copilot`), Gemini CLI (`gemini`), Cursor (`cursor-agent`), Goose (`goose`), Qwen Code (`qwen`) and opencode (`opencode`). The full list and keys are on the [Spec Kit integrations page](https://github.github.io/spec-kit/integrations/index.html); `generic` covers agents that aren't listed.
+- **A loop driver with an iteration cap and a time cap** that starts a fresh agent call per work unit and stops on repeated failures. The [Ralph Loop](https://github.com/Rubiss-Projects/spec-kit-ralph) extension (v1.5.0) does this for `copilot`, `codex`, `claude` and `opencode` only, and refuses any other CLI. For anything else, use a small wrapper script with the same caps and stops (section 7).
+- **The written inputs:** the issue (the ruling), then the spec, plan and tasks files.
+
+This guide used **OpenCode 1.19.3 with the free model `opencode/deepseek-v4.1-flash-free`, driven by Ralph**. It stays the worked example throughout; notes marked "If you use OpenCode" or "If you use Ralph" apply only to that setup. Our box held no keys at all, because the free model needed none. If your harness can't run without a model API key, that's the one exception: make it the only secret in the box, scoped and spend-capped, and still no GitHub token, SSH key or push access.
+
+## 3. Prerequisites
 
 What our runs used (pin your own versions and trust your own `--help` over ours):
 
@@ -24,22 +34,22 @@ What our runs used (pin your own versions and trust your own `--help` over ours)
 |---|---|---|
 | Git, Python 3.11+, [uv](https://github.github.io/spec-kit/install/uv.html), pytest | Python 3.12 in CI | L0 / L1 |
 | Spec Kit CLI (`specify`) | 1.1.3 for L1 to L4, 1.2.3 from L4.5 on | L1 |
-| An AI coding agent with a Spec Kit integration | OpenCode 1.19.3 (`--integration opencode`), free model `opencode/deepseek-v4.1-flash-free` | L1 |
+| An AI coding agent with a Spec Kit integration and a headless mode (section 2) | OpenCode 1.19.3 (`--integration opencode`), free model `opencode/deepseek-v4.1-flash-free` | L1 |
 | A reviewer who isn't the builder | a separate model or a human | L2 |
-| [Ralph Loop](https://github.com/Rubiss-Projects/spec-kit-ralph) extension | v1.5.0 (`specify extension add ralph`) | L5 |
+| A loop driver with iteration and time caps | [Ralph Loop](https://github.com/Rubiss-Projects/spec-kit-ralph) v1.5.0 (`specify extension add ralph`) plus a wrapper for timeouts | L5 |
 | Docker on a machine with **no keys, tokens or push access** | a separate Ubuntu host | L5 |
 | GitHub Actions turned on | the [`ci.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/.github/workflows/ci.yml) workflow on `l5-setup` | L7 |
 | Push access to the default branch | for [`.github/dependabot.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/main/.github/dependabot.yml) | L8 |
 
-OpenCode note: the scripted `opencode run --command speckit.<command>` worked on 1.19.3; there is an open report that OpenCode v2 removed it ([spec-kit #4639](https://github.com/github/spec-kit/issues/4639)). When scripting OpenCode, add `< /dev/null` or it can hang waiting for input ([L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html)).
+**If you use OpenCode:** the scripted `opencode run --command speckit.<command>` worked on 1.19.3; there is an open report that OpenCode v2 removed it ([spec-kit #4639](https://github.com/github/spec-kit/issues/4639)). When scripting OpenCode yourself, add `< /dev/null` or it can hang waiting for input ([L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html)). Ralph sends its prompt to `opencode run` on stdin and passes `--auto`, so check that your version's `opencode run --help` lists `--auto`. Other harnesses have their own headless quirks; dry-run one scripted call before you seal anything.
 
-## 3. The end-to-end loop
+## 4. The end-to-end loop
 
 ```mermaid
 flowchart LR
   C[Constitution<br/>once] --> R[Ruling<br/>issue + agent-ready]
   R --> S[Spec, plan, tasks<br/>+ analyze]
-  S --> B[Builder run<br/>Ralph in a keyless box]
+  S --> B[Builder run<br/>capped loop in a keyless box]
   B -->|git bundle| G[Grader commit<br/>acceptance tests]
   G --> CI[CI grades the PR<br/>read-only]
   CI --> H[Human merges]
@@ -48,21 +58,21 @@ flowchart LR
 
 1. **Constitution (once, then amended with a version bump).** Start with 3 to 5 plain rules your agents follow, each tied to the real code (ours grew to eight). Ours ([`.specify/memory/constitution.md`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/.specify/memory/constitution.md), v2.0.0) says, for example: money is integer cents; computation is pure and never reads the clock; standard library only; spec, tests and code land together; every behaviour change is graded against a key the builder never sees; builder-written tests alone never mean "done".
 2. **Ruling.** Every choice the agent would otherwise guess goes in writing first: the rule, types, what other rows get, forbidden files, which existing test edits are allowed (exactly), given/when/then acceptance checks with exact inputs, the expected Spec Kit trail, a size limit, "stop and ask if anything conflicts", how it's graded, and any constitution exception for this change. From L6 on the ruling is a GitHub issue; a human adds the `agent-ready` label only when it's final. No label, no run.
-3. **Spec, plan, tasks.** `/speckit.specify`, `/speckit.clarify`, `/speckit.plan`, `/speckit.tasks`, then `/speckit.analyze` **before** implement, fixing HIGH findings. A rule change edits the spec that owns the rule: a dated Clarification, the old requirement kept but marked superseded, a new ID ([L4](https://tosin2013.github.io/invoice-exception-desk/L4-maintenance.html)). In L1 to L4 a human or strong model wrote the spec and plan; in L5 to L7 the free-model builder wrote them inside the box from the frozen ruling (a phase-1 prompt), then Ralph implemented.
-4. **Builder run in a sandbox.** OpenCode on a free model, driven by Ralph, in a locked-down container (non-root, read-only root, no capabilities, no credentials, no git remote) on a keyless host. Preflight probes must all pass first (18 in L5, 13 in L6). Scope is checked after every agent call. The work comes out as a [`git bundle`](https://git-scm.com/docs/git-bundle), with its SHA-256 in a receipt.
+3. **Spec, plan, tasks.** `/speckit.specify`, `/speckit.clarify`, `/speckit.plan`, `/speckit.tasks`, then `/speckit.analyze` **before** implement, fixing HIGH findings. A rule change edits the spec that owns the rule: a dated Clarification, the old requirement kept but marked superseded, a new ID ([L4](https://tosin2013.github.io/invoice-exception-desk/L4-maintenance.html)). In L1 to L4 a human or strong model wrote the spec and plan; in L5 to L7 the free-model builder wrote them inside the box from the frozen ruling (a phase-1 prompt), then the loop (Ralph) implemented.
+4. **Builder run in a sandbox.** Your agent, driven by a capped loop (ours: OpenCode on a free model, driven by Ralph), in a locked-down container (non-root, read-only root, no capabilities, no credentials, no git remote) on a keyless host. Preflight probes must all pass first (18 in L5, 13 in L6). Scope is checked after every agent call. The work comes out as a [`git bundle`](https://git-scm.com/docs/git-bundle), with its SHA-256 in a receipt.
 5. **Grader commit.** The acceptance tests were written from the issue and kept out of the builder's folder until the bundle was sealed. The bundle is pushed **unchanged**, and the acceptance tests are added as **one separate commit** under `acceptance/issue-<N>/` (example: [`f916383`](https://github.com/tosin2013/invoice-exception-desk/commit/f916383)). The PR then shows who wrote what.
 6. **CI is the grader.** The read-only `ci` workflow runs on every PR: the full suite, the `acceptance/` tests when present, a check that every base test ID still exists, and a diff-size summary ([L7](https://tosin2013.github.io/invoice-exception-desk/L7-ci-grader.html)).
 7. **Human merge.** A human merges on green, and closes the issue by hand when the PR targets a branch other than the default (`Closes #N` only auto-closes on the default branch).
 
 Our L7 run, end to end: issue #22 → 3-minute run, 1 Ralph iteration → local self-check PASS → grader commit → CI green in 9 s (223 passed, acceptance 8/8, all 215 base tests present) → merged by [PR #23](https://github.com/tosin2013/invoice-exception-desk/pull/23).
 
-## 4. Roles and trust boundaries
+## 5. Roles and trust boundaries
 
 | Role | Does | Never does |
 |---|---|---|
 | **Human** | rules on every change, approves the issue, adds `agent-ready`, says go, merges every PR | lets anything merge without looking at the result |
 | Operator / kit | builds the box, runs preflight and the run, verifies the bundle, adds the grader commit, opens the PR | edits the builder's commits |
-| Builder (free model + Ralph) | writes the spec trail and the code inside the box | sees sealed keys or acceptance tests, touches `.github/`, `acceptance/`, `.specify/`, `.opencode/`, pushes, or reports sizes and counts |
+| Builder (agent + loop driver; ours: free model + Ralph) | writes the spec trail and the code inside the box | sees sealed keys or acceptance tests, touches `.github/`, `acceptance/`, `.specify/`, its own agent folder (`.opencode/` for us), pushes, or reports sizes and counts |
 | Grader (sealed key, self-check, or CI) | decides pass or fail with checks written outside the builder's reach | gets edited by the builder |
 | Reviewer (optional from L7) | checks the PR against the issue, rerunning checks with the issue's exact inputs | reviews its own work |
 | Dependabot | opens dependency PRs on a schedule | merges anything |
@@ -75,7 +85,7 @@ The boundaries that matter:
 - **Only what's committed crosses a handoff.** Agents don't share memory; a decision that isn't in the spec, plan, tasks or ruling doesn't exist for the next agent ([L3.5](https://tosin2013.github.io/invoice-exception-desk/L35-agent-handoff.html)).
 - **Take numbers from the receipt or CI, not the agent.** In L6 the builder's notes said 167 diff lines; the real diff was 253.
 
-## 5. The levels
+## 6. The levels
 
 Pages links are the published lesson; repo links are the Markdown source on `main`.
 
@@ -96,29 +106,30 @@ Pages links are the published lesson; repo links are the Markdown source on `mai
 
 Each level has real branches to check out; see the [README levels table](https://github.com/tosin2013/invoice-exception-desk/blob/main/README.md#the-levels). The latest code is on [`l5-setup`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup).
 
-## 6. Loop tuning (the Ralph / OpenCode builder loop)
+## 7. Loop tuning (the builder loop)
 
-Ralph starts a **fresh agent call per work unit**, reads `tasks.md` to see what's left, keeps compact memory in `ralph-memory.md` and an audit trail in `progress.md`, and commits each finished unit. That keeps context from piling up. Tune it like this.
+Whatever the harness, the loop should start a **fresh agent call per work unit**, read `tasks.md` to see what's left, keep compact notes, and commit each finished unit. That keeps context from piling up. Ralph does exactly this, with memory in `ralph-memory.md` and an audit trail in `progress.md`. Tune it like this.
 
-**Caps (write them in the ruling before the run).** What L5 used ([`request-v1.md`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/specs/003-desk-import/request-v1.md), section 5):
+**Caps (write them in the ruling before the run).** Cap each of these, whatever enforces it in your harness. Our values are from L5 ([`request-v1.md`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/specs/003-desk-import/request-v1.md), section 5):
 
-| Knob | L5 value | Where it lives |
-|---|---|---|
-| Ralph iterations | 10 max | `max_iterations`, or `--max-iterations` / `SPECKIT_RALPH_MAX_ITERATIONS` |
-| Fix tries | 3 | the ruling |
-| Per agent call | 15 min | wrapper `timeout` |
-| Per run | 90 min, plus a hard wall-clock timeout | wrapper |
-| Empty-output retries | 5, 10 min apart (count against time, not fix tries) | wrapper |
-| Diff size | 300 counted lines, tests included, Ralph's notes and `run.log` excluded | scope check |
-| Spend | $0, free model only | the ruling |
+| Cap | Why | L5 value | Where it lived for us |
+|---|---|---|---|
+| Loop iterations | a loop that never finishes burns time and quota | 10 max | Ralph `max_iterations`, or `--max-iterations` / `SPECKIT_RALPH_MAX_ITERATIONS` |
+| Consecutive failures | a stuck agent rarely unsticks itself | 3 | Ralph's circuit breaker |
+| Fix tries | stops thrashing on one failing check | 3 | the ruling |
+| Per agent call | one hung call shouldn't stall the run | 15 min | wrapper `timeout` |
+| Per run | bounds the whole thing | 90 min, plus a hard wall-clock timeout | wrapper |
+| Empty-output retries | a provider hiccup isn't a result | 5, 10 min apart (count against time, not fix tries) | wrapper |
+| Diff size | keeps the change reviewable | 300 counted lines, tests included, the loop's notes and `run.log` excluded | scope check |
+| Spend | no surprise bills | $0, free model only | the ruling |
 
-Ralph's own stops: `max_iterations` reached, 3 consecutive failures (circuit breaker), and it refuses to call itself complete unless every task is checked off and `git status --short --untracked-files=all` is empty. All three exit non-zero. It's built to be interrupted and resumed: re-run it and it skips checked-off tasks.
+The loop driver should also refuse to call itself complete unless every task is checked off and `git status --short --untracked-files=all` is empty, exit non-zero on every stop, and be safe to interrupt and rerun (skipping checked-off tasks). Ralph does all of this.
 
-**Override defaults from outside the tree.** The installed `ralph-config.yml` defaults to Copilot and a paid model. We left the file alone and set the agent and model with `--model` and `SPECKIT_RALPH_AGENT_CLI`, so the one setup commit stayed the only change under `.specify/`. Install the loop in its own commit, before anything is sealed.
+**Install the loop in its own commit,** before anything is sealed, and set the agent and model from outside the tree. **If you use Ralph:** the installed `ralph-config.yml` defaults to Copilot and a paid model. We left the file alone and set the agent and model with `--model` and `SPECKIT_RALPH_AGENT_CLI`, so the one setup commit stayed the only change under `.specify/`.
 
 **Self-check and scope checks.**
 
-- After **every** agent call: hard stop on forbidden files (the issue's list, `.specify/`, `.opencode/`, `.github/`, `acceptance/`, `data/`, `pyproject.toml`, `uv.lock`, other test files) or a diff at or over the cap. Other unexpected files are flagged in the receipt, not stopped (L6).
+- After **every** agent call: hard stop on forbidden files (the issue's list, `.specify/`, the agent's folder (`.opencode/` for us), `.github/`, `acceptance/`, `data/`, `pyproject.toml`, `uv.lock`, other test files) or a diff at or over the cap. Other unexpected files are flagged in the receipt, not stopped (L6).
 - **Before** any agent call: run the baseline tests, then stop if the tree isn't clean. In L5 run r3, `uv run` quietly created a `uv.lock`, and a run that passed every sealed case was graded FAIL on scope. The fix was `UV_NO_PROJECT=1` plus this clean-tree check, not a looser rule. Neutralize lockfiles and caches before you seal.
 - **After** the run: a self-check the builder never sees, in a throwaway container: verify the bundle, run the acceptance checks with the issue's exact inputs, the full suite, the base tests unchanged, and the base test IDs. When existing tests may change, compare the base tests byte by byte and allow only the approved edit (L7).
 - Tell the builder to use the issue's exact rows in its tests and **not** to report sizes or counts. CI and the receipt do that.
@@ -131,12 +142,12 @@ Ralph's own stops: `max_iterations` reached, 3 consecutive failures (circuit bre
 | The agent hits a contract question or a conflict | stop and ask on the issue; don't let it guess. Answer by editing the ruling, then start again |
 | Scope breach, even a harmless generated file | fail the run; fix the kit, not the rule; rerun from a fresh preflight (and a fresh seal if you use one) |
 | Any config change after sealing | fresh preflight and a new seal; a seal never covers a different config |
-| Iteration cap or circuit breaker hit | stop; a human reads `progress.md` and `ralph-memory.md` and decides: split the task, tighten the ruling, or rerun |
-| Builder asked nothing and finished in one iteration | that's the goal; it means the ruling settled everything (L6, L7 both ran ~3 minutes, 1 iteration) |
+| Iteration cap or failure cap hit | stop; a human reads the loop's notes (`progress.md` and `ralph-memory.md` with Ralph) and decides: split the task, tighten the ruling, or rerun |
+| Builder asked nothing and finished in one iteration | that's the goal; it means the ruling settled everything (L6, L7 both ran ~3 minutes, 1 Ralph iteration) |
 
 Record the container image's **config digest**, not just its ID; the ID changed on every rebuild even with identical layers (L5).
 
-## 7. Dependency hygiene (the L8 recipe)
+## 8. Dependency hygiene (the L8 recipe)
 
 1. **Make every dependency visible.** Dependabot reads manifest files, not CLI flags. We moved `--with pytest` into a one-line [`requirements-dev.txt`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/requirements-dev.txt) (`pytest==9.1.1`) and pointed CI at it with an absolute path (`--with-requirements "$GITHUB_WORKSPACE/requirements-dev.txt"`), because the base-test-ID step runs in a worktree of the older base commit.
 2. **Put `.github/dependabot.yml` on the default branch.** If code lives elsewhere, set `target-branch` on each block. Ours: GitHub Actions weekly and grouped, plus `pip` with `allow: pytest` only, both targeting `l5-setup`; and a monthly grouped Actions block for the Pages workflow on `main`.
@@ -148,25 +159,27 @@ Record the container image's **config digest**, not just its ID; the ID changed 
 
 Branches without CI (our `main`) are ungraded; schedule their bumps less often. Recipes for other repo types (grouped minor/patch, Docker, security-only, `uv`) are in [L8](https://tosin2013.github.io/invoice-exception-desk/L8-dependabot.html#real-world-recipes).
 
-## 8. Apply this to a new project: checklist for an AI
+## 9. Apply this to a new project: checklist for an AI
 
-1. **Run the decision gate** ([Home](https://tosin2013.github.io/invoice-exception-desk/)). If the answer is "no SDD" or "light SDD", stop here and use a normal PR or a short spec.
-2. **Set up Spec Kit.** New repo: `specify init --integration <key>` ([L1](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html)). Existing repo: inventory first, change nothing, then `specify init --here --integration <key>` and record the test baseline ([L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html)). Pin the `specify` version.
-3. **Have a human or strong model write the constitution,** 3 to 5 rules, each citing real code. Include "builder-written tests alone never mean done."
-4. **Pick a small, already-decided first change,** ideally a known gap your specs already name, additive, and checkable by a script.
-5. **Write the ruling as a GitHub issue** with everything in section 3, step 2. Have the human approve it and add `agent-ready`.
-6. **Write the acceptance tests from the issue,** with its exact inputs, and keep them outside the builder's reach.
-7. **Add a read-only CI workflow** (no secrets): full suite, `acceptance/` when present, base test IDs still present, diff-size summary. Merge it before the first run. Copy ours: [`ci.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/.github/workflows/ci.yml).
-8. **Build the box:** a container on a host with no keys, no tokens, no push remote; the issue snapshot hash-checked; preflight probes; scope checks after every call; clean-tree check after the baseline tests; output as a `git bundle`.
-9. **Install Ralph in its own commit,** override its agent and model from outside the tree, and set the caps in section 6.
-10. **Run.** The builder writes the spec trail (dated Clarification, spec, plan, tasks, analyze) and implements.
-11. **Verify the bundle** (hash and head), run the local self-check once, push the bundle unchanged, add the grader commit, open the PR.
-12. **Let CI grade it.** If the PR touches existing tests, also keep a byte-level compare or a review.
-13. **A human merges** on green, and closes the issue if it targets a non-default branch.
-14. **Add Dependabot** (section 7) once CI exists.
-15. **When a rule changes later,** follow [L4](https://tosin2013.github.io/invoice-exception-desk/L4-maintenance.html); when Spec Kit itself updates, follow [L4.5](https://tosin2013.github.io/invoice-exception-desk/L45-speckit-upgrade.html).
+1. **Ask the user which harness they use:** the coding agent or CLI, the model, and the budget. Or check what's installed (for example `command -v claude codex copilot gemini cursor-agent opencode`) and confirm with them. Don't assume OpenCode.
+2. **Map the loop to that harness** (section 2). Find its Spec Kit integration key and its headless command. If Ralph supports it (`copilot`, `codex`, `claude`, `opencode`), use Ralph; otherwise use a small wrapper with the caps and stops in section 7. If it has no headless mode or no loop driver, run the builder step by step instead: a human drives the loop, one fresh session per task inside the same keyless sandbox, counting the same caps and running the same scope checks after each step. Everything after the builder (bundle, grader commit, CI, human merge) stays the same.
+3. **Run the decision gate** ([Home](https://tosin2013.github.io/invoice-exception-desk/)). If the answer is "no SDD" or "light SDD", stop here and use a normal PR or a short spec.
+4. **Set up Spec Kit** with the harness's key. New repo: `specify init --integration <key>` ([L1](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html)). Existing repo: inventory first, change nothing, then `specify init --here --integration <key>` and record the test baseline ([L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html)). Pin the `specify` version.
+5. **Have a human or strong model write the constitution,** 3 to 5 rules, each citing real code. Include "builder-written tests alone never mean done."
+6. **Pick a small, already-decided first change,** ideally a known gap your specs already name, additive, and checkable by a script.
+7. **Write the ruling as a GitHub issue** with everything in section 4, step 2. Have the human approve it and add `agent-ready`.
+8. **Write the acceptance tests from the issue,** with its exact inputs, and keep them outside the builder's reach.
+9. **Add a read-only CI workflow** (no secrets): full suite, `acceptance/` when present, base test IDs still present, diff-size summary. Merge it before the first run. Copy ours: [`ci.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/.github/workflows/ci.yml).
+10. **Build the box:** a container on a host with no keys, no tokens, no push remote; the issue snapshot hash-checked; preflight probes; scope checks after every call; clean-tree check after the baseline tests; output as a `git bundle`.
+11. **Install the loop driver in its own commit** (Ralph or your wrapper), set the agent and model from outside the tree, and set the caps in section 7.
+12. **Run.** The builder writes the spec trail (dated Clarification, spec, plan, tasks, analyze) and implements.
+13. **Verify the bundle** (hash and head), run the local self-check once, push the bundle unchanged, add the grader commit, open the PR.
+14. **Let CI grade it.** If the PR touches existing tests, also keep a byte-level compare or a review.
+15. **A human merges** on green, and closes the issue if it targets a non-default branch.
+16. **Add Dependabot** (section 8) once CI exists.
+17. **When a rule changes later,** follow [L4](https://tosin2013.github.io/invoice-exception-desk/L4-maintenance.html); when Spec Kit itself updates, follow [L4.5](https://tosin2013.github.io/invoice-exception-desk/L45-speckit-upgrade.html).
 
-## 9. Known gaps
+## 10. Known gaps
 
 Honest limits of what's here today:
 
@@ -175,12 +188,13 @@ Honest limits of what's here today:
 - **No automatic pickup of `agent-ready` issues,** no `needs-human` label after repeated failures, and no several issues at once. A human starts each run.
 - **The L7 review was skipped** (merged on green CI); that was a judgment call for an additive change with one approved test edit.
 - **`main` has no CI,** so Pages and Dependabot PRs into `main` are ungraded.
+- **The unattended builder loop only ran on OpenCode with Ralph.** (L3.5's handoff also used an OpenAI agent, but not in a loop.) Other harnesses should fit the same steps, but we haven't tried them; Ralph v1.5.0 drives only `copilot`, `codex`, `claude` and `opencode`.
 - **The run kits (container, preflight, self-check) aren't in the repo.** The lessons describe them; you build your own.
 - **Results are from our own free-model runs,** graded against our keys, self-checks and CI. They aren't independently certified, and the R0 phase shows how self-graded tests can mislead ([R0 Results and Lessons](https://github.com/tosin2013/invoice-exception-desk/wiki/R0-Results-and-Lessons)).
 
-## 10. Links
+## 11. Links
 
 - Guide site: <https://tosin2013.github.io/invoice-exception-desk/>
 - For agents: [`llms.txt`](https://tosin2013.github.io/invoice-exception-desk/llms.txt) and its copy [`llm.txt`](https://tosin2013.github.io/invoice-exception-desk/llm.txt)
 - Repository: <https://github.com/tosin2013/invoice-exception-desk> ([README](https://github.com/tosin2013/invoice-exception-desk/blob/main/README.md), [GUIDE_OUTLINE](https://github.com/tosin2013/invoice-exception-desk/blob/main/GUIDE_OUTLINE.md))
-- Spec Kit: <https://github.com/github/spec-kit>; Ralph Loop: <https://github.com/Rubiss-Projects/spec-kit-ralph>
+- Spec Kit: <https://github.com/github/spec-kit> ([agent integrations](https://github.github.io/spec-kit/integrations/index.html)); Ralph Loop: <https://github.com/Rubiss-Projects/spec-kit-ralph>

@@ -79,6 +79,47 @@ Pick a tier:
 
 **Honest costs:** SDD is slower on day one. The main failure is "spec theatre", meaning writing specs nobody uses. And a stale spec is worse than no spec, because it misleads the next agent that reads it.
 
+## Use this pattern in your own project
+
+[PLAYBOOK](PLAYBOOK.md) is the whole pattern on one page. You can hand it to any coding agent, such as Claude Code, Codex CLI, Copilot, Gemini CLI, Cursor, OpenCode or others; its [Choose your harness](PLAYBOOK.md#2-choose-your-harness) section covers what the builder step needs.
+
+To try it, open your own repo and give your AI this prompt:
+
+```text
+Read https://raw.githubusercontent.com/tosin2013/invoice-exception-desk/main/PLAYBOOK.md
+and apply its pattern to this repo. Follow section 9, "Apply this to a new project:
+checklist for an AI", in order:
+
+1. Ask me which coding agent, model and budget I use (or check what's installed and
+   confirm with me). Don't assume OpenCode. Map the loop to it using section 2,
+   "Choose your harness".
+2. Run the decision gate with me. If the answer is light SDD or no SDD, stop and say so.
+3. Set up Spec Kit with my agent's integration key (existing code: inventory first and
+   change nothing, as in L0; new repo: as in L1).
+4. Help me write a short constitution: 3 to 5 rules, each citing real code.
+5. Turn my first small, already-decided change into a GitHub issue that is the ruling.
+   I approve it and add the agent-ready label.
+6. Write acceptance tests from the issue and keep them out of the builder's reach.
+7. Add a read-only CI workflow with no secrets as the grader, before the first run.
+8. Set up the builder: a capped loop (Ralph, or a wrapper with section 7's caps and
+   stops) in a sandbox with no keys, tokens or push access. It writes the spec, plan
+   and tasks, then implements, and its work comes out as a git bundle.
+9. Add the acceptance tests as one separate grader commit, and add Dependabot
+   (section 8) once CI exists.
+
+Don't push, open a PR or merge without my OK.
+```
+
+Prefer to do it by hand? The short path:
+
+1. Run the [decision gate above](#the-decision-gate-should-this-project-use-spec-kit-at-all) first.
+2. Pick your harness ([PLAYBOOK section 2](PLAYBOOK.md#2-choose-your-harness)) and set up Spec Kit: [L0](L0-existing-repo.md) for a repo with code, [L1](L1-setup.md) for a new one.
+3. Write a constitution and turn your first change into an approved issue ([L6](L6-issue-to-pr.md)).
+4. Run the builder in a capped loop in a keyless box ([L5](L5-agent-loop.md)), then let read-only CI grade the PR, with the acceptance tests as a separate commit ([L7](L7-ci-grader.md)).
+5. Add Dependabot, graded by the same CI ([L8](L8-dependabot.md)).
+
+The full checklist is [PLAYBOOK section 9](PLAYBOOK.md#9-apply-this-to-a-new-project-checklist-for-an-ai). For agents, the guide also has an index at [llms.txt](llms.txt).
+
 ## How each level's branches work
 
 A finished level is two branches. `lN-start` is the tree you begin from. `lN-solution` is the same work, one commit per step.
