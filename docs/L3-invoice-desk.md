@@ -42,6 +42,8 @@ The Invoice Exception Desk is a decision queue for a fictional commercial-cleani
 **R0 (already done)** froze the inputs: a 30-row synthetic CSV with valid rows, identical and inconsistent duplicates, invalid amounts and dates, and empty rows; an acceptance list (AT-01 to AT-10); and an **oracle**. The [R0 Results and Lessons](https://github.com/tosin2013/invoice-exception-desk/wiki/R0-Results-and-Lessons) page records what went wrong there, mainly that the same model wrote the code, the oracle, and the tests.
 
 > **Jargon: oracle vs answer key.** The **oracle** is the file of expected results for every row (`oracle.json`), computed by a separate script. The **answer key** is what the reviewer runs: the oracle plus extra checks. In L3 the oracle is part of the answer key, so it is **not** on `l3-start`. The public `ACCEPTANCE.md` quotes the headline numbers (14 accepted, 12 rejected, and so on), but not the row-by-row answers.
+>
+> The copies of `data/oracle.json` and `data/compute_oracle.py` on `main` are there on purpose: they're the published R0 reference answers. If you're doing L3 on your own, work from `l3-start` (which leaves them out) and don't open them until you've finished; then you can compare your build with `oracle.json` for the 30 fixture rows.
 
 ```mermaid
 flowchart LR

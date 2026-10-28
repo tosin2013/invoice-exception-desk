@@ -67,6 +67,12 @@ The files at the top of `main` come from the project's first phase (R0), a plann
 - Spotted a mistake, or have a tip for a fellow learner? Please [open an issue](https://github.com/tosin2013/invoice-exception-desk/issues). Questions are very welcome.
 - If you're working through Spec Kit too, I'd love to hear how it's going for you.
 
+## License
+
+- **Code** (anything outside `docs/` except the guide text listed next, plus the code samples inside the guide pages) is under the [MIT License](LICENSE).
+- **Written guide content** (`docs/`, this `README.md`, `PLAYBOOK.md` and `GUIDE_OUTLINE.md`) is under [CC BY 4.0](LICENSE-docs). You can share and adapt it, with credit.
+- The `l0-start` and `l0-solution` branches contain upstream [python-slugify](https://github.com/un33k/python-slugify), which keeps its own MIT license (its `LICENSE` file on those branches).
+
 ---
 
 ### Redactions
@@ -81,5 +87,7 @@ Before publication, the following were redacted from `run.log`, `PACKET.md`, `SP
 - Internal Notion plan/page ids → `<internal-plan-id>`
 
 Original content and original `MANIFEST.sha256` hashes are retained privately (not in this repository).
+
+**A note on internal references:** you'll see `MSG-` numbers, Relay thread IDs, the host name `openclaw`, and the "Codex custodian" in some files. They're internal references from how this guide was built, and you don't need them to follow it.
 
 </sub>

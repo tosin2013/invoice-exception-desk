@@ -154,14 +154,14 @@ Reading it:
 
 Within about a minute of the merge, Dependabot opened two PRs. Both carry its default `dependencies` and `github_actions` labels.
 
-| PR | Into | What | Graded? | State (checked 11:04 AM EDT, Oct 28) |
+| PR | Into | What | Graded? | State (checked 11:44 AM EDT, Oct 28) |
 |---|---|---|---|---|
-| [#27](https://github.com/tosin2013/invoice-exception-desk/pull/27) | `l5-setup` | "bump actions/checkout from 4 to 7 in the actions group" (`ci.yml`, +1/-1). `astral-sh/setup-uv` was already current. | **Yes:** [CI green in 9s](https://github.com/tosin2013/invoice-exception-desk/actions/runs/40711151352) | open, waiting for Tosin |
-| [#28](https://github.com/tosin2013/invoice-exception-desk/pull/28) | `main` | "bump the pages group with 4 updates": checkout 4 → 7, configure-pages 5 → 6, upload-pages-artifact 3 → 5, deploy-pages 4 → 5 (`pages.yml`, +4/-4) | **No:** `main` has no CI | open, waiting for Tosin |
+| [#27](https://github.com/tosin2013/invoice-exception-desk/pull/27) | `l5-setup` | "bump actions/checkout from 4 to 7 in the actions group" (`ci.yml`, +1/-1). `astral-sh/setup-uv` was already current. | **Yes:** [CI green in 9s](https://github.com/tosin2013/invoice-exception-desk/actions/runs/40711151352) | merged by Tosin at 11:39 AM EDT (merge [`7c8876b`](https://github.com/tosin2013/invoice-exception-desk/commit/7c8876b)) |
+| [#28](https://github.com/tosin2013/invoice-exception-desk/pull/28) | `main` | "bump the pages group with 4 updates": checkout 4 → 7, configure-pages 5 → 6, upload-pages-artifact 3 → 5, deploy-pages 4 → 5 (`pages.yml`, +4/-4) | **No:** `main` has no CI | merged by Tosin at 11:39 AM EDT (merge [`c982d2d`](https://github.com/tosin2013/invoice-exception-desk/commit/c982d2d)) |
 
 **PR #27 also clears a warning we'd been living with.** Every CI run since [PR #21](https://github.com/tosin2013/invoice-exception-desk/actions/runs/40696301921) carried the annotation "Node.js 20 is deprecated … actions/checkout@v4". On PR #27's run it's gone. The checkout 5 to 7 changes (Node 24; credentials kept in a separate file; v7 blocks checking out fork PRs under `pull_request_target` and `workflow_run`) don't touch us: our CI uses plain `pull_request`.
 
-**PR #28 is the ungraded one.** Merging it redeploys the guide site. If the new Pages actions break, the failure shows up in the "Deploy guide to GitHub Pages" run, not before the merge. That's the trade-off of grading only the code branch. It's acceptable for a docs site, and it's why `main` is monthly.
+**PR #28 is the ungraded one.** Merging it redeploys the guide site. If the new Pages actions break, the failure shows up in the "Deploy guide to GitHub Pages" run, not before the merge. That's the trade-off of grading only the code branch. It's acceptable for a docs site, and it's why `main` is monthly. This time the [Pages deploy after the merge](https://github.com/tosin2013/invoice-exception-desk/actions/runs/40718232607) went green with the new actions.
 
 ### Where's the pytest PR?
 
@@ -274,6 +274,7 @@ All times **Oct 28, 2026, EDT**.
 | 10:57 AM | Tosin merged PR #26 (`1526306`); Dependabot's first update jobs started, all **successful** (4 `github_actions`, 2 `pip`) |
 | 10:57 AM | Dependabot opened PR #27 (into `l5-setup`); [CI green in 9s](https://github.com/tosin2013/invoice-exception-desk/actions/runs/40711151352), Node 20 warning gone |
 | 10:57 AM | Dependabot opened PR #28 (pages group, 4 updates, into `main`); ungraded |
+| 11:39 AM | Tosin merged PR #27 (`7c8876b`) and PR #28 (`c982d2d`); [CI on `l5-setup`](https://github.com/tosin2013/invoice-exception-desk/actions/runs/40718201998) and the [Pages deploy](https://github.com/tosin2013/invoice-exception-desk/actions/runs/40718232607) both green |
 | — | No pytest PR: 9.2.0 filtered by the 3-day default cooldown, expected after about 5:30 PM EDT Oct 30 |
 
 | Item | Value |
@@ -281,7 +282,7 @@ All times **Oct 28, 2026, EDT**.
 | Config | [`.github/dependabot.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/main/.github/dependabot.yml), 3 blocks, 31 lines, [PR #26](https://github.com/tosin2013/invoice-exception-desk/pull/26) |
 | Pin | `pytest==9.1.1` in [`requirements-dev.txt`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/requirements-dev.txt), [PR #25](https://github.com/tosin2013/invoice-exception-desk/pull/25) |
 | Repo settings changed | **none** |
-| Dependabot PRs so far | 2 (#27 graded green, #28 ungraded), both open |
+| Dependabot PRs so far | 2 (#27 graded green, #28 ungraded), both merged by Tosin at 11:39 AM EDT; the pytest PR is still expected |
 | Tests on `l5-setup` | 223, unchanged |
 
 ## What we learned
