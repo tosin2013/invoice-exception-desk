@@ -244,16 +244,16 @@ Checked against [Ralph Loop](https://github.com/Rubiss-Projects/spec-kit-ralph) 
 
 **Input: approved spec files only.** The loop works from `.specify/memory/constitution.md` and `specs/<NNN-feature>/spec.md`, `plan.md` and `tasks.md`. A human approves them before the loop starts. The loop never plans. **Our runs differed:** in L5 to L7 a phase-1 prompt wrote the spec change, plan and tasks inside the box from the approved ruling, and Ralph started right after. That made the ruling the only approval up front, and the human reviewed the spec trail in the PR. If you can, review the spec, plan and tasks before you start the loop.
 
-**Order.** Ralph runs **one feature per run**: the one you pass with `--spec-dir` and `--tasks-path`, not every folder under `specs/`. With several features, run them one at a time in number order (001, 002, ...), each one finished before the next starts. Inside a feature, an iteration takes the first user story in `tasks.md` with unchecked tasks and works its tasks in order: dependencies first, then the `[P]` (parallel) tasks. Ralph lets one iteration finish one task or several from that story (L6 did 4 tasks in 1 iteration). It never starts a second story. The loop prompt below narrows that to one task per iteration, so set `max_iterations` to at least the number of tasks.
+**Order.** Ralph runs **one feature per run**: the one you pass with `--spec-dir` and `--tasks-path`, not every folder under `specs/`. With several features, run them one at a time in number order (001, 002, ...), each one finished before the next starts. Inside a feature, **each iteration works one user story** (one phase of `tasks.md`): the first one with unchecked tasks. Its tasks go in order, dependencies first, then the `[P]` (parallel) tasks. It never starts a second story in the same iteration. L6 and L7 each finished their whole story (L6: 4 tasks) in 1 iteration. If a story isn't finished, the tasks that passed are committed and the next iteration picks up the rest of that story. Set `max_iterations` to about the number of user stories plus a small margin (ours: 10).
 
 **One iteration.** Each one is a fresh agent process that knows only what's in the files.
 
 1. Read `ralph-memory.md` first, then the constitution, `spec.md`, `plan.md`, `tasks.md`, and any `research.md`, `data-model.md` or `contracts/`. Ralph's own instructions don't name `spec.md` or the constitution; the loop prompt adds them.
-2. Implement only the next unchecked task.
+2. Pick the next user story (phase) in `tasks.md` with unchecked tasks, and implement its tasks in order, respecting `[P]` markers and dependencies.
 3. Run the tests (ours: `uv run --with pytest python -m pytest -q`).
-4. Only if they pass: tick the task `[x]` in `tasks.md`, update the handoff in `ralph-memory.md`, and add an entry to `progress.md`.
+4. Tick `[x]` only the tasks whose tests pass, update the handoff in `ralph-memory.md`, and add an entry to `progress.md`.
 5. Make one commit with the change, `tasks.md`, `ralph-memory.md` and `progress.md`.
-6. End. Ralph starts the next iteration as a new process. If the tests fail, nothing is ticked and nothing is committed.
+6. End. Ralph starts the next iteration, for the next story, as a new process. If no task passes, nothing is ticked and nothing is committed.
 
 **What the loop never does.** It never runs `/speckit.specify`, `/speckit.clarify`, `/speckit.plan` or `/speckit.tasks`. It never edits `spec.md`, `plan.md`, the constitution, `.specify/` or its agent folder; its only spec-folder edits are `tasks.md` checkboxes, `ralph-memory.md` and `progress.md`. If a task is unclear, conflicts with the spec or is blocked, it writes the question down (`BLOCKED: <task ID>: <question>` in `progress.md`, and in the run's `questions.md` if there is one) and ends with no commit. Left alone, Ralph v1.5.0 would note it and try again or skip to another task. So your wrapper checks for the note after every call and stops the run. That's our "stop on a contract question" (`questions.md` stayed empty in L6 and L7). A human answers by editing the ruling or the spec, then reruns.
 
@@ -286,11 +286,11 @@ Inside an agent session, `/speckit.ralph.run --max-iterations 10` does the same 
 Ralph loop rules. Follow them in every iteration. Where they are stricter than Ralph's iterate command, these win.
 Inputs: .specify/memory/constitution.md and specs/<NNN-feature>/spec.md, plan.md and tasks.md. A human approved them. Read them and ralph-memory.md before you change anything.
 1. Work only in the feature folder Ralph gave you.
-2. Take the first unchecked task in tasks.md whose dependencies are done (non-[P] tasks before [P] ones). Implement only that task.
-3. Run the tests: <test command>. If they fail, fix them within this task, at most 3 tries. Still failing: tick nothing, commit nothing, end your turn.
-4. Tests green: tick that task [x] in tasks.md, update ralph-memory.md and progress.md, and make one commit with the change, tasks.md, ralph-memory.md and progress.md. Then end your turn. Don't start the next task.
+2. Take the first user story (phase) in tasks.md that still has unchecked tasks. Implement its tasks in order, dependencies first, non-[P] tasks before [P] ones. Work on that one story only.
+3. Run the tests: <test command>. If they fail, fix them within this story, at most 3 tries. Tick only the tasks whose tests pass; if none pass, tick nothing, commit nothing, end your turn.
+4. Tick the completed tasks [x] in tasks.md, update ralph-memory.md and progress.md, and make one commit with the change, tasks.md, ralph-memory.md and progress.md. Then end your turn. Don't start the next story.
 5. Never run /speckit.specify, /speckit.clarify, /speckit.plan or /speckit.tasks. Never edit spec.md, plan.md, the constitution, .specify/ or your own agent folder. Don't add, reword or delete tasks.
-6. If the task is unclear, conflicts with the spec or plan, or needs something that isn't done: don't guess and don't skip ahead. Append "BLOCKED: <task ID>: <question>" to progress.md (and to <questions file> if this run has one), commit nothing, and end your turn.
+6. If a task is unclear, conflicts with the spec or plan, or needs something that isn't done: don't guess and don't skip ahead. Append "BLOCKED: <task ID>: <question>" to progress.md (and to <questions file> if this run has one), commit nothing, and end your turn.
 7. Print <promise>COMPLETE</promise> on its own line only when every task is [x], the tests pass and git status is clean.
 8. Don't report sizes or counts; the receipt and CI do that.
 ```
@@ -320,7 +320,7 @@ Branches without CI (our `main`) are ungraded; schedule their bumps less often. 
 9. **Add a read-only CI workflow** (no secrets): full suite, `acceptance/` when present, base test IDs still present, diff-size summary. Merge it before the first run. Copy ours: [`ci.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/.github/workflows/ci.yml).
 10. **Build the box** (for an unattended run): a container on a host with no keys, no tokens, no push remote; the issue snapshot hash-checked; preflight probes; scope checks after every call; clean-tree check after the baseline tests; output as a `git bundle`.
 11. **Install the loop driver in its own commit** (Ralph or your wrapper), set the agent and model from outside the tree, and set the caps in section 7.
-12. **Run.** The builder writes the spec trail (dated Clarification, spec, plan, tasks, analyze) in the fixed order, then implements. Unattended, the approved ruling is the gate: it answers every clarify question in advance, and anything it doesn't answer is a stop. The loop takes one task per iteration and never edits the spec or plan ([how the Ralph loop runs each spec](#how-the-ralph-loop-runs-each-spec)). Step by step, use the review gates in [Run Spec Kit step by step](#run-spec-kit-step-by-step-no-assumptions).
+12. **Run.** The builder writes the spec trail (dated Clarification, spec, plan, tasks, analyze) in the fixed order, then implements. Unattended, the approved ruling is the gate: it answers every clarify question in advance, and anything it doesn't answer is a stop. The loop works one user story per iteration and never edits the spec or plan ([how the Ralph loop runs each spec](#how-the-ralph-loop-runs-each-spec)). Step by step, use the review gates in [Run Spec Kit step by step](#run-spec-kit-step-by-step-no-assumptions).
 13. **Verify the bundle** (hash and head), run the local self-check once, push the bundle unchanged, add the grader commit, open the PR.
 14. **Let CI grade it.** If the PR touches existing tests, also keep a byte-level compare or a review.
 15. **A human merges** on green, and closes the issue if it targets a non-default branch.
