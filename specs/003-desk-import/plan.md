@@ -20,7 +20,7 @@ def import_invoices(csv_text: str, as_of: date) -> dict: ...
 ```
 Returns `{"rows": [...], "totals": {...}}`.
 
-- `rows`: one dict per data row, in input order. Keys: `row` (1-based data-row number; the header is not counted), `status` (`accepted`, `rejected`, `duplicate_identical`, `duplicate_inconsistent`), `reason` (the rejection reason for rejected rows, `None` for accepted, `"identical_duplicate"` / `"inconsistent_duplicate"` for duplicates), `remaining_balance_cents`, `days_overdue`, `aging_bucket` (integers/strings for accepted rows, `None` otherwise). Accepted rows also carry the normalized `issuer`, `invoice_id`, `amount_cents` and `paid_cents` *(analyze fix C1)*.
+- `rows`: one dict per data row, in input order. Keys: `row` (1-based data-row number; the header is not counted), `status` (`accepted`, `rejected`, `duplicate_identical`, `duplicate_inconsistent`), `reason` (the rejection reason for rejected rows, `None` for accepted, `"identical_duplicate"` / `"inconsistent_duplicate"` for duplicates), `remaining_balance_cents`, `days_overdue`, `aging_bucket` (integers/strings for accepted rows, `None` otherwise). Accepted rows also carry the normalized `issuer`, `invoice_id`, `issue_date`, `due_date` (ISO `YYYY-MM-DD` strings), `amount_cents`, `currency` (trimmed string) and `paid_cents` *(analyze fix C1; dates and currency added by FR-032, L6)*.
 - Empty `csv_text` (no header) returns zero rows and zero totals, with all six aging buckets present as `{"count": 0, "remaining_cents": 0}` *(analyze fix A2)*.
 - `totals`: `total_rows`, `accepted`, `rejected`, `duplicate_identical`, `duplicate_inconsistent`, `outstanding_invoice_count`, `total_outstanding_cents`, `total_paid_cents`, and `aging`: a dict with all six buckets `current`, `1-30`, `31-60`, `61-90`, `91+`, `paid`, each `{"count": int, "remaining_cents": int}`.
 
@@ -92,3 +92,32 @@ Follow-up queue, owners, notes (AT-05), payments (R2), promised pay (R3), migrat
 - Never edit `.specify/`, `.opencode/`, the constitution, `data/`, `queue.py`, `annotations.py`, `pyproject.toml`, `run.log`. Install nothing. No push, no merge, no new branches, no git config changes.
 
 **Tasks**: append an "L5" phase to `tasks.md` (existing T001 to T030 unchanged).
+
+## L6 revision (2026-10-27)
+**Trigger**: Issue #16, decided by Tosin Akinosho. **FR-032**: every accepted row must also expose `issue_date` and `due_date` as ISO `YYYY-MM-DD` strings and `currency` as the trimmed string, taken from the first accepted occurrence; rejected and duplicate rows must not carry these keys (FR-015, SC-008). Closes drift 003-U1. Constitution v2.0.0, rule V (spec, tests and code land together).
+
+**Constitution Check (v2.0.0)**: I integer cents PASS · II pure computation, no I/O added PASS · III stdlib only PASS · IV tests added in `tests/test_invoice_desk.py` PASS · V spec Clarification + FR-032 + plan + tasks + tests + code land together · VI synthetic PASS · VII explicit `as_of`, dates are `str` PASS · VIII graded by the L6 lesson rule in issue #16 (all acceptance checks, unchanged 209-test regression, Grok Bot approval) instead of a hidden key.
+
+**What changes**
+- `invoice_desk/__init__.py`, accepted-row construction only: add `issue_date`, `due_date` (ISO strings from the normalized values) and `currency` (trimmed) to accepted rows. Nothing else changes.
+- Unchanged: classification, rejection reasons, validation precedence, trimming, padding, duplicates, balances, aging, totals, the `import_invoices` interface, and rejected/duplicate row keys.
+- No totals, aging, queue order or queue item keys change. `queue.py`, `annotations.py`, `contracts/public-api.md` and `ACCEPTANCE.md` are untouched.
+- Frozen fixture `data/invoices.csv` is untouched; no AT-01 to AT-04 value changes.
+
+**Tests added** (in `tests/test_invoice_desk.py`, written first; they must fail where the feature is missing)
+- Acceptance check 1: accepted `INV-1001`, `INV-1013`, `INV-1011` expose the exact `issue_date`, `due_date`, `currency` as `str`.
+- Acceptance check 2: a single trimmed row is accepted with trimmed `issue_date`, `due_date`, `currency`.
+- Acceptance check 3: every accepted row has exactly the full key set; every rejected and duplicate row keeps exactly its existing key set.
+- Acceptance check 4: first occurrence accepted with `due_date`; inconsistent duplicate has no `due_date` key (FR-014).
+- Acceptance check 5: `json.dumps(result)` succeeds and two calls give equal results (FR-004, FR-026).
+- Acceptance check 6: through `build_followup_queue`, AT-01 to AT-04 totals, queue order `INV-1009 … INV-1011` and queue item keys are unchanged.
+
+**004 ripple**
+- 004's queue is built from accepted rows only and ignores the new keys. No 004 code, contracts, data model or tests change; 004 FR-021 and SC-010 get dated L6 notes only.
+
+**Run rules**
+- Allowed files: `specs/003-desk-import/{spec,plan,tasks,drift,progress,ralph-memory}.md`, `specs/004-deterministic-followup-queue/spec.md`, `tests/test_invoice_desk.py`, `invoice_desk/__init__.py`.
+- Never edit `queue.py`, `annotations.py`, `contracts/public-api.md`, `ACCEPTANCE.md`, other test files, `data/`, `.specify/`, `.opencode/`, `pyproject.toml`. Never edit or delete an existing test.
+- Under 300 changed lines in total. Up to 3 fix tries per failing task, then stop and record it in `ralph-memory.md`. Install nothing. No push, no merge, no new branches, no git config changes.
+
+**Tasks**: append an "L6" phase to `tasks.md` (existing T001 to T035 unchanged).

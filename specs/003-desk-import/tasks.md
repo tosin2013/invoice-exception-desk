@@ -257,3 +257,24 @@ The production code is one module (`invoice_desk/__init__.py`) and the tests are
 - [X] T033 In `invoice_desk/__init__.py` `_validate_row`, right after the existing `invalid_date` check, return `None, "invalid_date"` when `due_date < issue_date`. Change nothing else. The full suite passes.
 - [X] T034 Add dated L5 notes, docs only: an entry in `specs/003-desk-import/drift.md`; in `specs/004-deterministic-followup-queue/spec.md`, a `Session 2026-10-25 (L5 ripple)` Clarification plus one dated L5 note under FR-021 and one under SC-010 (same style as the L4 notes); a note under AT-02 in `ACCEPTANCE.md`. No values change.
 - [X] T035 Final check: the full suite passes; `git diff --numstat d6c7d7be4fa61084cf48c400a73c44798e1a063a` shows only allowed paths, with under 300 lines in total; `grep -n 'INV-B{offset},2026-01-01' tests/test_invoice_desk.py` prints nothing; spec.md has no unstruck FR-007 line.
+
+## Phase 9: L6 revision (2026-10-27) - FR-032 accepted rows expose dates and currency
+
+**Goal**: Enforce FR-032: every accepted row also exposes `issue_date` and `due_date` as ISO `YYYY-MM-DD` strings and `currency` as the trimmed string, taken from the first accepted occurrence. Rejected and duplicate rows gain no keys (FR-015, SC-008). Classification, reasons, precedence, trimming, padding, duplicates, balances, aging and totals are unchanged; no queue key or order changes. `data/invoices.csv` stays byte-unchanged.
+
+**Dependency note**: This phase depends on Phases 1-8 (T001 to T035) being complete and green. The tests (T036) and the code change (T037) are one work unit, committed once, with the suite green: write T036 first and confirm it fails where the feature is missing, then implement T037. T038 depends on T037; T039 depends on T038. No task in this phase may modify any file outside the allowed list.
+
+**Run rules**
+- Allowed files: `specs/003-desk-import/{spec,plan,tasks,drift,progress,ralph-memory}.md`, `specs/004-deterministic-followup-queue/spec.md`, `tests/test_invoice_desk.py`, `invoice_desk/__init__.py`.
+- Never edit `queue.py`, `annotations.py`, `contracts/public-api.md`, `ACCEPTANCE.md`, other test files, `data/`, `.specify/`, `.opencode/`, `pyproject.toml`. Never edit or delete an existing test.
+- Under 300 changed lines in total. Up to 3 fix tries per failing task, then stop and record it in `ralph-memory.md`. Install nothing. No push, no merge, no new branches, no git config changes.
+
+### Tests for Phase 9 (write first, ensure they FAIL where the feature is missing) ⚠️
+
+- [X] T036 Add new tests (add only; never edit or delete an existing test) in `tests/test_invoice_desk.py` for acceptance checks 1-6: (1) `INV-1001`, `INV-1013`, `INV-1011` expose the exact `issue_date`, `due_date`, `currency` as `str`; (2) a single trimmed row is accepted with trimmed dates and currency; (3) every accepted row has exactly `{row, status, reason, issuer, invoice_id, issue_date, due_date, amount_cents, currency, paid_cents, remaining_balance_cents, days_overdue, aging_bucket}`, and every rejected (rows 19-30) and duplicate (rows 15-18) row has exactly `{row, status, reason, remaining_balance_cents, days_overdue, aging_bucket}`; (4) an inconsistent duplicate has no `due_date` key (FR-014); (5) `json.dumps(result)` succeeds and two calls give equal results (FR-004, FR-026); (6) through `build_followup_queue`, AT-01 to AT-04 totals, queue order `INV-1009 … INV-1011` and queue item keys are unchanged
+
+### Implementation for Phase 9
+
+- [X] T037 In `invoice_desk/__init__.py`, add `issue_date`, `due_date` (ISO strings) and `currency` (trimmed) to accepted rows only, from the normalized first accepted occurrence. Change nothing else; rejected and duplicate rows keep their existing keys. The full suite passes.
+- [X] T038 Docs only: close drift 003-U1 in `specs/003-desk-import/drift.md`; in `specs/004-deterministic-followup-queue/spec.md`, add dated L6 notes under FR-021 and SC-010 (same style as the L4/L5 notes). No 004 code change.
+- [X] T039 Final check: full suite passes with the 209 existing tests unchanged (no existing test edited or deleted); diff is under 300 lines; `git status` shows only allowed files touched.

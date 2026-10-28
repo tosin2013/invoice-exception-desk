@@ -17,7 +17,7 @@ or "accepted, why". Commit `2526069` is the behaviour change (spec, tests, code 
 | 003-I1 | HIGH | T005 still states the old amount clause (`[0-9]+`) without a superseded marker. | `tasks.md` T005 | **Fixed** (follow-up commit): dated historical note under T005 pointing to FR-008a/T028; T005 text kept byte-identical. |
 | 003-I2 | MEDIUM | Pre-L4 `analysis.md` (A3, C2) reads as current: `[0-9]+` grammar, "zero amount is valid". | `analysis.md` | **Fixed**: dated "pre-L4 snapshot, non-normative" note at the top; rows kept. |
 | 003-I3 | LOW | Spec and plan cite `drift.md`, which did not exist yet. | `spec.md` Clarifications, `plan.md` L4 revision | **Fixed**: this file. |
-| 003-U1 | LOW | Accepted rows expose `issuer`, `invoice_id`, `amount_cents`, `paid_cents` but not dates/currency, while the Key Entity lists them. | `plan.md` Interface, `spec.md` Key Entities | **Accepted, pre-existing** (L3 interface, unchanged by L4, no behaviour drift from FR-008a). Candidate for a later editorial clarification. |
+| 003-U1 | LOW | Accepted rows expose `issuer`, `invoice_id`, `amount_cents`, `paid_cents` but not dates/currency, while the Key Entity lists them. | `plan.md` Interface, `spec.md` Key Entities | **Closed by L6** (2026-10-27, FR-032): accepted rows now also expose `issue_date`, `due_date` and `currency`; see the L6 revision section below. |
 | 003-C1 | LOW | Top-level Constitution Check still cites v1.1.0. | `plan.md` | **Fixed**: marked historical, pointing to the v2.0.0 check in the L4 revision section. |
 
 ## Found by `/speckit.analyze` on 004 (OpenCode, free model, read-only)
@@ -85,3 +85,14 @@ Every mismatch found between spec, plan, tasks, docs, tests and code during the 
 
 No behaviour change for the frozen `data/invoices.csv`: it has no valid-date row with
 `due_date < issue_date`, so AT-01 to AT-04 values are unchanged.
+
+## L6 revision (2026-10-27) - FR-032 accepted rows expose dates and currency
+
+Every mismatch found between spec, plan, tasks, docs, tests and code during the L6 revision
+(FR-032, issue #16).
+
+| ID | What | Where | How found | Disposition |
+|----|------|-------|-----------|-------------|
+| 003-U1 | Accepted rows exposed `issuer`, `invoice_id`, `amount_cents`, `paid_cents` but not the dates or currency named by the Key Entity. | `plan.md` Interface, `spec.md` Key Entities | Carried forward from the L4 analyze re-check | **Closed**: FR-032 adds `issue_date`, `due_date` (ISO strings) and `currency` (trimmed) to accepted rows only; rejected and duplicate rows keep exactly their existing keys. |
+| 003-L6-1 | No behaviour change for the frozen `data/invoices.csv`: only the accepted-row key set grows. | `invoice_desk/__init__.py` | L6 implementation review | **Recorded**: AT-01 to AT-04 totals, classification, balances, aging, queue order and queue item keys are unchanged; `data/invoices.csv` is byte-unchanged. |
+| 004-L6-1 | 004's queue is built from accepted rows and ignores the new keys. | 004 `spec.md` FR-021, SC-010 | Cross-check during the L6 revision | **Recorded, no code change**: dated L6 notes under FR-021 and SC-010. 004 code, contracts, data model and tests are unchanged. |

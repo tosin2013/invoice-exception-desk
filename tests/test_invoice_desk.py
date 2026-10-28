@@ -1,8 +1,10 @@
+import json
 from datetime import date, timedelta
 
 import pytest
 
 from invoice_desk import import_invoices
+from invoice_desk.queue import build_followup_queue
 
 CSV_PATH = "data/invoices.csv"
 AS_OF = date(2026, 10, 15)
@@ -668,3 +670,151 @@ def test_non_accepted_rows_have_no_aging_values():
         if row["status"] != "accepted":
             assert row["days_overdue"] is None
             assert row["aging_bucket"] is None
+
+
+# ---------------------------------------------------------------------------
+# L6 revision -- accepted rows expose dates and currency (FR-032)
+# ---------------------------------------------------------------------------
+
+ACCEPTED_KEYS = {
+    "row",
+    "status",
+    "reason",
+    "issuer",
+    "invoice_id",
+    "issue_date",
+    "due_date",
+    "amount_cents",
+    "currency",
+    "paid_cents",
+    "remaining_balance_cents",
+    "days_overdue",
+    "aging_bucket",
+}
+
+NON_ACCEPTED_KEYS = {
+    "row",
+    "status",
+    "reason",
+    "remaining_balance_cents",
+    "days_overdue",
+    "aging_bucket",
+}
+
+
+def test_frozen_accepted_rows_expose_exact_dates_and_currency():
+    invoices = accepted_by_id(frozen_result())
+
+    expected = {
+        "INV-1001": ("2026-09-01", "2026-10-25", "USD"),
+        "INV-1013": ("2026-09-20", "2026-11-01", "USD"),
+        "INV-1011": ("2026-08-15", "2026-08-15", "USD"),
+    }
+    for invoice_id, (issue_date, due_date, currency) in expected.items():
+        row = invoices[invoice_id]
+        assert row["issue_date"] == issue_date
+        assert row["due_date"] == due_date
+        assert row["currency"] == currency
+        assert type(row["issue_date"]) is str
+        assert type(row["due_date"]) is str
+        assert type(row["currency"]) is str
+
+
+def test_trimmed_row_is_accepted_with_trimmed_dates_and_currency():
+    result = import_invoices(
+        make_csv(" Acme , INV-L6-1 , 2026-09-01 , 2026-10-01 , 1000 , USD , 0 "),
+        AS_OF,
+    )
+    row = result["rows"][0]
+
+    assert row["status"] == "accepted"
+    assert row["issue_date"] == "2026-09-01"
+    assert row["due_date"] == "2026-10-01"
+    assert row["currency"] == "USD"
+
+
+def test_accepted_and_non_accepted_rows_have_exact_key_sets():
+    result = frozen_result()
+
+    for row in result["rows"]:
+        if row["status"] == "accepted":
+            assert set(row) == ACCEPTED_KEYS
+        else:
+            assert set(row) == NON_ACCEPTED_KEYS
+
+    for row in result["rows"][14:18]:
+        assert row["status"].startswith("duplicate_")
+        assert set(row) == NON_ACCEPTED_KEYS
+    for row in result["rows"][18:30]:
+        assert row["status"] == "rejected"
+        assert set(row) == NON_ACCEPTED_KEYS
+
+
+def test_inconsistent_duplicate_has_no_due_date_key():
+    result = import_invoices(
+        make_csv(
+            "Acme,INV-L6-2,2026-09-01,2026-10-01,1000,USD,0",
+            "Acme,INV-L6-2,2026-09-02,2026-10-01,2000,USD,0",
+        ),
+        AS_OF,
+    )
+
+    assert result["rows"][0]["status"] == "accepted"
+    assert result["rows"][0]["due_date"] == "2026-10-01"
+    duplicate = result["rows"][1]
+    assert duplicate["status"] == "duplicate_inconsistent"
+    assert "due_date" not in duplicate
+    assert "issue_date" not in duplicate
+    assert "currency" not in duplicate
+
+
+def test_frozen_result_is_json_serialisable_and_repeatable():
+    first = frozen_result()
+    second = frozen_result()
+
+    json.dumps(first)
+    assert first == second
+
+
+def test_queue_and_report_totals_are_unchanged_by_new_fields():
+    result = frozen_result()
+
+    totals = result["totals"]
+    assert totals["total_rows"] == 30
+    assert totals["accepted"] == 14
+    assert totals["rejected"] == 12
+    assert totals["duplicate_identical"] == 2
+    assert totals["duplicate_inconsistent"] == 2
+    assert totals["outstanding_invoice_count"] == 13
+    assert totals["total_outstanding_cents"] == 2139435
+    assert totals["total_paid_cents"] == 289999
+
+    queue = build_followup_queue(result)
+    assert [item["invoice_id"] for item in queue] == [
+        "INV-1009",
+        "INV-1012",
+        "INV-1008",
+        "INV-1007",
+        "INV-1005",
+        "INV-1006",
+        "INV-1014",
+        "INV-1004",
+        "INV-1003",
+        "INV-1010",
+        "INV-1001",
+        "INV-1002",
+        "INV-1013",
+        "INV-1011",
+    ]
+    expected_keys = {
+        "issuer",
+        "invoice_id",
+        "remaining_balance_cents",
+        "days_overdue",
+        "aging_bucket",
+        "owner",
+        "notes",
+        "position",
+    }
+    for item in queue:
+        assert set(item) == expected_keys
