@@ -20,6 +20,47 @@ If you're new to Spec Kit too, you're in the right place. Spec Kit helps you and
 
 The guide lives in `docs/` and is published with GitHub Pages. The [wiki](https://github.com/tosin2013/invoice-exception-desk/wiki) holds older drafts.
 
+## Use this pattern in your own project
+
+[PLAYBOOK.md](PLAYBOOK.md) is the whole pattern on one page. You can hand it to any coding agent, such as Claude Code, Codex CLI, Copilot, Gemini CLI, Cursor, OpenCode or others; its [Choose your harness](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#2-choose-your-harness) section covers what the builder step needs.
+
+To try it, open your own repo and give your AI this prompt:
+
+```text
+Read https://raw.githubusercontent.com/tosin2013/invoice-exception-desk/main/PLAYBOOK.md
+and apply its pattern to this repo. Follow section 9, "Apply this to a new project:
+checklist for an AI", in order:
+
+1. Ask me which coding agent, model and budget I use (or check what's installed and
+   confirm with me). Don't assume OpenCode. Map the loop to it using section 2,
+   "Choose your harness".
+2. Run the decision gate with me. If the answer is light SDD or no SDD, stop and say so.
+3. Set up Spec Kit with my agent's integration key (existing code: inventory first and
+   change nothing, as in L0; new repo: as in L1).
+4. Help me write a short constitution: 3 to 5 rules, each citing real code.
+5. Turn my first small, already-decided change into a GitHub issue that is the ruling.
+   I approve it and add the agent-ready label.
+6. Write acceptance tests from the issue and keep them out of the builder's reach.
+7. Add a read-only CI workflow with no secrets as the grader, before the first run.
+8. Set up the builder: a capped loop (Ralph, or a wrapper with section 7's caps and
+   stops) in a sandbox with no keys, tokens or push access. It writes the spec, plan
+   and tasks, then implements, and its work comes out as a git bundle.
+9. Add the acceptance tests as one separate grader commit, and add Dependabot
+   (section 8) once CI exists.
+
+Don't push, open a PR or merge without my OK.
+```
+
+Prefer to do it by hand? The short path:
+
+1. Run the [decision gate](https://tosin2013.github.io/invoice-exception-desk/) first.
+2. Pick your harness ([PLAYBOOK section 2](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#2-choose-your-harness)) and set up Spec Kit: [L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html) for a repo with code, [L1](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html) for a new one.
+3. Write a constitution and turn your first change into an approved issue ([L6](https://tosin2013.github.io/invoice-exception-desk/L6-issue-to-pr.html)).
+4. Run the builder in a capped loop in a keyless box ([L5](https://tosin2013.github.io/invoice-exception-desk/L5-agent-loop.html)), then let read-only CI grade the PR, with the acceptance tests as a separate commit ([L7](https://tosin2013.github.io/invoice-exception-desk/L7-ci-grader.html)).
+5. Add Dependabot, graded by the same CI ([L8](https://tosin2013.github.io/invoice-exception-desk/L8-dependabot.html)).
+
+The full checklist is [PLAYBOOK section 9](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#9-apply-this-to-a-new-project-checklist-for-an-ai). For agents, the guide also has an index at [llms.txt](https://tosin2013.github.io/invoice-exception-desk/llms.txt).
+
 ## The levels
 
 Each level has a page on the guide site and real branches you can check out.
