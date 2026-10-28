@@ -33,11 +33,13 @@ Each level has a page on the guide site and real branches you can check out.
 | [L4 Maintenance](https://tosin2013.github.io/invoice-exception-desk/L4-maintenance.html) | Change a spec after code exists (FR-008a, constitution v2.0.0) | `l4-start` → `l3h-handoff` | Done (graded PASS, PR #8) |
 | [L4.5 Upgrading Spec Kit](https://tosin2013.github.io/invoice-exception-desk/L45-speckit-upgrade.html) | A repeatable routine for upgrading Spec Kit itself (1.1.3 → 1.2.3) | `l3h-handoff` | Done (PR #12) |
 | [L5 Unattended agent loop](https://tosin2013.github.io/invoice-exception-desk/L5-agent-loop.html) | Let a free-model agent loop (Spec Kit Ralph) build a ruled change in a locked-down box, graded against a sealed key, while a human keeps the big calls | `l5-setup` | One worked example done (FR-007a, graded PASS, PR #14); issue-to-PR automation and Dependabot not tried yet |
-| [L6 Issue to PR](https://tosin2013.github.io/invoice-exception-desk/L6-issue-to-pr.html) | Turn an approved GitHub issue into a PR you can trust: the issue is the ruling, a self-check the agent never sees grades it, and a human merges | `l5-setup` | One worked example done (FR-032, issue #16, self-check PASS, PR #17); automatic pickup of labelled issues and CI not tried yet |
+| [L6 Issue to PR](https://tosin2013.github.io/invoice-exception-desk/L6-issue-to-pr.html) | Turn an approved GitHub issue into a PR you can trust: the issue is the ruling, a self-check the agent never sees grades it, and a human merges | `l5-setup` | One worked example done (FR-032, issue #16, self-check PASS, PR #17); automatic pickup of labelled issues not tried yet; CI added in L7 |
+| [L7 CI is the grader](https://tosin2013.github.io/invoice-exception-desk/L7-ci-grader.html) | Let a read-only GitHub Actions workflow grade every PR: full suite, the issue's acceptance tests (added as a separate commit the builder never sees), and a check that no base test went missing | `l5-setup` | Done (FR-033, issue #22, CI green, PR #23) |
+| L8 Dependabot | Dependency bumps with real-world setups | — | Next |
 
 **Who does the work:** a human or a strong model writes the constitution, the spec, and the plan. A separate reviewer holds the answer key and grades the result. A free model, running in OpenCode, runs the tasks and the implementation.
 
-**Versions:** L1 to L4 were recorded on specify-cli 1.1.3 with OpenCode 1.19.3. L4.5 upgraded `l3h-handoff` to Spec Kit 1.2.3, and L5 and L6 run on 1.2.3 with the Ralph Loop extension v1.5.0. Older lesson branches stay on the version they were recorded with.
+**Versions:** L1 to L4 were recorded on specify-cli 1.1.3 with OpenCode 1.19.3. L4.5 upgraded `l3h-handoff` to Spec Kit 1.2.3, and L5 to L7 run on 1.2.3 with the Ralph Loop extension v1.5.0. Older lesson branches stay on the version they were recorded with.
 
 **Run the tests** from the repo root:
 
@@ -45,7 +47,7 @@ Each level has a page on the guide site and real branches you can check out.
 uv run --no-project --with pytest python -m pytest -q
 ```
 
-`l5-setup`, the latest code, has 215 tests. `main` holds the guide and the R0 files, with 15 tests.
+`l5-setup`, the latest code, has 223 tests, and CI runs them on every PR. `main` holds the guide and the R0 files, with 15 tests.
 
 Curious how Spec Kit plugs into different assistants? See [Agent Integrations vs Extensions](https://github.com/tosin2013/invoice-exception-desk/wiki/Agent-Integrations-vs-Extensions).
 
