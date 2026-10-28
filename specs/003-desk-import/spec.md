@@ -38,6 +38,14 @@
 - Q: Which existing test changes? → A: `test_aging_bucket_boundaries` in `tests/test_invoice_desk.py`; row `INV-B365` (issue `2026-01-01`, due `2025-10-15`) would become `invalid_date`, so its issue date moves to `2025-01-01` and all nine offsets, including the 365-day case, stay accepted.
 - Ruling: `specs/003-desk-import/request-v1.md` at commit `a54734c`, approved 2026-10-25.
 
+### Session 2026-10-27 (L6, issue #16, decided by Tosin Akinosho)
+
+- Q: What must every accepted row also expose? → A: `issue_date` and `due_date` as ISO `YYYY-MM-DD` strings and `currency` as the trimmed string, taken from the first accepted occurrence.
+- Q: What happens to rejected and duplicate rows? → A: They MUST NOT carry these keys (FR-015, SC-008).
+- Q: What type are the dates? → A: `str`, not `datetime.date` (constitution VII).
+- Q: Does anything else change? → A: No. No totals, aging, queue order or queue item keys change, and no other new output fields or totals are added. `queue.py`, `annotations.py`, `contracts/public-api.md` and `ACCEPTANCE.md` are untouched.
+- Ruling: approved by Tosin Akinosho in issue #16.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Import and classify every invoice row (Priority: P1)
@@ -152,6 +160,7 @@ An operator reviews the desk for a specific reporting date and sees how overdue 
 - **FR-029**: The follow-up queue, prioritization order, owner assignment, note persistence, payment events, promised-pay annotations, and schema migration are out of scope for this feature.
 - **FR-030**: Before any validation, empty-row detection, identity matching, or duplicate comparison, leading and trailing whitespace MUST be trimmed from all seven field values. Case and internal characters MUST remain significant, so trimming MUST NOT change case or collapse internal spacing.
 - **FR-031**: A data row with fewer than seven cells MUST be treated as having blank values for each missing trailing field, and cells beyond the seventh MUST be ignored. The padded row MUST then be evaluated using the same validation precedence and rejection reasons as a full-width row.
+- **FR-032**: Every accepted row MUST also expose `issue_date` and `due_date` as ISO `YYYY-MM-DD` strings and `currency` as the trimmed string, taken from the first accepted occurrence. Rejected and duplicate rows MUST NOT carry these keys (FR-015, SC-008). *(Added 2026-10-27, Clarification session 2026-10-27, issue #16, decided by Tosin Akinosho.)*
 
 ### Key Entities *(include if feature involves data)*
 
