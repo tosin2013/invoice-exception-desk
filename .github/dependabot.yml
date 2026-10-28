@@ -1,0 +1,31 @@
+# Dependabot version updates (L8). Low noise on purpose: Tosin merges every PR, no auto-merge.
+# This file must live on the default branch (main); target-branch points updates at the code branch.
+version: 2
+updates:
+  # 1. GitHub Actions used by CI on the code branch: weekly, all bumps grouped into one PR.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "l5-setup"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # 2. One small Python dev dependency only (requirements-dev.txt on l5-setup). Graded by CI.
+  - package-ecosystem: "pip"
+    directory: "/"
+    target-branch: "l5-setup"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-name: "pytest"
+
+  # 3. The Pages workflow on main: monthly, grouped. main has no CI, so these PRs are ungraded.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      pages:
+        patterns: ["*"]
