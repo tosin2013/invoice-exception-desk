@@ -28,13 +28,13 @@ jobs:
           python-version: "3.12"
 
       - name: Full test suite
-        run: uv run --no-project --with pytest python -m pytest -q
+        run: uv run --no-project --with-requirements "$GITHUB_WORKSPACE/requirements-dev.txt" python -m pytest -q
 
       - name: Acceptance tests
         if: ${{ !cancelled() }}
         run: |
           if [ -d acceptance ]; then
-            uv run --no-project --with pytest python -m pytest acceptance -q --noconftest --import-mode=importlib
+            uv run --no-project --with-requirements "$GITHUB_WORKSPACE/requirements-dev.txt" python -m pytest acceptance -q --noconftest --import-mode=importlib
           else
             echo "No acceptance/ directory on this branch, so there is nothing to run. Skipping."
           fi
@@ -44,7 +44,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          collect() { uv run --no-project --with pytest python -m pytest --collect-only -q | grep '::' | sort; }
+          collect() { uv run --no-project --with-requirements "$GITHUB_WORKSPACE/requirements-dev.txt" python -m pytest --collect-only -q | grep '::' | sort; }
           collect > /tmp/head-ids.txt
           git worktree add --detach /tmp/base "$BASE_SHA"
           (cd /tmp/base && collect) > /tmp/base-ids.txt
