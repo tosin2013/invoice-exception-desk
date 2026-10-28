@@ -3,7 +3,7 @@
 Guide site: https://tosin2013.github.io/invoice-exception-desk/
 Wiki (older drafts): https://github.com/tosin2013/invoice-exception-desk/wiki
 Order: simple to complex. Voice: friendly, plain words, each term explained the first time it appears. The guide is written while learning, so each page records where things got confusing.
-Status key: **published** (live on the guide site, in `docs/`), **wiki** (draft on the wiki only), **draft** (started or partly written), **todo** (not started). Published levels: L0, L1, L2, L3, L3.5, L4, L4.5, L5, L6, L7 and L8 (see the levels table in `README.md` and `docs/index.md`). L8 (Dependabot, with real-world setups) is done. Next: `PLAYBOOK.md`, the wrap-up.
+Status key: **published** (live on the guide site, in `docs/`), **wiki** (draft on the wiki only), **draft** (started or partly written), **todo** (not started). Published levels: L0, L1, L2, L3, L3.5, L4, L4.5, L5, L6, L7 and L8 (see the levels table in `README.md` and `docs/index.md`). L8 (Dependabot, with real-world setups) is done. The wrap-up, [`PLAYBOOK.md`](PLAYBOOK.md), is done.
 
 ---
 
@@ -64,7 +64,15 @@ Status key: **published** (live on the guide site, in `docs/`), **wiki** (draft 
 - **Risks:** cost (loops can burn tokens or paid minutes), file collisions when two agents touch the same file, and weak tests that let bad code pass. Automation is only as good as your tests.
 - **Ties in with:** the L4 workshop sample (`speckit-workshop-issues-sample`) and its sample issues may make a good starting set.
 **Where learners get confused:** "unattended" doesn't mean "unreviewed"; which commands are core Spec Kit versus community extensions; why a fresh agent per task beats one long session.
-**Status:** the first worked example is written up in [`docs/L5-agent-loop.md`](docs/L5-agent-loop.md): one sealed, unattended Ralph run on FR-007a (graded PASS, PR #14). The issue-driven parts of this outline (ready gate, issues in and out, Dependabot, `needs-human`) haven't been tried yet and aren't on that page. The second worked example, [`docs/L6-issue-to-pr.md`](docs/L6-issue-to-pr.md) (published as L6), tries part of it: a human-written issue with acceptance checks and the `agent-ready` label as the ruling, the same container, a post-run self-check instead of a sealed key (L6 ran without the Codex custodian), a separate reviewer, and a human merge (issue #16, PR #17). The third, [`docs/L7-ci-grader.md`](docs/L7-ci-grader.md) (published as L7, done), adds CI on PRs: a read-only GitHub Actions workflow grades every PR (full suite, the issue's acceptance tests added as a separate grader commit, base test IDs still present, diff size), on FR-033 (issue #22, PR #21 for the workflow, PR #23 for the change). Branch protection and required checks are mentioned there as the real-world next step but not turned on. The fourth, [`docs/L8-dependabot.md`](docs/L8-dependabot.md) (published as L8, done), adds Dependabot version updates: pytest pinned in `requirements-dev.txt` (PR #25), a three-block `.github/dependabot.yml` on `main` with `target-branch: l5-setup` (PR #26), and the first Dependabot PRs graded by the unchanged L7 CI (PR #27 green; PR #28 for Pages on `main`, ungraded). Unlike the Dependabot bullet above, L8 deliberately uses **no auto-merge**: a human merges every Dependabot PR on green; alerts and security updates are explained but left off. Automatic pickup of labelled issues and `needs-human` are still untried. Next: `PLAYBOOK.md`, the wrap-up.
+**Status:** the first worked example is written up in [`docs/L5-agent-loop.md`](docs/L5-agent-loop.md): one sealed, unattended Ralph run on FR-007a (graded PASS, PR #14). The issue-driven parts of this outline (ready gate, issues in and out, Dependabot, `needs-human`) haven't been tried yet and aren't on that page. The second worked example, [`docs/L6-issue-to-pr.md`](docs/L6-issue-to-pr.md) (published as L6), tries part of it: a human-written issue with acceptance checks and the `agent-ready` label as the ruling, the same container, a post-run self-check instead of a sealed key (L6 ran without the Codex custodian), a separate reviewer, and a human merge (issue #16, PR #17). The third, [`docs/L7-ci-grader.md`](docs/L7-ci-grader.md) (published as L7, done), adds CI on PRs: a read-only GitHub Actions workflow grades every PR (full suite, the issue's acceptance tests added as a separate grader commit, base test IDs still present, diff size), on FR-033 (issue #22, PR #21 for the workflow, PR #23 for the change). Branch protection and required checks are mentioned there as the real-world next step but not turned on. The fourth, [`docs/L8-dependabot.md`](docs/L8-dependabot.md) (published as L8, done), adds Dependabot version updates: pytest pinned in `requirements-dev.txt` (PR #25), a three-block `.github/dependabot.yml` on `main` with `target-branch: l5-setup` (PR #26), and the first Dependabot PRs graded by the unchanged L7 CI (PR #27 green; PR #28 for Pages on `main`, ungraded). Unlike the Dependabot bullet above, L8 deliberately uses **no auto-merge**: a human merges every Dependabot PR on green; alerts and security updates are explained but left off. Automatic pickup of labelled issues and `needs-human` are still untried. The wrap-up, [`PLAYBOOK.md`](PLAYBOOK.md), is done; loop tuning lives there instead of in its own lesson.
+
+## PLAYBOOK: the wrap-up (done: [`PLAYBOOK.md`](PLAYBOOK.md), repo root)
+**Purpose:** the whole pattern on one page, so any AI can pull one file and apply it to its own project.
+- What the pattern is, prerequisites, and the end-to-end loop (constitution, ruling issue, spec/plan/tasks, sandboxed builder run, grader commit, CI as grader, human merge)
+- Roles and trust boundaries, and a table linking every level
+- Loop tuning for the Ralph/OpenCode builder (caps, self-check, scope checks, when to stop or retry), folded in here instead of a separate lesson
+- Dependency hygiene (the L8 recipe), a checklist for a new project, and known gaps
+**Where learners get confused:** it lives at the repo root, so it is on GitHub, not on the guide site (Pages publishes `docs/` only).
 
 ## Advanced: Multi-Agent Workflow (wiki)
 **Purpose:** save tokens by pairing strong models (judgment) with cheap or free models (mechanical work).
@@ -84,7 +92,7 @@ Status key: **published** (live on the guide site, in `docs/`), **wiki** (draft 
 - Limits, costs, and when not to use it
 **Where learners get confused:** the Copilot *chat* integration versus the *coding agent*; plan requirements; the agent can't see local, uncommitted specs.
 
-## Use this in your own project: checklist (todo)
+## Use this in your own project: checklist (covered by the checklist in [`PLAYBOOK.md`](PLAYBOOK.md))
 **Purpose:** a one-page checklist for adopting Spec Kit in an existing or new repo.
 - Prerequisites and `specify init` (new repo) or adding Spec Kit to an existing repo
 - Write the constitution first

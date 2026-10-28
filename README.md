@@ -15,7 +15,8 @@ If you're new to Spec Kit too, you're in the right place. Spec Kit helps you and
 ## Start here
 
 1. Read the [guide Home page](https://tosin2013.github.io/invoice-exception-desk/) for the big picture, including a decision gate on whether Spec Kit fits your project at all.
-2. Already have code? Start at [L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html). Starting fresh? Jump into [L1 Setup](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html) to get your tools ready.
+2. Want the whole pattern on one page, or pointing an AI at it? Read [PLAYBOOK.md](PLAYBOOK.md).
+3. Already have code? Start at [L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html). Starting fresh? Jump into [L1 Setup](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html) to get your tools ready.
 
 The guide lives in `docs/` and is published with GitHub Pages. The [wiki](https://github.com/tosin2013/invoice-exception-desk/wiki) holds older drafts.
 
@@ -36,7 +37,7 @@ Each level has a page on the guide site and real branches you can check out.
 | [L6 Issue to PR](https://tosin2013.github.io/invoice-exception-desk/L6-issue-to-pr.html) | Turn an approved GitHub issue into a PR you can trust: the issue is the ruling, a self-check the agent never sees grades it, and a human merges | `l5-setup` | One worked example done (FR-032, issue #16, self-check PASS, PR #17); automatic pickup of labelled issues not tried yet; CI added in L7 |
 | [L7 CI is the grader](https://tosin2013.github.io/invoice-exception-desk/L7-ci-grader.html) | Let a read-only GitHub Actions workflow grade every PR: full suite, the issue's acceptance tests (added as a separate commit the builder never sees), and a check that no base test went missing | `l5-setup` | Done (FR-033, issue #22, CI green, PR #23) |
 | [L8 Dependabot](https://tosin2013.github.io/invoice-exception-desk/L8-dependabot.html) | Let Dependabot send dependency bumps as PRs, graded by the same CI as agent PRs, with low noise and a human merge; plus real-world recipes | `l5-setup`, `main` | Done (PR #25 pin, PR #26 config; Dependabot PRs #27 and #28) |
-| `PLAYBOOK.md` | The wrap-up: the whole loop in one page | — | Next |
+| [`PLAYBOOK.md`](PLAYBOOK.md) | The wrap-up: the whole pattern on one page, with every level linked, loop tuning, and a checklist an AI can apply to its own project | — | Done |
 
 **Who does the work:** a human or a strong model writes the constitution, the spec, and the plan. A separate reviewer holds the answer key and grades the result. A free model, running in OpenCode, runs the tasks and the implementation.
 
