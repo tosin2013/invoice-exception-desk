@@ -332,6 +332,22 @@ Run the answer key and the tests, and look at the commit (`git show --stat HEAD`
 
 **Our real result:** tasks took 51 seconds (11 tasks) and implement took 95 seconds (on the second try; a first try stopped after 17 seconds because our Python environment wasn't set up). The answer key passed **10/10**, the free model's own tests passed (9), and the spec and code landed in one commit. One honest note: on our first try, the free model tried to look in the parent folder, where the answer key was kept. OpenCode's permission check blocked it. That's why the key lives outside the repo. *(These are results from one free-model run, checked only against our own answer key.)*
 
+## Why this order, and how you'd choose
+
+The steps above make five judgment calls quietly. Here is what L1 decided, the reason where the repo gives one, and how you'd make the same call on your own project. Where the page gives no reason, we say so.
+
+- **The first feature.** L1 picked `split_bill`: one pure function with exact outputs. The page only says "something small". *How you'd choose:* pick a first change that tests the loop, not your product. One function or file, no I/O, and results you can write down exactly before any code exists. PLAYBOOK's [checklist for a new project](PLAYBOOK.md#9-apply-this-to-a-new-project-checklist-for-an-ai) says the same: small, already decided, and checkable by a script.
+- **The constitution rules.** Ours has five, and the [plan](https://github.com/tosin2013/invoice-exception-desk/blob/l1-solution/specs/001-split-bill/plan.md) marks each one PASS or FAIL. L1 doesn't say why these five. *How you'd choose:* keep a rule only if it would otherwise be decided differently in each feature, and a reviewer can answer yes or no to it. "Money is integer cents" passes that test; "write clean code" doesn't. Three to five rules is plenty to start.
+- **What's out of scope.** The plan lists exact files, then "Nothing else", and rules out a CLI, README changes and extra tooling. The closest reason the page gives is the tip above: when the free model planned in L0, it made extra edits. *How you'd choose:* write down anything a helpful builder might add on its own. If it isn't named as out of scope, expect to see it in the diff.
+- **Which examples to pin now.** The spec fixes where the leftover cent goes (`[334, 333, 333]`) and that `bool` raises `TypeError`. *How you'd choose:* pin every case where two careful builders could give different answers, such as remainders, bad types and empty input. Leave out anything that doesn't change this feature's behaviour.
+- **Clarify or decide, and when to plan.** L1 skips `/speckit.clarify`. You write the spec yourself and mark it `Ready`, and the page doesn't say why. [L2](L2-first-feature.md) runs clarify. *How you'd choose:* if you wrote the spec and can answer every "what happens when…?", decide in the spec. Run clarify when a model drafted it, or when you notice you're guessing. The spec is ready to plan when the reviewer can write the answer key (step 5.4) from it alone, without asking you anything.
+
+**Try it on your project.**
+
+1. What is the smallest change whose result you could write down exactly before any code exists?
+2. Which of your draft rules could a reviewer actually mark PASS or FAIL?
+3. Hand your spec to someone else. Can they write the answer key without asking you a question? If not, what would they ask?
+
 **Stuck?** Check `specify version` and `specify check`, then the [Installation docs](https://github.github.io/spec-kit/installation.html).
 
 Compare the start branch with the finished steps: [`l1-start...l1-solution`](https://github.com/tosin2013/invoice-exception-desk/compare/l1-start...l1-solution). Next: [L2: First feature, end to end](L2-first-feature.md). Back to [Home](index.md).
