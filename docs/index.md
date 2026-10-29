@@ -120,6 +120,8 @@ Prefer to do it by hand? The short path:
 
 The full checklist is [PLAYBOOK section 9](PLAYBOOK.md#9-apply-this-to-a-new-project-checklist-for-an-ai). For agents, the guide also has an index at [llms.txt](llms.txt).
 
+Not sure what to say to your AI? [Prompts](PROMPTS.md) has a copy-paste prompt for each common situation.
+
 ## How each level's branches work
 
 A finished level is two branches. `lN-start` is the tree you begin from. `lN-solution` is the same work, one commit per step.
@@ -163,6 +165,7 @@ flowchart LR
 | Letting CI grade every PR | [L7: CI is the grader](L7-ci-grader.md) | [`ed1fa8e`](https://github.com/tosin2013/invoice-exception-desk/commit/ed1fa8e) → [`l5-setup`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup) ([PR #21](https://github.com/tosin2013/invoice-exception-desk/pull/21), [issue #22](https://github.com/tosin2013/invoice-exception-desk/issues/22), [PR #23](https://github.com/tosin2013/invoice-exception-desk/pull/23)) |
 | Letting Dependabot send dependency bumps, graded by CI | [L8: Dependabot, graded like everyone else](L8-dependabot.md) | [`211a728`](https://github.com/tosin2013/invoice-exception-desk/commit/211a728) → [`l5-setup`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup) ([PR #25](https://github.com/tosin2013/invoice-exception-desk/pull/25), [PR #27](https://github.com/tosin2013/invoice-exception-desk/pull/27)); [`858f806`](https://github.com/tosin2013/invoice-exception-desk/commit/858f806) → [`main`](https://github.com/tosin2013/invoice-exception-desk/tree/main) ([PR #26](https://github.com/tosin2013/invoice-exception-desk/pull/26), [PR #28](https://github.com/tosin2013/invoice-exception-desk/pull/28)) |
 | Wanting the whole pattern on one page (or handing it to an AI) | [PLAYBOOK: the wrap-up](PLAYBOOK.md) | [`main`](https://github.com/tosin2013/invoice-exception-desk/tree/main) |
+| Wanting a ready-made prompt to give your AI | [Prompts: what to say to your AI](PROMPTS.md) | [`main`](https://github.com/tosin2013/invoice-exception-desk/tree/main) |
 | Mixing agents or using the Copilot coding agent | **Advanced** *(not planned yet; see the wiki's [Multi-Agent Workflow](https://github.com/tosin2013/invoice-exception-desk/wiki/Multi-Agent-Workflow) page)* | — |
 
 The [project wiki](https://github.com/tosin2013/invoice-exception-desk/wiki) keeps older drafts, including R0 Results and Lessons and Multi-Agent Workflow.
