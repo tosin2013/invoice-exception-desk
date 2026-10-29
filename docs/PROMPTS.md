@@ -140,7 +140,12 @@ Read ROADMAP.md, the open issues and merged PRs, and the specs/ folder.
 2. Recommend the next 1–3 rows to start, based on priority, dependencies and what's unblocked. Explain each choice in one line.
 3. Flag any drift: specs with no roadmap row, rows with no spec, or a stale status.
 4. Propose the ROADMAP.md edits as a diff, and keep any integrity steps the repo uses (hashes, drift check).
+5. For each recommended row, rate its gravity (small, medium or high risk) and suggest how to build it:
+   - Small and low risk: stage a Ralph loop, one user story per pass, in the sandbox.
+   - Medium: Ralph loop, but I review after each story before the next pass.
+   - High risk (security, data, infrastructure or anything hard to reverse): no loop. Build it step by step with me reviewing each change.
+   Say why, and ask me to confirm before staging anything. Never start the loop yourself.
 Stop there. Don't edit files, open issues or start a spec until I approve. Once I pick a row, start /speckit.specify for that row only.
 ```
 
-Read more: [PM: plan the roadmap first](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#pm-plan-the-roadmap-first)
+Read more: [PM: plan the roadmap first](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#pm-plan-the-roadmap-first) · [How the Ralph loop runs each spec](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#how-the-ralph-loop-runs-each-spec)
