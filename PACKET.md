@@ -65,3 +65,7 @@ revalidation is implied. Every other digest in this manifest is still the R0 val
 a line that R0's self-graded `done` is not a precedent for new rows, and a "known sync gap (pending)" note
 about spec 004's missing R1 backlink. Its `MANIFEST.sha256` line was refreshed again. No other artifact
 changed, and R0 provenance is still as stated above.
+
+**Sync-gap cleanup (2026-10-28):** PR #40 added spec 004's `Input: Parent roadmap -> R1` back-link on
+`l5-setup` (`ca86ed4`), so `ROADMAP.md`'s "known sync gap (pending)" note was replaced with a one-line
+record of that back-link. Its `MANIFEST.sha256` line was refreshed again. No other artifact changed.
