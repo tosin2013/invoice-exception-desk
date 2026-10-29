@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "AT-05 (full): a deterministic follow-up queue on top of L3's import_invoices. Order the queue by bucket, then balance, then invoice ID. Each queue item can carry an owner and free-text notes. Use ACCEPTANCE.md AT-05 as the source of truth. Do not implement anything."
+**Input**: Parent roadmap -> R1. User description: "AT-05 (full): a deterministic follow-up queue on top of L3's import_invoices. Order the queue by bucket, then balance, then invoice ID. Each queue item can carry an owner and free-text notes. Use ACCEPTANCE.md AT-05 as the source of truth. Do not implement anything."
 
 ## Clarifications
 
