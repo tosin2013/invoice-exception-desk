@@ -307,6 +307,22 @@ All times **Oct 28, 2026, EDT**.
 7. **Merge or close each PR on green,** yourself. Don't leave them sitting, or Dependabot pauses.
 8. **Decide on alerts and security updates** separately. Turn them on for anything with runtime dependencies on the default branch.
 
+## Why this order, and how you'd choose
+
+The steps above make five judgment calls. Here is what L8 decided, the reason where the page gives one, and how you'd make the same call on your own project. Where the page gives no reason, we say so.
+
+- **Which Dependabot features to turn on.** Version updates only. The page's reason: the app has no runtime dependencies, and security updates only target the default branch, while the code lives on `l5-setup`. *How you'd choose:* turn alerts and security updates on for anything with runtime dependencies on the default branch. Make it a deliberate on or off.
+- **How to make a dependency visible.** One pinned line in `requirements-dev.txt`, the "cheapest fix", because Dependabot can't read a CLI flag. The `uv` ecosystem was skipped because it would mean a committed lockfile and a CI change. *How you'd choose:* use the smallest file Dependabot can read that matches how you install today. Move to a lockfile ecosystem when you already commit one.
+- **Pinning one release behind.** We pinned `pytest==9.1.1` on purpose, so the lesson would get a real PR to show, and the page says so. *How you'd choose:* on a real project, pin what you actually run. Don't stage a PR.
+- **How often, and how grouped.** Weekly, grouped, with `allow` for pytest alone, because low noise is what keeps "a human merges every one" realistic. `main` is monthly because nothing grades it. *How you'd choose:* match the schedule to how many PRs your merger can really read each week. Bump ungraded branches less often.
+- **No auto-merge.** That was Tosin's rule for this repo; the page doesn't argue for it beyond keeping a human merge on green. *How you'd choose:* auto-merge only what CI can truly judge (for example, patch bumps on a branch with required checks). Keep majors, and anything ungraded, for a human.
+
+**Try it on your project.**
+
+1. Which of your dependencies sit in a file Dependabot can read, and which exist only as a CLI flag?
+2. Which of your branches have no CI, and how often should bumps land there?
+3. Who merges bot PRs, and how many a week can they really handle?
+
 ## Checklist
 
 - [ ] Every dependency you care about is in a file Dependabot can read
