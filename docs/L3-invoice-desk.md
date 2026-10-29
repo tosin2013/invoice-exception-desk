@@ -236,6 +236,22 @@ The other probe failures follow from these (for example, a later duplicate of th
 > - **What it caught.** Clarify removed an invented store before any code existed. Analyze, run in the right place, fixed two HIGH gaps before implement. The sealed key caught a real money-adjacent bug that 119 green tests had locked in, which is the "quiet wrongness" that decision-gate question 4 on [Home](index.md) warns about. A normal code review *might* have caught the paid-invoice bug. It wasn't caught by the spec, analyze, or the builder's own tests.
 > - **Verdict.** Here, **yes**. Unlike L2, this feature passes the decision gate: the data has tricky edge cases, a later phase (R2 payments) builds on these balances, and the costly mistakes are quiet ones. The price is about 20 minutes of agent time plus the human review steps.
 
+## Why this order, and how you'd choose
+
+The steps above make five judgment calls. Here is what L3 decided, the reason where the page gives one, and how you'd make the same call on your own project. Where the page gives no reason, we say so.
+
+- **How big the first slice is.** We took AT-01 to AT-04 as one feature because they share one function and one dataset; AT-05 adds state, so it's separate ("How big should a feature be?" in [What the Desk does](#what-the-desk-does)). *How you'd choose:* the page's own rule is "one function or one screen, graded by one answer key". An item that adds state or storage starts a new feature.
+- **Which rules to add to the constitution.** We added VI to VIII as a minor version, because we added rules and didn't change old ones. The page doesn't say why these three. *How you'd choose:* add a rule when the new project brings a risk your old rules don't cover. Bump the major version only when an old rule's meaning changes, as [L4](L4-maintenance.md) does for rule II.
+- **Which clarify answers matter most.** The first answer removed a store the spec had invented, and "would have changed the whole design". The page gives no reason for trimming all seven fields, or for padding short rows. *How you'd choose:* answer first any question that changes the interface or adds state. Prefer the answer that keeps the feature pure and testable, and write it into the spec.
+- **Which analyze findings to fix.** We fixed both HIGH and both MEDIUM findings before implement. A4 stays open because the spec puts malformed headers out of scope; the page doesn't say why F1 stays open. *How you'd choose:* fix anything that changes what the code or the tests must do. Leave a finding open only with a written reason.
+- **A key failure: bug or policy?** The paid-invoice failure was a bug: the spec contradicted itself, and FR-017 agreed with the key. The probe failures went to the product owner instead, because copying the oracle into the spec would shape the spec by the answer key. *How you'd choose:* if your own documents already decide the case, it's a bug, so fix the spec, code and tests together. If nothing public decides it, it's a policy question for whoever owns the product.
+
+**Try it on your project.**
+
+1. Which of your acceptance items share one function and one dataset, and which add state?
+2. Which clarify questions would change your interface or add storage?
+3. When your key and your build disagree, which document decides, and who decides if none does?
+
 ## Checklist
 
 - [ ] Working on your own branch (`git switch -c my-l3`)
