@@ -195,6 +195,21 @@ Two we guarded against and didn't hit: two agents in one checkout (one writer at
 > - **What it bought.** The handoff forced every decision into the repo before anyone wrote code. The receiver started cold and still built the right thing. Its delivery could be checked mechanically: hash, clean apply, allowed paths, tests. Independent review then found a bug that made the store unreadable, which 168 green tests had missed.
 > - **Verdict.** Worth it as practice, and for any split where the two halves are cleanly separable. Here they were: pure ordering, then storage. It isn't a speed-up on its own. Budget for the packet and the review, and write the sealed key, which we skipped.
 
+## Why this order, and how you'd choose
+
+The steps above make four judgment calls. Here is what L3.5 decided, the reason where the page gives one, and how you'd make the same call on your own project. Where the page gives no reason, we say so.
+
+- **Where to cut the handoff.** Agent B got T001 to T007 (pure ordering) and agent A kept T008 to T024 (storage). The retrospective says the split worked because the two halves were "cleanly separable". *How you'd choose:* cut where the first half has no file access or state and can be tested on its own. Then check that no task above the line depends on one below it.
+- **What to decide before the handoff.** A human corrected the tie-break order because invoice IDs are only unique within an issuer, so issuer has to come last ([section 2](#2-a-human-check-before-the-handoff)). The page calls this "the cheapest place to catch a decision". *How you'd choose:* read the clarify answers for any rule the request didn't ask for. Anything that lives only in chat doesn't exist for the receiver, so write it into the spec or plan before you hand off.
+- **What the receiver may touch, and when it stops.** The packet lists owned paths, allowed bookkeeping and everything frozen, and it says STOP for installs and conflicts. That follows from the key idea: only what's committed crosses a handoff. *How you'd choose:* name the allowed paths. Treat everything else as frozen. Make "stop and ask" the default for installs, ambiguous words and anything outside the owned tasks.
+- **Which checks to skip.** We skipped the sealed key for AT-05, and analyze and converge on the return. The page says what that cost (the review wasn't independent), but not why we skipped them. *How you'd choose:* if you skip a check, write down what it would have caught and who catches it instead. The page's own advice is to write the sealed key.
+
+**Try it on your project.**
+
+1. Where in your `tasks.md` could you draw a line with no dependency crossing it?
+2. Which decisions about this feature exist only in your chat history right now?
+3. Could a cold receiver start from your packet without asking a question? If not, what would it ask?
+
 ## Checklist
 
 - [ ] Working on your own branch (`git switch -c my-l3h`)

@@ -172,6 +172,21 @@ Tosin merged PR #17 at **8:46 AM EDT** (merge `3e972cf`). `l5-setup` now has 215
 7. **Review** the PR against the issue, rerunning the checks with the issue's exact inputs.
 8. **Merge** it yourself, and close the issue if it targets a branch other than the default.
 
+## Why this order, and how you'd choose
+
+The steps above make four judgment calls. Here is what L6 decided, the reason where the page gives one, and how you'd make the same call on your own project. Where the page gives no reason, we say so.
+
+- **Which issue.** Already covered in [Why this issue, and not the others](#why-this-issue-and-not-the-others): pick the one where "nothing is left to decide". *How you'd choose:* the same test, plus additive and checkable by a script, as in step 1 of [How to run it yourself](#how-to-run-it-yourself).
+- **Dropping the custodian and the sealed key.** Tosin chose that to keep L6 light. A self-check written from the issue, kept out of the builder's folder, took its place. *How you'd choose:* drop the sealed key only when the change is additive and its acceptance checks can be written from the issue alone. Keep the key when the change moves a policy, a total or an existing test.
+- **What the issue must answer.** Issue #16 fixed the date type as `str`, because the code's parsed value is a `date` and a careful agent could pick the wrong one. It also named what other rows get and the forbidden files. It stated the constitution exception, because without it a careful agent would flag a conflict and stop. *How you'd choose:* for each new field, write down its type, what every other kind of row gets, and which files are off limits. Then check every constitution rule against how this issue is graded.
+- **Merging with open nits.** PR #17 was merged with four non-blocking nits, and [L7](L7-ci-grader.md#what-l7-fixed-from-the-l6-review) fixed them later. The page doesn't say why they waited. *How you'd choose:* merge with nits when none of them changes behaviour or the evidence you're relying on. Carry each one to the next run, so it doesn't just disappear.
+
+**Try it on your project.**
+
+1. Of your three candidate issues, which has nothing left to decide?
+2. What type, default or forbidden file would an agent have to guess at in that issue?
+3. Does any rule in your constitution conflict with how this issue will be graded?
+
 ## Checklist
 
 - [ ] The issue settles every choice: types, other rows, forbidden files, size limit

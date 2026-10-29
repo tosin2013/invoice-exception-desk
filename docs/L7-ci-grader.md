@@ -178,6 +178,21 @@ For a purely additive PR that leaves every existing test alone, green CI is a mu
 
 **Real-world next step (not done here):** turn on **branch protection** with the `tests` check **required**, so nobody can merge on red. We left that off to keep the lesson light, but on a team repo it's what makes "CI is the grader" a rule rather than a habit.
 
+## Why this order, and how you'd choose
+
+The steps above make four judgment calls. Here is what L7 decided, the reason where the page gives one, and how you'd make the same call on your own project. Where the page gives no reason, we say so.
+
+- **Which existing test edits to allow.** Exactly one: add `"overdue"` to the two key sets. The page's reason: a new field legitimately changes a contract test, so the rule is "only the approved edit", not "no test changed". *How you'd choose:* before the run, find the tests that pin shapes or key sets, and write the exact allowed edit into the issue.
+- **Keeping the grader out of reach.** `.github/` and `acceptance/` are hard stops, and the grader arrives as its own commit. The page gives the reasons: a builder that can edit its grader isn't being graded, and a separate commit shows who wrote what. *How you'd choose:* list everything that grades the work, and make each one off limits to the builder.
+- **Skipping the review.** That's covered in [Skipping the review: a judgment call](#skipping-the-review-a-judgment-call). *How you'd choose:* its rule is that a PR that touches existing tests needs a byte-level check or a review. Green CI is enough on its own only when no existing test changed.
+- **CI's limits: report-only diff size, no branch protection.** Branch protection was left off "to keep the lesson light", and the page says to turn it on for a team repo. It doesn't say why diff size is a report rather than a failing step. *How you'd choose:* make a check blocking once you trust it and a failure means the same thing every time. Until then, report it where the reviewer will see it.
+
+**Try it on your project.**
+
+1. Which existing tests would your next change legitimately have to touch?
+2. Can your builder reach anything that grades it?
+3. In your repo today, would anything stop a merge on red CI?
+
 ## Checklist
 
 - [ ] CI is read-only, uses no secrets, and runs on every PR

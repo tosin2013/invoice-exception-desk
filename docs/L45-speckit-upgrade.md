@@ -280,6 +280,22 @@ Then sort each hit into one of three kinds:
 
 Compared with L1's 1.1.3 list, there's one new key, `"allow_symlinks": false`, and the new version stamp. An *upgraded* project keeps its old key set, apart from the version.
 
+## Why this order, and how you'd choose
+
+The steps above make five judgment calls. Here is what L4.5 decided, the reason where the page gives one, and how you'd make the same call on your own project. Where the page gives no reason, we say so.
+
+- **When to upgrade.** The page doesn't say what prompted the 1.1.3 → 1.2.3 upgrade; Tosin approved the plan. *How you'd choose:* upgrade when a release fixes or adds something you need, and between features, not halfway through one. Treat it as a dependency bump on its own branch, as the key idea says.
+- **How much testing it needs.** The template and prompt diff decides that ([step 2](#2-diff-the-templates-and-command-prompts-between-tags)). Ours were byte-identical, so a dry run plus one smoke command was enough, and we didn't re-run a lesson. *How you'd choose:* use that table. If templates or command prompts changed, re-run one small feature end to end before you trust the upgrade.
+- **`integration upgrade`, not `init --force`.** The page's reason: `init --here --force` overwrites shared templates, and `--force` on the upgrade would overwrite any template you've customised. *How you'd choose:* use the manifest-aware command, then trust `git diff`, not the warning text.
+- **Which version pins to bump.** We bumped the current-toolchain lines only. Historical lines and `specs/` stay as they are, and old lesson branches stay on 1.1.3, so a reader reproducing L2 gets the CLI that L2 was recorded on. *How you'd choose:* ask whether each line tells a reader what to install now (bump it) or records what a past run used (keep it).
+- **No answer key.** The page's reason: an upgrade has no behaviour to grade, so the tests and the hash checks are the evidence. *How you'd choose:* if the upgrade changes anything your code does, it isn't just an upgrade any more, so grade it like a feature.
+
+**Try it on your project.**
+
+1. Did the templates or command prompts change between your two versions?
+2. Which lines in your docs tell a reader what to install now, and which record a past run?
+3. Is any feature in flight that should land before you upgrade?
+
 ## 7. Checklist and rollback
 
 ### Checklist
