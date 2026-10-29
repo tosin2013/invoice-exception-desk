@@ -120,7 +120,9 @@ Rules:
 - The loop driver and model are settings. Ralph only drives `copilot`, `codex`, `claude`, `opencode` (per PLAYBOOK.md); use a wrapper script otherwise.
 - CI stays read-only with no secrets for rung 1. Rungs 2+ live in a separate, manually triggered job with the scoped credential, or are run by a human.
 
-## 7. Optional skills: rhel-devops-skills-cli
+## 7. Optional skills
+
+### rhel-devops-skills-cli
 
 [tosin2013/rhel-devops-skills-cli](https://github.com/tosin2013/rhel-devops-skills-cli) installs Agent Skills (`SKILL.md`) for Claude Code, Cursor, and the cross-tool `~/.agents/skills/` path. They are **optional**: give them to the controller (and the worker, if its harness reads skills) when the repo uses that tooling. Install from a clone, e.g. `./install.sh install --skill agnosticd` or `./install.sh install --all --ide agents`; `./install.sh available` lists them.
 
@@ -139,7 +141,19 @@ Skills in the repo (as of Oct 2026), mapped to this playbook:
 | Onboarding from `onboard.yml`, re-runnable, plus generated `bootstrap.sh` for people without an agent | `project-onboard` (listed as `onboard` in README) | setup, repeatability check |
 | Fill research gaps in skills | `skill-researcher` | as needed |
 
-Note: there is **no stand-alone generic "Helm", "OpenShift" or "Argo CD" skill**; Helm and GitOps knowledge sits inside `field-sourced-content` and the `vp-*` skills. Rung 1 is covered by `static-validation`, which runs all five checks offline, skips (and reports) any missing tool, and writes artifacts to `docs/evidence/<spec>/rung1/`. Skills inform; they never replace the ladder's artifacts or the human gates.
+Note: `rhel-devops-skills-cli` has **no stand-alone generic "Helm", "OpenShift" or "Argo CD" skill**; Helm and GitOps knowledge sits inside `field-sourced-content` and the `vp-*` skills. Rung 1 is covered by `static-validation`, which runs all five checks offline, skips (and reports) any missing tool, and writes artifacts to `docs/evidence/<spec>/rung1/`. Skills inform; they never replace the ladder's artifacts or the human gates.
+
+### Red Hat-supplied skills
+
+Published by Red Hat orgs (verified Oct 2026). Optional: skills inform but never replace the evidence ladder or human gates, and the worker gets **no cluster credentials** even if a skill or MCP server expects them; anything that talks to a live cluster or AAP belongs to the human/CI side (rungs 2+).
+
+| Name | Covers | Helps at |
+|---|---|---|
+| [openshift/agentic-skills](https://github.com/openshift/agentic-skills) | OpenShift maintainers' skills: cluster troubleshoot, cluster update, GitOps; also shipped as a container image | plan, review, rungs 3-5 diagnosis |
+| [redhat-developer/agentic-skills](https://github.com/redhat-developer/agentic-skills) | OpenShift GitOps (Argo CD, Argo Rollouts): repo audit, OutOfSync debug, ApplicationSets; `npx skills add redhat-developer/agentic-skills` | ROADMAP audit, tasks, rung 5 (Argo CD convergence) |
+| [RHEcosystemAppEng/agentic-collections-skills](https://github.com/RHEcosystemAppEng/agentic-collections-skills) | Packs: `ocp-admin`, `rh-developer` (S2I, Helm), `rh-sre` (RHEL, CVE), `rh-automation` (AAP governance), `rh-virt` | plan, tasks; MCP-backed skills human/CI only |
+| [containers/kubernetes-mcp-server](https://github.com/containers/kubernetes-mcp-server) (MCP server) | Kubernetes/OpenShift API access for agents | human/CI side, rungs 2+ only |
+| [ansible/aap-mcp-server](https://github.com/ansible/aap-mcp-server) (MCP server) | Ansible Automation Platform API | human/CI side, rungs 2+ only |
 
 ## 8. Minimal per-repo layout
 
