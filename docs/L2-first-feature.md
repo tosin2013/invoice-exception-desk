@@ -232,6 +232,22 @@ The first result (169/169 on 22 Oct) is **as reported by the Spec Kit bot**. It 
 > - **What clarify caught.** Two things: which containers `weights` may be, and which error wins when an input is both the wrong type and out of range. A careful reviewer would probably have caught both in a normal PR, since `split_bill` already set the type-checks-first precedent. Clarify's real value was that the decisions got written down before the code, not that it found something review couldn't. The analyze HIGH finding (`range`) was also already covered by the answer key.
 > - **Verdict.** At this size, **Full SDD does not earn its cost**. This feature fails decision-gate question 2 on [Home](index.md): it's not bigger than one sitting. **Light SDD** (a short spec with the rounding rule, plus a brief plan) would have captured the important decision, which is who gets the leftover cent. We used Full SDD here as a rehearsal, so you know every step before L3, where features span many sessions and the cost pays back.
 
+## Why this order, and how you'd choose
+
+The steps above make five judgment calls. Here is what L2 decided, the reason where the page gives one, and how you'd make the same call on your own project. Where the page gives no reason, we say so.
+
+- **The second feature.** L2 adds `split_weighted` because real bills aren't even, and deciding who gets the leftover cent "is exactly what a spec is for" ([The feature](#the-feature)). *How you'd choose:* once a first change has tested the loop, pick one that forces a real decision the spec has to record. If any two builders would write the same code, specify and clarify have nothing to do.
+- **How to answer clarify.** For "which error wins?" we picked type checks first, "the same as `split_bill`". The page gives no reason for "list or tuple" over any iterable. *How you'd choose:* where existing code already sets a precedent, follow it unless you mean to change it, and say so. Where there's none, pick the narrowest answer you can test, because widening a rule later is easier than narrowing it.
+- **Keeping the model's rounding rule.** The free model picked "largest remainder, ties to the earlier person" by itself (FR-006). The page checks it against the examples by hand, but doesn't say why we kept it over another rule. *How you'd choose:* test a model's rule against the promise you wrote first: here, every share is less than one cent from exact, and the shares add up to the total. Keep it if it meets the promise and you can explain it in one line. If not, change it in the spec, not in the code.
+- **Which analyze findings to fix now.** The page's rule is to fix every HIGH before implement. After A1 was fixed, G1, I2 and the LOW items stayed open, and the page doesn't say why each one waited. *How you'd choose:* fix now anything that changes what a test should expect. Write the rest down with a reason, as section 7 does.
+- **Full or Light SDD.** The [retrospective](#10-retrospective) says Full SDD didn't earn its cost here; we used it as a rehearsal. *How you'd choose:* if the feature fits in one sitting and has one real decision, write a short spec with that decision and a brief plan.
+
+**Try it on your project.**
+
+1. What's the one decision in your next feature that two careful builders would make differently?
+2. For each clarify question you get, does existing code already answer it?
+3. Is the feature bigger than one sitting? If not, what does a Light SDD spec need to say?
+
 ## Checklist
 
 - [ ] Working on your own branch (`git switch -c my-l2`), not on `l2-start`
