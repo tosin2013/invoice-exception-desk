@@ -180,6 +180,21 @@ You can't reproduce the key numbers yourself, because the key isn't published. Y
 - **The default Ralph config pointed at a paid model.** We overrode it from outside the tree instead of editing the installed file, so the setup commit stayed the only change under `.specify/`.
 - **Ralph makes several commits.** Rule V says spec, tests and code land in one commit. For this lesson only, `request-v1.md` allows Ralph's multi-commit history on one branch, graded as one bundle. That isn't a constitution change.
 
+## Why this order, and how you'd choose
+
+The steps above make four judgment calls. Here is what L5 decided, the reason where the page gives one, and how you'd make the same call on your own project. Where the page gives no reason, we say so.
+
+- **Which change to run unattended.** FR-007a is small and clearly ruled, so the agent has no policy to invent. It isn't trivial either: one existing test breaks, and only the right fix keeps the 365-day case, which the sealed key can check. *How you'd choose:* pick a change with no open policy questions that still has one wrong but tempting fix. That's what shows whether your checks work.
+- **What goes in the ruling.** Nobody is there to answer questions, so [`request-v1.md`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/specs/003-desk-import/request-v1.md) holds the rule, the known impact, the allowed files, the limits and the handover. *How you'd choose:* list every question you answered live in L4 and write the answer down first. Write the known breakage and its right fix in too, so the builder doesn't have to guess.
+- **How big the limits are.** The page lists the limits (10 iterations, 15 minutes per call, 90 per run, 300 lines) but doesn't say how they were picked. Run r4 used about 5 minutes and 142 of the 300 lines. *How you'd choose:* estimate the change, then set the limits a few times larger, so a normal run finishes well inside them and a runaway one stops early. Write the limits down before you seal.
+- **Rerun, or waive the rule.** Run r3 passed every case but failed on a stray `uv.lock`. The custodian wouldn't waive a sealed rule, "which is the point of a seal", and Tosin chose a clean rerun. *How you'd choose:* when a seal catches an environment mistake, fix the environment, re-seal and rerun. Loosening the rule after the fact turns every seal into a suggestion.
+
+**Try it on your project.**
+
+1. Could your next change run with nobody to answer a question? List what you'd have to decide first.
+2. Which existing test does it break, and what's the right fix versus the lazy one?
+3. Does your test command write any file into the tree?
+
 ## Checklist
 
 - [ ] The human rules on the change first, in one frozen, signed document
