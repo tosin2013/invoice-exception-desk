@@ -95,6 +95,39 @@ Never bake a credential into the image, commit it, or write its value into `ralp
 
 **Rule of thumb:** one model credential per box: dedicated, spend-capped, short-lived where possible, passed at run time and never built in. If you can't say what it costs at worst and how to revoke it, it doesn't go in.
 
+### Container images for the agent
+
+**This guide recommends images; it doesn't build or publish any.** Harnesses ship almost daily, so an image nobody owns and rebuilds goes stale fast. Build or pick your own with the checklist below. Apart from our own box, nothing here is tested in our runs; vendor facts were checked against their docs on Oct 28, 2026, and change quickly.
+
+**Worked example: our box.** It lived in the course kit (not in the repo) and only ran OpenCode on a free model: a locked-down Docker container on a keyless Ubuntu host ([L5, section 3](https://tosin2013.github.io/invoice-exception-desk/L5-agent-loop.html)): non-root, read-only root, no capabilities, no credentials and no git remote ([the loop, step 4](#4-the-end-to-end-loop)). It ran with `--rm`, a tmpfs `HOME`, the harness config mounted read-only (`tools/opencode.json`) and `UV_NO_PROJECT=1` (no stray lockfile); preflight probes ran first and the work came out as a `git bundle`. Record the image's config digest, not just its ID (L5).
+
+**A good agent image has:**
+
+- a slim base pinned by digest (`FROM <image>@sha256:...`);
+- one harness, with its CLI version pinned (an npm `@x.y.z`, or a release file checked by SHA-256) and auto-update off (Claude Code: `DISABLE_AUTOUPDATER=1`);
+- a non-root user (Claude Code's skip-permissions mode refuses to run as root);
+- no credentials baked in: no key in `ARG`, `ENV` or a copied file (see Docker specifics above);
+- run flags `--read-only --tmpfs /tmp --tmpfs $HOME --cap-drop ALL --security-opt no-new-privileges`;
+- egress limited **outside** the container (host firewall or egress proxy, model endpoint only), not by an in-container firewall that needs `NET_ADMIN`;
+- if you maintain it: Dependabot or Renovate for the base digest and CLI version, plus a CI rebuild with a `--version` smoke test.
+
+**Options.**
+
+1. **Build your own thin image, one per harness (the default).** It works on plain Docker Engine. For OpenCode, copy the binary from the official versioned image `ghcr.io/anomalyco/opencode:<version>` into your own non-root image instead of running it as is (it probably runs as root; unverified). Copilot has no official image; [GitHub's docs](https://docs.github.com/en/copilot/how-tos/copilot-sdk/setup/backend-services) give a sample Dockerfile built from the release download.
+2. **[Docker Sandboxes](https://docs.docker.com/ai/sandboxes/) (`sbx`), the closest ready-made option.** Each agent runs in a microVM; the host injects the model credential, so it never enters the VM; egress can be deny-all with per-host allow rules; and in clone mode you `git fetch` the agent's commits and bundle them on the host. It covers all four Ralph harnesses. Costs: on Linux it needs KVM, Ubuntu 24.04+ and a Docker account login; it's proprietary (free to use) and changes fast (v0.50 in late October 2026); building custom templates is documented as needing Docker Desktop. Prefer the non-`-docker` templates (not privileged in the VM). Untested in our runs.
+3. **Others, briefly.** Claude Code's devcontainer is only an example: borrow its recipe. `codex-universal` is stale and lacks the Codex CLI. `docker/sandbox-templates` are meant for `sbx`, not a bare `docker run`. Hosted sandboxes add an account and send code off your machine.
+
+**Optional: native login instead of an API key.** The default stays a spend-capped API key. If one person opts in to their own subscription (a wrapper switch such as `RALPH_AUTH=native`; Ralph has no such setting), a one-time login container with no repo writes to a named volume per user and per harness (`ralph-auth-<harness>-<user>`), and the run gets only that one token or file, mounted outside the workspace. The preflight allows exactly that one declared path, and still fails on `~/.ssh`, `~/.config/gh`, `GH_TOKEN` and `GITHUB_TOKEN`.
+
+- **Claude Code:** pass the token from `claude setup-token` as `CLAUDE_CODE_OAUTH_TOKEN` (no volume needed). Personal use of your own plan only, never shared.
+- **Codex:** `auth.json` refreshes itself, so it can't be read-only; one file per runner. OpenAI says to use API keys for automation.
+- **OpenCode:** mount only `auth.json`, read-only. No Claude Pro/Max login.
+- **Copilot:** its login is a GitHub token, which breaks the no-token rule; see the cheat sheet above.
+
+Subscriptions are **plan-limited, not spend-capped**, so they don't meet the spend-cap rule; say so in the ruling. Untested in our runs.
+
+**Rule of thumb:** recommend images, don't ship them. One harness per image, pinned by digest and version, non-root, read-only, nothing secret inside. If nobody will rebuild it, use a maintained runner such as `sbx` instead.
+
 ## 3. Prerequisites
 
 What our runs used (pin your own versions and trust your own `--help` over ours):
@@ -542,7 +575,7 @@ Branches without CI (our `main`) are ungraded; schedule their bumps less often. 
 7. **Write the ruling as a GitHub issue** with everything in section 4, step 2. Have the human approve it and add `agent-ready`.
 8. **Write the acceptance tests from the issue,** with its exact inputs, and keep them outside the builder's reach.
 9. **Add a read-only CI workflow** (no secrets): full suite, `acceptance/` when present, base test IDs still present, diff-size summary. Merge it before the first run. Copy ours: [`ci.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/.github/workflows/ci.yml).
-10. **Build the box** (for an unattended run): a container on a host with no keys or tokens beyond the one model credential, passed at run time, and no push remote; the issue snapshot hash-checked; preflight probes; scope checks after every call; clean-tree check after the baseline tests; output as a `git bundle`.
+10. **Build the box** (for an unattended run): a container on a host with no keys or tokens beyond the one model credential, passed at run time, and no push remote; the issue snapshot hash-checked; preflight probes; scope checks after every call; clean-tree check after the baseline tests; output as a `git bundle`. Use a thin, pinned, non-root image per harness ([Container images for the agent](#container-images-for-the-agent)).
 11. **Install the loop driver in its own commit** (Ralph or your wrapper), set the agent and model from outside the tree, and set the caps in section 7.
 12. **Run.** The builder writes the spec trail (dated Clarification, spec, plan, tasks, analyze) in the fixed order, then implements. Unattended, the approved ruling is the gate: it answers every clarify question in advance, and anything it doesn't answer is a stop. The loop works one user story per iteration and never edits the spec or plan ([how the Ralph loop runs each spec](#how-the-ralph-loop-runs-each-spec)). Step by step, use the review gates in [Run Spec Kit step by step](#run-spec-kit-step-by-step-no-assumptions).
 13. **Verify the bundle** (hash and head), run the local self-check once, push the bundle unchanged, add the grader commit, open the PR.
