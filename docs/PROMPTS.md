@@ -1,6 +1,6 @@
 ---
 title: "Prompts: what to say to your AI"
-description: "Copy-paste prompts for the Invoice Exception Desk pattern, one per situation: a new project, an existing repo, a controller/worker run, picking a harness and model, turning roadmap rows into issues, and picking up after a break."
+description: "Copy-paste prompts for the Invoice Exception Desk pattern, one per situation: a new project, an existing repo, a controller/worker run, picking a harness and model, turning roadmap rows into issues, picking up after a break, and moving the roadmap forward."
 ---
 
 # Prompts: what to say to your AI
@@ -129,3 +129,18 @@ https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#5-roles-and-tru
 ```
 
 Read more: [5. Roles and trust boundaries](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#5-roles-and-trust-boundaries) · [L3.5: Handing work between coding agents](L35-agent-handoff.md)
+
+## 7. Move the roadmap forward
+
+**When to use this:** you have a ROADMAP.md and want to know what's done, what's next, and fix drift.
+
+```text
+Read ROADMAP.md, the open issues and merged PRs, and the specs/ folder.
+1. Tell me which roadmap rows are done, in progress or blocked, with evidence (PR, spec, test results). Don't mark anything done without evidence.
+2. Recommend the next 1–3 rows to start, based on priority, dependencies and what's unblocked. Explain each choice in one line.
+3. Flag any drift: specs with no roadmap row, rows with no spec, or a stale status.
+4. Propose the ROADMAP.md edits as a diff, and keep any integrity steps the repo uses (hashes, drift check).
+Stop there. Don't edit files, open issues or start a spec until I approve. Once I pick a row, start /speckit.specify for that row only.
+```
+
+Read more: [PM: plan the roadmap first](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#pm-plan-the-roadmap-first)
