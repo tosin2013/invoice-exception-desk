@@ -279,6 +279,22 @@ Then Tosin merged [PR #8](https://github.com/tosin2013/invoice-exception-desk/pu
 - **Stale "unchanged" lines.** 004's plan, quickstart and research, and 003's T018/T030, say files "must remain unchanged" that L4 changed. They were scope rules for an earlier build. We accepted them, with a reason, in `drift.md`, rather than rewriting history.
 - **A pre-existing bug found before the start.** While planning L4, a probe showed that `set_owner` and `set_notes` failed on a one-shot iterator. It was fixed and reviewed on its own (PR #7) **before** `l4-start` was cut, so the L4 change didn't mix with an unrelated fix.
 
+## Why this order, and how you'd choose
+
+The steps above make five judgment calls. Here is what L4 decided, the reason where the page gives one, and how you'd make the same call on your own project. Where the page gives no reason, we say so.
+
+- **Which spec to edit.** We edited 003 because FR-008 lives there. The rule for choosing is already on this page: [Edit the old spec, or start a new one?](#edit-the-old-spec-or-start-a-new-one).
+- **Supersede and flip, don't delete.** FR-008 is kept and struck through, so old links, tests and reviews that cite it still make sense. The zero-amount test was renamed and inverted, because a deleted test leaves no trace of the old promise. *How you'd choose:* supersede any requirement someone might cite. Change a test you're flipping rather than replacing it, so the diff shows which promise moved.
+- **Who answers clarify.** The rulings already covered questions 1 to 3. Questions 4 and 5 were answered from the run brief and the constitution, and review later flagged Q4 as a governance call the human should confirm. *How you'd choose:* a human answers anything that changes a promise to another feature or to users. Other answers can come from a written brief, as long as the spec says who gave them.
+- **Synthetic tests or a changed fixture.** We added synthetic tests and left the frozen fixture byte-unchanged (Q5, option A); the page notes that AT-01 to AT-04 must not move. Q5 was answered from the run brief and the constitution, and the page doesn't say why option B (new rows and a regenerated key) was turned down. *How you'd choose:* keep a shared fixture frozen when other features or keys depend on it. Change it only when the new rule can't be shown any other way, and plan to regenerate everything that depends on it.
+- **Fix the drift, or accept it.** The four HIGH findings were stale text, and we fixed them. The stale "must remain unchanged" lines were accepted in `drift.md`, because they were scope rules for an earlier build and rewriting them would rewrite history. *How you'd choose:* fix any text that would mislead the next reader about current behaviour. Accept historical scope notes, with a reason, in a drift log.
+
+**Try it on your project.**
+
+1. Which spec owns the rule you're changing, and which other specs repeat it?
+2. Which tests will flip, and can you rename and invert them instead of deleting them?
+3. Which questions does your ruling not cover, and who should answer them?
+
 ## Checklist
 
 - [ ] Working on your own branch (`git switch -c my-l4`)
