@@ -52,6 +52,8 @@ No. A sandbox matters when an agent runs code **unattended**, with no person app
 
 Our box held no credentials because the free model needed none. A paid, subscription or company model means **one** model credential goes into the box. Ralph doesn't manage it: it passes `--model` to the harness and stores no credentials ([Ralph README](https://github.com/Rubiss-Projects/spec-kit-ralph)). The harness reads them from its own env vars or files, so the box has to supply them.
 
+**Tested so far:** our lesson runs (L5–L7) only proved the free OpenCode model with no credentials. The other harness and provider combinations below follow each tool's official docs but haven't been tested in our runs yet, so do a short dry run (one task, low `--max-iterations`) before an unattended loop.
+
 **Ask the user first** (don't assume OpenCode or a free model):
 
 1. **Harness:** `copilot`, `codex`, `claude` or `opencode` for Ralph, or another one behind a wrapper (section 2).
