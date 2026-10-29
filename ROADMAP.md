@@ -59,9 +59,8 @@ ticked and the suite on `l5-setup` passes. But R1's scope also names AT-09 (no n
 (fresh-checkout reproducibility), which no spec covers yet, and the R1 exit has not been reviewed by the
 Founder. Set `done` when that review happens, with the PR that records it.
 
-**Known sync gap (pending):** `l5-setup:specs/004-deterministic-followup-queue/spec.md` does not yet
-open with `Input: Parent roadmap -> R1` (003's Input names R1 in prose). Fixing it is an edit on
-`l5-setup` and needs its own approval; until then the R1 → 004 link exists only in this file.
+**Spec back-links:** `l5-setup:specs/004-deterministic-followup-queue/spec.md` opens with
+`Input: Parent roadmap -> R1` (added in PR #40, `ca86ed4`); 003's Input names R1 in prose.
 
 **R0 acceptance, honestly:** R0's `done` predates this legend. It was written by the R0 run itself
 and frozen in commit `8de94f6`; its evidence is that freeze record (`R0_REPORT.md`, `MANIFEST.sha256`,
