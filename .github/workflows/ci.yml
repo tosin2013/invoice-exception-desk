@@ -23,7 +23,7 @@ jobs:
         with:
           fetch-depth: 0  # the base commit is needed for the comparisons below
 
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           python-version: "3.12"
 
