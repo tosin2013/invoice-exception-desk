@@ -43,12 +43,17 @@ checklist for an AI", in order:
 6. Write acceptance tests from the issue and keep them out of the builder's reach.
 7. Add a read-only CI workflow with no secrets as the grader, before the first run.
 8. Set up the builder: a capped loop (Ralph, or a wrapper with section 7's caps and
-   stops) in a sandbox with no keys, tokens or push access. It writes the spec, plan
-   and tasks, then implements, and its work comes out as a git bundle.
+   stops) in a sandbox with no keys, tokens or push access. Ask who launches it:
+   I do, or you may after I approve a specific run (PLAYBOOK, "Who launches the
+   worker"). Record my answer in the project instructions file when I approve that
+   edit. That choice is not a launch. One user story per pass. Work comes out as a
+   git bundle.
 9. Add the acceptance tests as one separate grader commit, and add Dependabot
    (section 8) once CI exists.
 
-Don't push, open a PR or merge without my OK.
+Don't push, open a PR, merge, or start the loop without my scoped go. That go names
+the story or batch, the sandbox or target, the review checkpoints, and the stopping
+conditions.
 ```
 
 Prefer to do it by hand? The short path:

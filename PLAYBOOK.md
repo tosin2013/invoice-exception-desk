@@ -26,6 +26,8 @@ The rules, each with its reason:
 5. **The human stays in the loop at every Spec Kit step** (constitution, specify, clarify, plan, tasks, implement) and answers every clarify question ([Run Spec Kit step by step](#run-spec-kit-step-by-step-no-assumptions)). Unattended, the approved ruling answers them in advance. *Why:* the spec is the contract.
 6. **Keep governance minimal.** Keep only the gates that protect correctness (independent grading, human merge) and credentials (the keyless box). *Why:* process that catches nothing just slows engineering.
 
+**Who launches the worker** is asked at setup and written into the committed project instructions the harness already loads. The choices are: a human launches, or the controller may launch and manage a run after a separate scoped approval. If that line is missing, ask again before the first launch. Choosing controller-managed mode does not approve any run. Details: [Who launches the worker](#who-launches-the-worker). *Why:* the human chooses who may start the worker, and each run still needs its own go.
+
 **Where our runs bent rule 1:** in L5 to L7 the worker wrote the spec trail from the controller's frozen ruling, and the human reviewed it in the PR. That works only when the ruling settles everything; by default the human approves the spec, plan and tasks before the loop starts.
 
 ## 1. The pattern in a few sentences
@@ -250,7 +252,7 @@ Initial roadmap:
 - its required approvals are in place (from L6 on, the ruling issue has `agent-ready`);
 - the run preflight passes.
 
-Among eligible rows, take the lowest `Order`. A `planned` row is a candidate for `/speckit.specify` ([step by step](#run-spec-kit-step-by-step-no-assumptions)), not a Ralph job. If any input is ambiguous, missing or `blocked`, stop and ask the PM; don't pick around it. Then start Ralph with `--spec-dir specs/<the spec you're building>` ([how the Ralph loop runs each spec](#how-the-ralph-loop-runs-each-spec)). Ralph builds what it's given and never picks the row.
+Among eligible rows, take the lowest `Order`. A `planned` row is a candidate for `/speckit.specify` ([step by step](#run-spec-kit-step-by-step-no-assumptions)), not a Ralph job. If any input is ambiguous, missing or `blocked`, stop and ask the PM; don't pick around it. The launch owner then starts Ralph with `--spec-dir specs/<the spec you're building>` ([how the Ralph loop runs each spec](#how-the-ralph-loop-runs-each-spec), [who launches the worker](#who-launches-the-worker)). An eligible row is not a launch by itself. Ralph builds what it's given and never picks the row.
 
 **Worked example.** Our own [`ROADMAP.md`](https://github.com/tosin2013/invoice-exception-desk/blob/main/ROADMAP.md) had drifted: R1 still said `planned` after its two specs were built and merged.
 
@@ -438,8 +440,8 @@ Our L7 run, end to end: issue #22 → 3-minute run, 1 Ralph iteration → local 
 
 | Role | Does | Never does |
 |---|---|---|
-| **Human** | rules on every change, approves the issue, adds `agent-ready`, says go, merges every PR | lets anything merge without looking at the result |
-| Operator / kit | builds the box, runs preflight and the run, verifies the bundle, adds the grader commit, opens the PR | edits the builder's commits |
+| **Human** | rules on every change, approves the issue, adds `agent-ready`, gives the scoped go for each run, merges every PR | lets anything merge without looking at the result |
+| Operator / kit | builds the box, runs preflight, and starts the run only as [Who launches the worker](#who-launches-the-worker) allows; verifies the bundle, adds the grader commit, opens the PR when the human says to | edits the builder's commits, or holds the worker's credential |
 | Builder (agent + loop driver; ours: free model + Ralph) | writes the spec trail and the code inside the box | sees sealed keys or acceptance tests, touches `.github/`, `acceptance/`, `.specify/`, its own agent folder (`.opencode/` for us), pushes, or reports sizes and counts |
 | Grader (sealed key, self-check, or CI) | decides pass or fail with checks written outside the builder's reach | gets edited by the builder |
 | Reviewer (optional from L7) | checks the PR against the issue, rerunning checks with the issue's exact inputs | reviews its own work |
@@ -450,7 +452,8 @@ The boundaries that matter:
 - **The builder never sees the answer.** Sealed keys live outside the repo and off the build machine; acceptance tests stay in the kit until the bundle is sealed. A builder that can edit its grader isn't being graded.
 - **A human merges every PR.** No auto-merge, for agents or Dependabot.
 - **CI is read-only with no secrets.** `permissions: contents: read`, no deploys. Dependabot-triggered workflows get a read-only token anyway.
-- **Only what's committed crosses a handoff.** Agents don't share memory; a decision that isn't in the spec, plan, tasks or ruling doesn't exist for the next agent ([L3.5](https://tosin2013.github.io/invoice-exception-desk/L35-agent-handoff.html)).
+- **Only what's committed crosses a handoff.** Agents don't share memory; a decision that isn't in the spec, plan, tasks or ruling doesn't exist for the next agent ([L3.5](https://tosin2013.github.io/invoice-exception-desk/L35-agent-handoff.html)). The launch-owner choice uses that same rule: write it in the project instructions file (and in `onboard.yml` on an infra repo).
+- **Who launches the worker is that written choice, plus a scoped go for the run.** Human launch: the controller stages the command and the handoff; the human starts the worker; the controller reviews the reported artifacts. Controller launch: the controller may start, watch, and review only after that go ([Who launches the worker](#who-launches-the-worker)). The mode line, `agent-ready`, and an approved spec are not a launch. A human still merges.
 - **Take numbers from the receipt or CI, not the agent.** In L6 the builder's notes said 167 diff lines; the real diff was 253.
 
 ## 6. The levels
@@ -515,6 +518,26 @@ The loop driver should also refuse to call itself complete unless every task is 
 
 Record the container image's **config digest**, not just its ID; the ID changed on every rebuild even with identical layers (L5).
 
+### Who launches the worker
+
+Ask this during setup. Ask again before the first launch if the choice is not written down. Two choices:
+
+- **Human launches.** The controller stages the exact command and the handoff (approved spec, plan, tasks, caps, sandbox, and where the bundle lands) and stops. The human starts the worker. The controller reviews the artifacts the human reports.
+- **Controller launches.** After a separate scoped approval for that run, the controller may start the worker, watch it, read its outputs, and review at the checkpoints that approval names. Only inside that scope.
+
+Record the choice in the committed project instructions the harness already loads (for example `AGENTS.md`, or `CLAUDE.md` for Claude Code; the same file as the [loop prompt](#how-the-ralph-loop-runs-each-spec)). On an infra repo, record the same line in `onboard.yml` ([setup is declared, not remembered](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK-infra.html)). If the two disagree, stop and ask. Agents don't share memory: a choice that isn't committed doesn't exist next session ([section 5](#5-roles-and-trust-boundaries)). Use those files. Don't add a second config for this choice.
+
+Choosing controller-managed mode does not approve any run. An approved roadmap, an approved spec, and an `agent-ready` label don't either. Each run needs its own explicit go, naming all four:
+
+1. **Story or batch.** One user story per pass. A batch is those passes in order, and it still stops at every required checkpoint. It is not two stories in one iteration. **Medium risk:** a human reviews after each story before the next pass. Launch that one story, then stop; the loop driver would otherwise start the next iteration on its own. **High risk** (security, data, infrastructure, or anything hard to reverse): no loop. Build step by step, with a human review of each change. Controller-managed mode does not override that.
+2. **Sandbox and target.** Which approved host and box. Any host is fine (a builder machine, a laptop, a client machine, or a CI runner) under the same box rules. For infra, name the disposable target when a rung above 1 is in scope. **Direct mode** (no worker) stays available; there is nothing to launch ([infra companion](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK-infra.html)).
+3. **Review checkpoints.** At least when the bundle is back. Medium risk adds a checkpoint after every story.
+4. **Stopping conditions.** The caps already written in the ruling (iterations, consecutive failures, fix tries, time, diff size, spend) and the scope stops. A stop or a failed gate ends the run. Retry only inside those approved bounds (the empty-output retries and fix tries already capped in the ruling). Don't add retries past them, and don't widen scope, spend, credentials, or access to get past a stop.
+
+The controller still never holds the worker's credential, and nothing pushes on its own. A launch uses the same run-time injection as [Choose a model provider for the Ralph box](#choose-a-model-provider-for-the-ralph-box): an env file outside the repo, or an env var already in the operator's shell. Don't ask for the secret, don't print it, and don't write it into the repo or the image. A human still approves every change and merges every PR.
+
+A detached process, outside the controller's session, is optional. Use it when the session cannot stay up for the whole run. It is not required. If this environment cannot safely start the worker or tell whether it is still running, say what is missing and hand the staged command to the human. Say the worker launched, or that it is still running, only with evidence: a process, a log, an exit code, or the bundle.
+
 ### How the Ralph loop runs each spec
 
 Checked against [Ralph Loop](https://github.com/Rubiss-Projects/spec-kit-ralph) v1.5.0, the latest tag. Its README, `commands/iterate.md` and `scripts/bash/ralph-loop.sh` are the same files installed on [`l5-setup`](https://github.com/tosin2013/invoice-exception-desk/tree/l5-setup/.specify/extensions/ralph). A wrapper loop for another harness should behave the same way.
@@ -530,7 +553,7 @@ Checked against [Ralph Loop](https://github.com/Rubiss-Projects/spec-kit-ralph) 
 3. Run the tests (ours: `uv run --with pytest python -m pytest -q`).
 4. Tick `[x]` only the tasks whose tests pass, update the handoff in `ralph-memory.md`, and add an entry to `progress.md`.
 5. Make one commit with the change, `tasks.md`, `ralph-memory.md` and `progress.md`.
-6. End. Ralph starts the next iteration, for the next story, as a new process. If no task passes, nothing is ticked and nothing is committed.
+6. End. Ralph starts the next iteration, for the next story, as a new process. If no task passes, nothing is ticked and nothing is committed. On a medium-risk run, stop after the story for the human review in [Who launches the worker](#who-launches-the-worker) before that next pass.
 
 **What the loop never does.** It never runs `/speckit.specify`, `/speckit.clarify`, `/speckit.plan` or `/speckit.tasks`. It never edits `spec.md`, `plan.md`, the constitution, `.specify/` or its agent folder; its only spec-folder edits are `tasks.md` checkboxes, `ralph-memory.md` and `progress.md`. If a task is unclear, conflicts with the spec or is blocked, it writes the question down (`BLOCKED: <task ID>: <question>` in `progress.md`, and in the run's `questions.md` if there is one) and ends with no commit. Left alone, Ralph v1.5.0 would note it and try again or skip to another task. So your wrapper checks for the note after every call and stops the run. That's our "stop on a contract question" (`questions.md` stayed empty in L6 and L7). A human answers by editing the ruling or the spec, then reruns.
 
@@ -555,7 +578,7 @@ bash .specify/extensions/ralph/scripts/bash/ralph-loop.sh \
   --spec-dir specs/003-desk-import --max-iterations 10 --model <model>
 ```
 
-Inside an agent session, `/speckit.ralph.run --max-iterations 10` does the same in a new terminal window; on a headless box, use the script. The install also registers an optional `after_tasks` hook that offers to start Ralph. The operator decides when Ralph starts, not the hook.
+Inside an agent session, `/speckit.ralph.run --max-iterations 10` does the same in a new terminal window; on a headless box, use the script. The install also registers an optional `after_tasks` hook that offers to start Ralph. The hook does not start it. Who may start it is [Who launches the worker](#who-launches-the-worker): the human, or the controller after a scoped approval for that run.
 
 **Loop prompt.** Ralph v1.5.0 has no setting for extra instructions. Each iteration it sends `.specify/extensions/ralph/commands/iterate.md` as installed, and the launcher ignores free text. Leave that file alone. Put the rules below where the agent reads them on every fresh call: commit them in the setup commit as the project instructions file your harness loads (for example `AGENTS.md`, or `CLAUDE.md` for Claude Code; check your harness), or have your wrapper add them in front of Ralph's prompt.
 
@@ -586,7 +609,7 @@ Branches without CI (our `main`) are ungraded; schedule their bumps less often. 
 
 ## 9. Apply this to a new project: checklist for an AI
 
-1. **Ask the user which harness they use:** the coding agent or CLI, the model, and the budget. Or check what's installed (for example `command -v claude codex copilot gemini cursor-agent opencode`) and confirm with them. Don't assume OpenCode. Also ask which model provider (a paid key, a subscription login, a cloud endpoint such as Vertex AI, Bedrock or Azure, a gateway, or a local model) and the spend cap ([Choose a model provider for the Ralph box](#choose-a-model-provider-for-the-ralph-box)), and whether they'll run the builder unattended or approve each step; that decides whether they need a sandbox ([Do I always need a sandbox?](#do-i-always-need-a-sandbox)). Confirm the controller/worker pair with them: who controls (a person, or which strong model) and which harness and model do the building ([The philosophy](#the-philosophy-controller-and-worker)).
+1. **Ask the user which harness they use:** the coding agent or CLI, the model, and the budget. Or check what's installed (for example `command -v claude codex copilot gemini cursor-agent opencode`) and confirm with them. Don't assume OpenCode. Also ask which model provider (a paid key, a subscription login, a cloud endpoint such as Vertex AI, Bedrock or Azure, a gateway, or a local model) and the spend cap ([Choose a model provider for the Ralph box](#choose-a-model-provider-for-the-ralph-box)), and whether they'll run the builder unattended or approve each step; that decides whether they need a sandbox ([Do I always need a sandbox?](#do-i-always-need-a-sandbox)). Confirm the controller/worker pair with them: who controls (a person, or which strong model) and which harness and model do the building ([The philosophy](#the-philosophy-controller-and-worker)). Ask who launches the worker ([Who launches the worker](#who-launches-the-worker)). When they answer, record it in the project instructions file the harness loads (and in `onboard.yml` on an infra repo). If it is unset, ask again before the first launch. The recorded choice does not approve a run.
 2. **Map the loop to that harness** (section 2). Find its Spec Kit integration key and its headless command. If Ralph supports it (`copilot`, `codex`, `claude`, `opencode`), use Ralph; otherwise use a small wrapper with the caps and stops in section 7. If it has no headless mode or no loop driver, run the builder step by step instead: a human drives the loop, one fresh session per task, approving each step (a normal dev machine is fine, see [Do I always need a sandbox?](#do-i-always-need-a-sandbox); acceptance tests and sealed keys still stay out of the builder's reach), counting the same caps and running the same scope checks after each step. Everything after the builder (bundle, grader commit, CI, human merge) stays the same.
 3. **Run the decision gate** ([Home](https://tosin2013.github.io/invoice-exception-desk/)). If the answer is "no SDD" or "light SDD", stop here and use a normal PR or a short spec.
 4. **Set up Spec Kit** with the harness's key, using the exact commands in [Run Spec Kit step by step](#run-spec-kit-step-by-step-no-assumptions); if one fails, stop and show the user the error. New repo: `specify init <project-name> --integration <key>` ([L1](https://tosin2013.github.io/invoice-exception-desk/L1-setup.html)). Existing repo: inventory first, change nothing, then `specify init --here --integration <key>` and record the test baseline ([L0](https://tosin2013.github.io/invoice-exception-desk/L0-existing-repo.html)). Pin the `specify` version.
@@ -597,7 +620,7 @@ Branches without CI (our `main`) are ungraded; schedule their bumps less often. 
 9. **Add a read-only CI workflow** (no secrets): full suite, `acceptance/` when present, base test IDs still present, diff-size summary. Merge it before the first run. Copy ours: [`ci.yml`](https://github.com/tosin2013/invoice-exception-desk/blob/l5-setup/.github/workflows/ci.yml).
 10. **Build the box** (for an unattended run): a container on a host with no keys or tokens beyond the one model credential, passed at run time, and no push remote; the issue snapshot hash-checked; preflight probes; scope checks after every call; clean-tree check after the baseline tests; output as a `git bundle`. Use a thin, pinned, non-root image per harness ([Container images for the agent](#container-images-for-the-agent)).
 11. **Install the loop driver in its own commit** (Ralph or your wrapper), set the agent and model from outside the tree, and set the caps in section 7.
-12. **Run.** The builder writes the spec trail (dated Clarification, spec, plan, tasks, analyze) in the fixed order, then implements. Unattended, the approved ruling is the gate: it answers every clarify question in advance, and anything it doesn't answer is a stop. The loop works one user story per iteration and never edits the spec or plan ([how the Ralph loop runs each spec](#how-the-ralph-loop-runs-each-spec)). Step by step, use the review gates in [Run Spec Kit step by step](#run-spec-kit-step-by-step-no-assumptions).
+12. **Run only under [Who launches the worker](#who-launches-the-worker).** Stage the command and the handoff first. If the recorded owner is the human, stop and let them launch; review the artifacts they report. If the recorded owner is the controller and this run has an explicit scoped go (story or batch, sandbox or target, review checkpoints, stopping conditions), the controller may launch, monitor, inspect outputs, and review at those checkpoints, inside that scope only. A detached process outside the session is optional, not required. If you cannot safely start or watch the worker, say what is missing and leave the launch to the human. Say it launched, or that it is still running, only with evidence (a process, a log, an exit code, or the bundle). The builder writes the spec trail (dated Clarification, spec, plan, tasks, analyze) in the fixed order, then implements. Unattended, the approved ruling is the gate: it answers every clarify question in advance, and anything it doesn't answer is a stop. The loop works one user story per iteration and never edits the spec or plan ([how the Ralph loop runs each spec](#how-the-ralph-loop-runs-each-spec)). Medium risk: a human reviews after each story before the next pass, so launch one story and wait. High risk: no loop; use the review gates in [Run Spec Kit step by step](#run-spec-kit-step-by-step-no-assumptions). Stops and failed gates end the run. Don't retry past the approved caps, and don't widen scope, spend, credentials, or access.
 13. **Verify the bundle** (hash and head), run the local self-check once, push the bundle unchanged, add the grader commit, open the PR.
 14. **Let CI grade it.** If the PR touches existing tests, also keep a byte-level compare or a review.
 15. **A human merges** on green, and closes the issue if it targets a non-default branch.
@@ -610,7 +633,7 @@ Honest limits of what's here today:
 
 - **CI checks that base test IDs exist, not what they contain.** A builder could weaken a test and keep its name, and every CI step would pass. The local byte-level self-check of the base tests covers that; CI alone doesn't. Keep the self-check (in the kit or as a CI step) or a review for any PR that touches existing tests.
 - **Branch protection and required checks are off.** Turning on the `tests` check as required is the real-world next step from L7; until then "CI is the grader" is a habit, not a rule.
-- **No automatic pickup of `agent-ready` issues,** no `needs-human` label after repeated failures, and no several issues at once. A human starts each run.
+- **No automatic pickup of `agent-ready` issues,** no `needs-human` label after repeated failures, and no several issues at once. `agent-ready` is not a launch. Who may start a run is the recorded launch owner ([Who launches the worker](#who-launches-the-worker)); a controller-managed start still needs that section's scoped approval.
 - **The L7 review was skipped** (merged on green CI); that was a judgment call for an additive change with one approved test edit.
 - **`main` has no CI,** so Pages and Dependabot PRs into `main` are ungraded.
 - **The unattended builder loop only ran on OpenCode with Ralph.** (L3.5's handoff also used an OpenAI agent, but not in a loop.) Other harnesses should fit the same steps, but we haven't tried them; Ralph v1.5.0 drives only `copilot`, `codex`, `claude` and `opencode`.

@@ -70,14 +70,21 @@ Your job (controller):
 1. Write and keep the spec, plan and tasks with me, using /speckit.specify, /speckit.clarify, /speckit.plan, /speckit.tasks and /speckit.analyze. I answer every clarify question, and I approve each file before the worker starts.
 2. Help me set up the worker: a cheaper model in a headless harness, run in a sandbox (container or VM) on any host I approve, with a capped loop that builds one user story per pass:
    https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#how-the-ralph-loop-runs-each-spec
-3. You never hold the worker's credential. The worker's box gets one dedicated, spend-capped model credential at run time, no push access and no other keys. Don't ask me to paste it to you.
-4. The worker's output leaves the box as a git bundle. Nothing pushes on its own.
-5. When the bundle comes back, review it against the spec and the acceptance checks the worker never saw. The worker never reviews its own work.
-6. I merge. You never merge, push or open a PR unless I tell you to.
-First ask me which controller and worker harnesses and which host I have. If anything is unclear, stop and ask.
+3. At setup, ask who launches the worker, unless the committed project instructions (AGENTS.md or CLAUDE.md; also onboard.yml on an infra repo) already say. Two choices: I launch, or you may launch and manage a run only after I approve that run. Propose the one-line edit that records my answer; write it when I approve. If the line is missing, ask again before the first launch. Choosing controller-managed mode does not start anything. Direct mode (no worker) stays available when I choose it.
+   https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#who-launches-the-worker
+4. You never hold the worker's credential. The worker's box gets one dedicated, spend-capped model credential at run time, no push access and no other keys. Don't ask me to paste it to you. Launching uses that same run-time injection. Don't print the secret or write it into the repo.
+5. The worker's output leaves the box as a git bundle. Nothing pushes on its own.
+6. A run starts only with an explicit scoped go: the story or batch (one user story per pass), the sandbox or target, the review checkpoints, and the stopping conditions.
+   - Human launch: stage the command and the handoff. I start it. You review the artifacts I report. Don't claim it is running.
+   - Controller launch, and only after that go: you may start it, watch it, read its outputs, and review at those checkpoints, inside that scope only. A detached process outside this session is optional, not required. If you can't safely start or watch it, say what is missing and give me the command. Don't say it launched or is still running without evidence (a process, a log, an exit code, or the bundle).
+   - Medium risk: launch one story, then stop for my review before the next pass. High risk (security, data, infrastructure, or anything hard to reverse): no loop. We go step by step.
+   - Stops and failed gates end the run. Retry only inside the caps I approved. Don't widen scope, spend, credentials, or access.
+7. When the bundle comes back, review it against the spec and the acceptance checks the worker never saw. The worker never reviews its own work.
+8. I merge. You never merge, push or open a PR unless I tell you to.
+First ask me which controller and worker harnesses, which host, and who launches. If anything is unclear, stop and ask.
 ```
 
-Read more: [The philosophy: controller and worker](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#the-philosophy-controller-and-worker) · [Do I always need a sandbox?](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#do-i-always-need-a-sandbox) · [4. The end-to-end loop](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#4-the-end-to-end-loop) · [L5](L5-agent-loop.md)
+Read more: [The philosophy: controller and worker](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#the-philosophy-controller-and-worker) · [Who launches the worker](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#who-launches-the-worker) · [Do I always need a sandbox?](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#do-i-always-need-a-sandbox) · [4. The end-to-end loop](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#4-the-end-to-end-loop) · [L5](L5-agent-loop.md)
 
 ## 4. Choose a harness and a model provider
 
@@ -122,13 +129,13 @@ Read more: [PM: plan the roadmap first](https://tosin2013.github.io/invoice-exce
 I'm picking this work back up (or handing it over). Agents don't share memory, so only what's committed counts:
 https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#5-roles-and-trust-boundaries
 
-1. Don't rely on anything from an earlier chat. Read the committed record: ROADMAP.md, .specify/memory/constitution.md, and the current feature's spec.md, plan.md and tasks.md (plus any handoff or progress notes in the repo), and run git status and git log.
-2. Tell me, briefly: which roadmap row and Spec Kit step we're on, which tasks are ticked, what's uncommitted, and anything that looks out of date or conflicting.
-3. Propose the single next step, spelled the way my agent shows it. Don't run it yet.
+1. Don't rely on anything from an earlier chat. Read the committed record: ROADMAP.md, .specify/memory/constitution.md, the project instructions file (AGENTS.md or CLAUDE.md, and onboard.yml on an infra repo), and the current feature's spec.md, plan.md and tasks.md (plus any handoff or progress notes in the repo), and run git status and git log.
+2. Tell me, briefly: which roadmap row and Spec Kit step we're on, which tasks are ticked, what's uncommitted, who launches the worker (or that it isn't written down), and anything that looks out of date or conflicting.
+3. Propose the single next step, spelled the way my agent shows it. Don't run it yet. If who launches is unset, ask before any launch. A written launch owner is not a go.
 4. Wait for my OK. If a decision isn't written down anywhere, ask me; don't guess.
 ```
 
-Read more: [5. Roles and trust boundaries](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#5-roles-and-trust-boundaries) · [L3.5: Handing work between coding agents](L35-agent-handoff.md)
+Read more: [5. Roles and trust boundaries](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#5-roles-and-trust-boundaries) · [Who launches the worker](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#who-launches-the-worker) · [L3.5: Handing work between coding agents](L35-agent-handoff.md)
 
 ## 7. Move the roadmap forward
 
@@ -142,10 +149,16 @@ Read ROADMAP.md, the open issues and merged PRs, and the specs/ folder.
 4. Propose the ROADMAP.md edits as a diff, and keep any integrity steps the repo uses (hashes, drift check).
 5. For each recommended row, rate its gravity (small, medium or high risk) and suggest how to build it:
    - Small and low risk: stage a Ralph loop, one user story per pass, in the sandbox.
-   - Medium: Ralph loop, but I review after each story before the next pass.
+   - Medium: Ralph loop, one story, then stop for my review before the next pass. Don't start the next pass until I have reviewed.
    - High risk (security, data, infrastructure or anything hard to reverse): no loop. Build it step by step with me reviewing each change.
-   Say why, and ask me to confirm before staging anything. Never start the loop yourself.
+   Say why, and ask me to confirm before staging anything. Staging is not a launch.
+6. Who launches is a separate question. Read the committed project instructions (AGENTS.md or CLAUDE.md, and onboard.yml on an infra repo). If they don't name a launch owner, ask me: I launch the worker, or you may launch and manage it after I approve a specific run. Propose the one-line edit that records my answer; don't write it until I approve. Choosing controller-managed mode is not permission to start. Direct mode (no worker) stays available when I choose it.
+   https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#who-launches-the-worker
+7. A scoped go names the story or batch, the sandbox or target, the review checkpoints, and the stopping conditions. Approving the roadmap, a spec, or agent-ready is not that go.
+   - If I haven't given that go, or the recorded owner is me: stage the command and the handoff, then stop. I launch. You review the artifacts I report.
+   - If the recorded owner is you and I have given that go for this run: you may launch, monitor, inspect outputs, and review at the checkpoints, inside that scope only. A detached process outside this session is optional, not required. If you cannot safely start or watch the worker, say what is missing and hand me the command. Don't say it launched or is still running unless you have evidence (a process, a log, an exit code, or the bundle).
+8. Stops and failed gates end the run. Retry only inside the caps I approved. Don't widen scope, spend, credentials, or access. You never hold the worker credential, and you never merge. I merge.
 Stop there. Don't edit files, open issues or start a spec until I approve. Once I pick a row, start /speckit.specify for that row only.
 ```
 
-Read more: [PM: plan the roadmap first](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#pm-plan-the-roadmap-first) · [How the Ralph loop runs each spec](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#how-the-ralph-loop-runs-each-spec)
+Read more: [PM: plan the roadmap first](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#pm-plan-the-roadmap-first) · [Who launches the worker](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#who-launches-the-worker) · [How the Ralph loop runs each spec](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#how-the-ralph-loop-runs-each-spec)
