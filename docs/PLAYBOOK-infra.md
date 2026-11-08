@@ -37,6 +37,8 @@ Pick per spec, and say which in `plan.md`.
 
 Direct mode drops the sandbox and the `git bundle`, not the gates.
 
+**Who launches, when there is a worker.** Ask at setup, unless `onboard.yml` and the project instructions file already agree. Follow [Who launches the worker](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#who-launches-the-worker). Record the choice in both files when the human approves the edit. Direct mode has no worker to launch.
+
 ## 2. Constitution: infra principles
 
 Add these to `.specify/memory/constitution.md` (keep the project's own principles too). Each is a rule a reviewer can check.
@@ -189,7 +191,7 @@ Spec: <NNN-name>   Cluster/version: ___   Tool versions: ___
 
 ## 9. Reusing it on the next repo (checklist for an AI)
 
-1. Read PLAYBOOK.md, then this file. Ask the user which controller/worker pair and which host runs the sandbox.
+1. Read PLAYBOOK.md, then this file. Ask the user which controller/worker pair, which host runs the sandbox, and who launches the worker (or that this work is direct mode, with no worker). If the launch owner is unset, ask before any launch. Record the answer in `onboard.yml` and the project instructions file when they approve that edit.
 2. Run the decision gate (section 0). If it fails, say so and stop.
 3. Existing repo: read it, write `ROADMAP.md` (what it deploys, how it syncs, current tests, gaps). Check for `onboard.yml`; list every hand step, laptop-only secret, and operator installed outside git. If there's no `onboard.yml`, make writing one the first roadmap item. Stop for human review.
 4. Ask which optional skills (section 7) fit; install only those.
@@ -197,9 +199,9 @@ Spec: <NNN-name>   Cluster/version: ___   Tool versions: ___
 6. Pick one roadmap item. Specify desired state + required rungs. Stop.
 7. Clarify: ask the human the section 3 questions. Do not guess.
 8. Plan and tasks. Stop for review after each.
-9. Worker implements one story per pass, offline, rung 1 only (use the `static-validation` skill if installed), no cluster creds. Output a `git bundle`.
+9. If this spec uses a worker: one story per pass, offline, rung 1 only (use the `static-validation` skill if installed), no cluster creds, output a `git bundle`. Start it only under [Who launches the worker](https://tosin2013.github.io/invoice-exception-desk/PLAYBOOK.html#who-launches-the-worker): stage the command for the human, or launch and monitor after the scoped approval when that mode is recorded. If you cannot safely start or watch the worker, say what is missing and hand over the command. Direct mode: no worker and no bundle; build from `tasks.md` and stop for a human to test.
 10. Controller reviews the bundle against the spec. A human or scoped CI runs rungs 2–6 on a disposable target and saves artifacts.
 11. Tick `VERIFY.md`. Run the repeatability check when required. Human merges. GitOps syncs.
 12. Note what broke in the process; fix this file, not just the repo.
 
-Never: give the worker cluster-admin or production credentials, push from the loop, commit secrets, or accept work without its rung artifacts.
+Never: give the worker cluster-admin or production credentials, push from the loop, commit secrets, or accept work without its rung artifacts. Controller-managed mode is not a launch; the scoped approval is. A human merges.
